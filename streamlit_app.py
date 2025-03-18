@@ -215,49 +215,47 @@ def merge_rows_with_sources(group):
 
 # Fonction principale
 def main():
-    st.title("Comparez les publications d'un labo dans Scopus, OpenAlex et Pubmed avec sa collection HAL")
+    st.title("Générateur de CSV")
 
     # Saisie des paramètres
     scopus_api_key = st.text_input("Scopus API Key")
-    scopus_lab_id = st.text_input("Scopus Lab ID")
-    openalex_institution_id = st.text_input("OpenAlex Institution ID")
-    pubmed_id = st.text_input("PubMed request")
+    scopus_lab_id = st.text_input("Scopus Lab ID", value="Ex : 60276656")
+    openalex_institution_id = st.text_input("OpenAlex Institution ID", value="Ex : I4392021193")
+    pubmed_id = st.text_input("PubMed request", value="Ex : INCIT[Affiliation]")
     start_year = st.number_input("Start Year", min_value=1900, max_value=2100, value=2000)
     end_year = st.number_input("End Year", min_value=1900, max_value=2100, value=2023)
-    collection_a_chercher = st.text_input("Collection HAL", value="Collection HAL")
+    collection_a_chercher = st.text_input("Collection HAL", value="Ex : INCIT")
 
     if st.button("Rechercher"):
-        # Requêtes pour Scopus et OpenAlex
-        scopus_query = f"af-ID({scopus_lab_id}) AND PUBYEAR > {start_year - 1} AND PUBYEAR < {end_year + 1}"
-        openalex_query = f"institutions.id:{openalex_institution_id},publication_year:{start_year}-{end_year}"
-        pubmed_query = f"{pubmed_id} AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
+        # Initialiser des DataFrames vides
+        scopus_df = pd.DataFrame()
+        openalex_df = pd.DataFrame()
+        pubmed_df = pd.DataFrame()
 
-        # Récupérer les données de Scopus
-        scopus_data = get_scopus_data(scopus_api_key, scopus_query)
-        scopus_df = convert_to_dataframe(scopus_data, 'scopus')
+        # Requêtes conditionnelles pour Scopus, OpenAlex et PubMed
+        if scopus_api_key and scopus_lab_id:
+            scopus_query = f"af-ID({scopus_lab_id}) AND PUBYEAR > {start_year - 1} AND PUBYEAR < {end_year + 1}"
+            scopus_data = get_scopus_data(scopus_api_key, scopus_query)
+            scopus_df = convert_to_dataframe(scopus_data, 'scopus')
+            scopus_df = scopus_df[['source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']]
+            scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
 
-        # Récupérer les données d'OpenAlex
-        openalex_data = get_openalex_data(openalex_query)
-        openalex_df = convert_to_dataframe(openalex_data, 'openalex')
+        if openalex_institution_id:
+            openalex_query = f"institutions.id:{openalex_institution_id},publication_year:{start_year}-{end_year}"
+            openalex_data = get_openalex_data(openalex_query)
+            openalex_df = convert_to_dataframe(openalex_data, 'openalex')
+            openalex_df['Source title'] = openalex_df.apply(
+                lambda row: row['primary_location']['source']['display_name'] if row['primary_location'] and row['primary_location'].get('source') else None, axis=1
+            )
+            openalex_df['Date'] = openalex_df['publication_date']
+            openalex_df = openalex_df[['source', 'title', 'doi', 'id', 'Source title', 'Date']]
+            openalex_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+            openalex_df['doi'] = openalex_df['doi'].apply(clean_doi)
 
-        # Récupérer les données de PubMed
-        pubmed_data = get_pubmed_data(pubmed_query)
-        pubmed_df = pd.DataFrame(pubmed_data)
-
-        # Sélectionner les colonnes spécifiques pour Scopus
-        scopus_df = scopus_df[['source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']]
-        scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
-
-        # Sélectionner les colonnes spécifiques pour OpenAlex
-        openalex_df['Source title'] = openalex_df.apply(
-            lambda row: row['primary_location']['source']['display_name'] if row['primary_location'] and row['primary_location'].get('source') else None, axis=1
-        )
-        openalex_df['Date'] = openalex_df['publication_date']
-        openalex_df = openalex_df[['source', 'title', 'doi', 'id', 'Source title', 'Date']]
-        openalex_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
-
-        # Nettoyer les DOI pour OpenAlex
-        openalex_df['doi'] = openalex_df['doi'].apply(clean_doi)
+        if pubmed_id:
+            pubmed_query = f"{pubmed_id} AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
+            pubmed_data = get_pubmed_data(pubmed_query)
+            pubmed_df = pd.DataFrame(pubmed_data)
 
         # Combiner les DataFrames
         combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)

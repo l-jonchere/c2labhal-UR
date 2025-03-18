@@ -1,50 +1,44 @@
 import streamlit as st
 import pandas as pd
-import io
+from metapub import PubMedFetcher
+import requests
 
-def generate_csv(scopus_api_key, scopus_lab_id, openalex_institution_id, pubmed_id, start_year, end_year):
-    # Exemple de données fictives pour les champs spécifiés
-    data = {
-        'Data source': ['Scopus', 'PubMed', 'OpenAlex'],
-        'Title': ['Title 1', 'Title 2', 'Title 3'],
-        'doi': ['10.1000/xyz123', '10.1000/abc456', '10.1000/def789'],
-        'id': [scopus_lab_id, pubmed_id, openalex_institution_id],
-        'Source title': ['Source 1', 'Source 2', 'Source 3'],
-        'Date': [f'{start_year}-01-01', f'{end_year}-01-01', f'{start_year}-06-01']
-    }
-    df = pd.DataFrame(data)
+# Fonctions pour récupérer les données
+def get_pubmed_data(query, max_items=50):
+    fetch = PubMedFetcher()
+    pmids = fetch.pmids_for_query(query, retmax=max_items)
+    data = []
 
-    # Générer le CSV à partir du DataFrame
-    csv = df.to_csv(index=False)
-    return csv
+    for pmid in pmids:
+        article = fetch.article_by_pmid(pmid)
+        pub_date = article.history.get('pubmed', 'N/A')
+        if pub_date != 'N/A':
+            pub_date = pub_date.date().isoformat()
+        data.append({
+            'Data source': 'pubmed',
+            'Title': article.title,
+            'DOI': article.doi,
+            'ID': pmid,
+            'Source Title': article.journal,
+            'Date': pub_date
+        })
+    return pd.DataFrame(data)
 
-def main():
-    st.title("Générateur de CSV")
+# Interface Streamlit
+st.title('PubMed Data Extractor')
 
-    # Saisie des paramètres
-    scopus_api_key = st.text_input("Scopus API Key")
-    scopus_lab_id = st.text_input("Scopus Lab ID")
-    openalex_institution_id = st.text_input("OpenAlex Institution ID")
-    pubmed_id = st.text_input("PubMed ID")
-    start_year = st.number_input("Start Year", min_value=1900, max_value=2100, value=2000)
-    end_year = st.number_input("End Year", min_value=1900, max_value=2100, value=2023)
+# Champs de saisie
+pubmed_id = st.text_input('PubMed ID (Affiliation)', 'incit')
+start_year = st.number_input('Start Year', min_value=1900, max_value=2100, value=2020)
+end_year = st.number_input('End Year', min_value=1900, max_value=2100, value=2021)
+max_items = st.slider('Max Articles', 1, 100, 50)
 
-    if st.button("Télécharger le CSV"):
-        # Générer le CSV
-        csv = generate_csv(scopus_api_key, scopus_lab_id, openalex_institution_id, pubmed_id, start_year, end_year)
+# Bouton de lancement
+if st.button('Fetch Data'):
+    pubmed_query = f"{pubmed_id}[Affiliation] AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
+    df = get_pubmed_data(pubmed_query, max_items)
+    st.write(df)
+    csv = df.to_csv(index=False).encode('utf-8')
+    st.download_button('Download CSV', csv, 'pubmed_results.csv', 'text/csv')
 
-        # Créer un objet BytesIO pour stocker le CSV
-        csv_bytes = io.BytesIO()
-        csv_bytes.write(csv.encode('utf-8'))
-        csv_bytes.seek(0)
-
-        # Proposer le téléchargement du CSV
-        st.download_button(
-            label="Télécharger le CSV",
-            data=csv_bytes,
-            file_name="parametres.csv",
-            mime="text/csv"
-        )
-
-if __name__ == "__main__":
-    main()
+st.write('Made with ❤️ using Streamlit')

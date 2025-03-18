@@ -189,6 +189,30 @@ def statut_doi(do, dois_coll):
         else:
             return "hors HAL"
 
+# Fonction pour fusionner les lignes en gardant les valeurs identiques et en concaténant les valeurs différentes
+def merge_rows_with_sources(group):
+    # Conserver les IDs et les sources séparés par un |, et fusionner les autres champs
+    merged_ids = '|'.join(group['id'])
+    merged_sources = '|'.join(group['Data source'])
+
+    # Initialiser une nouvelle ligne avec les valeurs de la première ligne
+    first_row = group.iloc[0].copy()
+
+    # Pour chaque colonne, vérifier si les valeurs sont identiques ou différentes
+    for column in group.columns:
+        if column not in ['id', 'Data source']:
+            unique_values = group[column].unique()
+            if len(unique_values) == 1:
+                first_row[column] = unique_values[0]
+            else:
+                first_row[column] = '|'.join(map(str, unique_values))
+
+    # Mettre à jour les IDs et les sources dans la nouvelle ligne
+    first_row['id'] = merged_ids
+    first_row['Data source'] = merged_sources
+
+    return first_row
+
 # Fonction principale
 def main():
     st.title("Générateur de CSV")
@@ -254,8 +278,11 @@ def main():
             else:
                 combined_df.loc[i, 'Statut'] = ret_doi
 
+        # Fusionner les lignes en double
+        merged_data = combined_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+
         # Générer le CSV à partir du DataFrame
-        csv = combined_df.to_csv(index=False)
+        csv = merged_data.to_csv(index=False)
 
         # Créer un objet BytesIO pour stocker le CSV
         csv_bytes = io.BytesIO()

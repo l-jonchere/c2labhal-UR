@@ -215,7 +215,7 @@ def merge_rows_with_sources(group):
 
 # Fonction principale
 def main():
-    st.title("Générateur de CSV")
+    st.title("Comparez les publications d'un labo dans Scopus, OpenAlex et Pubmed avec sa collection HAL")
 
     # Saisie des paramètres
     scopus_api_key = st.text_input("Scopus API Key")

@@ -2,3 +2,6 @@ streamlit
 pandas
 requests
 metapub
+regex 
+unidecode 
+langdetect

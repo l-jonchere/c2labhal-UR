@@ -226,7 +226,7 @@ def main():
     end_year = st.number_input("End Year", min_value=1900, max_value=2100, value=2023)
     collection_a_chercher = st.text_input("Collection HAL", value="GEPEA")
 
-    if st.button("Télécharger le CSV"):
+    if st.button("Rechercher"):
         # Requêtes pour Scopus et OpenAlex
         scopus_query = f"af-ID({scopus_lab_id}) AND PUBYEAR > {start_year - 1} AND PUBYEAR < {end_year + 1}"
         openalex_query = f"institutions.id:{openalex_institution_id},publication_year:{start_year}-{end_year}"

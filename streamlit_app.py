@@ -1,18 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Mar 18 15:41:22 2025
-
-@author: godet-g
-"""
-
 import streamlit as st
 import pandas as pd
 import io
 import requests
-import json
-import gzip
-import csv
-import os
 from metapub import PubMedFetcher
 
 # Fonction pour récupérer les données de Scopus
@@ -118,47 +107,57 @@ def main():
     start_year = st.number_input("Start Year", min_value=1900, max_value=2100, value=2000)
     end_year = st.number_input("End Year", min_value=1900, max_value=2100, value=2023)
 
-    # Requêtes pour Scopus et OpenAlex
-    scopus_query = f"af-ID({scopus_lab_id}) AND PUBYEAR > {start_year - 1} AND PUBYEAR < {end_year + 1}"
-    openalex_query = f"institutions.id:{openalex_institution_id},publication_year:{start_year}-{end_year}"
-    pubmed_query = f"{pubmed_id}[Affiliation] AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
+    if st.button("Télécharger le CSV"):
+        # Requêtes pour Scopus et OpenAlex
+        scopus_query = f"af-ID({scopus_lab_id}) AND PUBYEAR > {start_year - 1} AND PUBYEAR < {end_year + 1}"
+        openalex_query = f"institutions.id:{openalex_institution_id},publication_year:{start_year}-{end_year}"
+        pubmed_query = f"{pubmed_id}[Affiliation] AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
 
+        # Récupérer les données de Scopus
+        scopus_data = get_scopus_data(scopus_api_key, scopus_query)
+        scopus_df = convert_to_dataframe(scopus_data, 'scopus')
 
-    # Récupérer les données de Scopus
-    scopus_data = get_scopus_data(scopus_api_key, scopus_query)
-    scopus_df = convert_to_dataframe(scopus_data, 'scopus')
+        # Récupérer les données d'OpenAlex
+        openalex_data = get_openalex_data(openalex_query)
+        openalex_df = convert_to_dataframe(openalex_data, 'openalex')
 
-    # Récupérer les données d'OpenAlex
-    openalex_data = get_openalex_data(openalex_query)
-    openalex_df = convert_to_dataframe(openalex_data, 'openalex')
+        # Récupérer les données de PubMed
+        pubmed_data = get_pubmed_data(pubmed_query)
+        pubmed_df = pd.DataFrame(pubmed_data)
 
-    # Récupérer les données de PubMed
-    pubmed_data = get_pubmed_data(pubmed_query)
-    pubmed_df = pd.DataFrame(pubmed_data)
+        # Sélectionner les colonnes spécifiques pour Scopus
+        scopus_df = scopus_df[['source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']]
+        scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
 
-    # Sélectionner les colonnes spécifiques pour Scopus
-    scopus_df = scopus_df[['source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']]
-    scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+        # Sélectionner les colonnes spécifiques pour OpenAlex
+        openalex_df['Source title'] = openalex_df.apply(
+            lambda row: row['primary_location']['source']['display_name'] if row['primary_location'] and row['primary_location'].get('source') else None, axis=1
+        )
+        openalex_df['Date'] = openalex_df['publication_date']
+        openalex_df = openalex_df[['source', 'title', 'doi', 'id', 'Source title', 'Date']]
+        openalex_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
 
-    # Sélectionner les colonnes spécifiques pour OpenAlex
-    openalex_df['Source title'] = openalex_df.apply(
-        lambda row: row['primary_location']['source']['display_name'] if row['primary_location'] and row['primary_location'].get('source') else None, axis=1
-    )
-    openalex_df['Date'] = openalex_df['publication_date']
-    openalex_df = openalex_df[['source', 'title', 'doi', 'id', 'Source title', 'Date']]
-    openalex_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+        # Nettoyer les DOI pour OpenAlex
+        openalex_df['doi'] = openalex_df['doi'].apply(clean_doi)
 
-    # Nettoyer les DOI pour OpenAlex
-    openalex_df['doi'] = openalex_df['doi'].apply(clean_doi)
+        # Combiner les DataFrames
+        combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 
-    # Combiner les DataFrames
-    combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)def generate_csv(scopus_api_key, scopus_lab_id, openalex_institution_id, pubmed_id, start_year, end_year):
-    
+        # Générer le CSV à partir du DataFrame
+        csv = combined_df.to_csv(index=False)
 
-    # Générez le CSV à partir du DataFrame
-    csv = combined_df.to_csv('results.csv', index=False)
-    return csv
+        # Créer un objet BytesIO pour stocker le CSV
+        csv_bytes = io.BytesIO()
+        csv_bytes.write(csv.encode('utf-8'))
+        csv_bytes.seek(0)
 
+        # Proposer le téléchargement du CSV
+        st.download_button(
+            label="Télécharger le CSV",
+            data=csv_bytes,
+            file_name="results.csv",
+            mime="text/csv"
+        )
 
 if __name__ == "__main__":
     main()

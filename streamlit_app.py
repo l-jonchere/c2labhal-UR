@@ -3,6 +3,9 @@ import pandas as pd
 import io
 import requests
 from metapub import PubMedFetcher
+import regex as re
+from unidecode import unidecode
+from langdetect import detect
 
 # Fonction pour récupérer les données de Scopus
 def get_scopus_data(api_key, query, max_items=2000):
@@ -95,6 +98,97 @@ def clean_doi(doi):
         return doi[len('https://doi.org/'):]
     return doi
 
+# Fonction pour récupérer les données HAL
+def safe_get_json(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        try:
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            print(f"Erreur de décodage JSON pour l'URL : {url}")
+            return None
+    else:
+        print(f"Erreur API : {response.status_code} pour l'URL : {url}")
+        return {}
+
+def get_hal_data(collection_a_chercher, start_year, end_year):
+    endpoint = "http://api.archives-ouvertes.fr/search/"
+    n = safe_get_json(f"{endpoint}{collection_a_chercher}/?q=*&fq=publicationDateY_i:[{start_year} TO {end_year}]&fl=doiId_s,title_s&rows=0&sort=docid asc&wt=json")
+    n = n.get('response', {}).get('numFound', 0)
+    print(f'publications trouvées : {n}')
+
+    dois_coll = []
+    titres_coll = []
+
+    if n > 1000:
+        current = 0
+        cursor = ""
+        next_cursor = "*"
+        while cursor != next_cursor:
+            print(f"\ren cours : {current}", end="\t")
+            cursor = next_cursor
+            page = safe_get_json(f"{endpoint}{collection_a_chercher}/?q=*&fq=publicationDateY_i:[{start_year} TO {end_year}]&fl=doiId_s,title_s&rows=1000&cursorMark={cursor}&sort=docid asc&wt=json")
+            for d in page.get('response', {}).get('docs', []):
+                for t in d.get('title_s', []):
+                    titres_coll.append(t)
+                dois_coll.append(d.get('doiId_s', '').lower())
+            current += 1000
+            next_cursor = page.get('nextCursorMark', '')
+    else:
+        page = safe_get_json(f"{endpoint}{collection_a_chercher}/?q=*&fq=publicationDateY_i:[{start_year} TO {end_year}]&fl=doiId_s,title_s&rows=1000&sort=docid asc&wt=json")
+        for d in page.get('response', {}).get('docs', []):
+            for t in d.get('title_s', []):
+                titres_coll.append(t)
+            dois_coll.append(d.get('doiId_s', '').lower())
+
+    print(f"\rterminé : {n} publications chargées", end="\t")
+    return dois_coll, titres_coll
+
+def normalise(s):
+    return re.sub(' +', ' ', unidecode(re.sub('\W', ' ', s))).lower()
+
+def inex_match(nti, nti_coll):
+    for x in nti_coll:
+        if len(nti) * 1.1 > len(x) and len(nti) * 0.9 < len(x):
+            if re.fullmatch(f"({nti}){{e<={int(len(x) / 20)}}}", x):
+                return True
+    return False
+
+def statut_titre(ti, nti_coll):
+    if isinstance(ti, str) and ti.endswith("]"):
+        try:
+            if detect(ti[:re.match(".*\\[", ti).span()[1]]) != detect(ti[re.match(".*\\[", ti).span()[1]:]):
+                ti = ti[re.match(".*\\[", ti).span()[1]:]
+        except:
+            pass
+    try:
+        nti = normalise(ti)
+    except TypeError:
+        return "titre invalide"
+    if nti in nti_coll:
+        return "titre trouvé dans la collection : probablement déjà présent"
+    elif inex_match(nti, nti_coll):
+        return "titre approchant trouvé dans la collection : à vérifier"
+    else:
+        hal_result = safe_get_json(f"http://api.archives-ouvertes.fr/search/?q=title_t:{nti}&rows=0")
+        if hal_result.get('response', {}).get('numFound', 0) > 0:
+            return "titre trouvé dans HAL mais hors de la collection : affiliation probablement à corriger"
+        else:
+            return "hors HAL"
+
+def statut_doi(do, dois_coll):
+    if pd.isna(do):
+        return "pas de DOI valide"
+    ndo = do.replace("https://doi.org/", "").lower()
+    if ndo in dois_coll:
+        return "Dans la collection"
+    else:
+        hal_result = safe_get_json(f"http://api.archives-ouvertes.fr/search/?q=doiId_id:{ndo}&rows=0")
+        if hal_result.get('response', {}).get('numFound', 0) > 0:
+            return "Dans HAL mais hors de la collection"
+        else:
+            return "hors HAL"
+
 # Fonction principale
 def main():
     st.title("Générateur de CSV")
@@ -106,6 +200,7 @@ def main():
     pubmed_id = st.text_input("PubMed ID")
     start_year = st.number_input("Start Year", min_value=1900, max_value=2100, value=2000)
     end_year = st.number_input("End Year", min_value=1900, max_value=2100, value=2023)
+    collection_a_chercher = st.text_input("Collection HAL", value="GEPEA")
 
     if st.button("Télécharger le CSV"):
         # Requêtes pour Scopus et OpenAlex
@@ -142,6 +237,22 @@ def main():
 
         # Combiner les DataFrames
         combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
+
+        # Récupérer les données HAL
+        dois_coll, titres_coll = get_hal_data(collection_a_chercher, start_year, end_year)
+        nti_coll = [normalise(x).strip() for x in titres_coll]
+
+        # Ajouter la colonne "Statut"
+        combined_df['Statut'] = ''
+
+        for i, r in combined_df.iterrows():
+            print(f"\rtraité : {i} sur {len(combined_df)}", end="\t\t")
+            ret_doi = statut_doi(r.doi, dois_coll)
+            if ret_doi in ["pas de DOI valide", "hors HAL"]:
+                ret_ti = statut_titre(r.Title, nti_coll)
+                combined_df.loc[i, 'Statut'] = ret_ti
+            else:
+                combined_df.loc[i, 'Statut'] = ret_doi
 
         # Générer le CSV à partir du DataFrame
         csv = combined_df.to_csv(index=False)

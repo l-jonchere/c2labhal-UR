@@ -219,12 +219,12 @@ def main():
 
     # Saisie des paramètres
     scopus_api_key = st.text_input("Scopus API Key")
-    scopus_lab_id = st.text_input("Scopus Lab ID", value="Ex : 60276656")
-    openalex_institution_id = st.text_input("OpenAlex Institution ID", value="Ex : I4392021193")
-    pubmed_id = st.text_input("PubMed request", value="Ex : INCIT[Affiliation]")
+    scopus_lab_id = st.text_input("Scopus Lab ID")
+    openalex_institution_id = st.text_input("OpenAlex Institution ID")
+    pubmed_id = st.text_input("PubMed request")
     start_year = st.number_input("Start Year", min_value=1900, max_value=2100, value=2000)
     end_year = st.number_input("End Year", min_value=1900, max_value=2100, value=2023)
-    collection_a_chercher = st.text_input("Collection HAL", value="Ex : INCIT")
+    collection_a_chercher = st.text_input("Collection HAL")
 
     if st.button("Rechercher"):
         # Initialiser des DataFrames vides

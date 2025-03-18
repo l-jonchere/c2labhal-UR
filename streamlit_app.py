@@ -218,12 +218,13 @@ def main():
     st.title("Comparez les publications d'un labo dans Scopus, OpenAlex et Pubmed avec sa collection HAL")
 
     # Saisie des paramètres
-    scopus_api_key = st.text_input("Scopus API Key")
-    scopus_lab_id = st.text_input("Scopus Lab ID")
-    openalex_institution_id = st.text_input("OpenAlex Institution ID")
-    pubmed_id = st.text_input("PubMed request")
-    start_year = st.number_input("Start Year", min_value=1900, max_value=2100, value=2000)
-    end_year = st.number_input("End Year", min_value=1900, max_value=2100, value=2023)
+    
+    openalex_institution_id = st.text_input("Identifiant OpenAlex du labo")
+    pubmed_id = st.text_input("Requête PubMed")
+    scopus_lab_id = st.text_input("Identifiant Scopus du labo")
+    scopus_api_key = st.text_input("Clé API Scopus")
+    start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020)
+    end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025)
     collection_a_chercher = st.text_input("Collection HAL")
 
     if st.button("Rechercher"):

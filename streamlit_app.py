@@ -215,22 +215,22 @@ def merge_rows_with_sources(group):
 
 # Fonction principale
 def main():
-    st.title("Générateur de CSV")
+    st.title("Comparez les publications d'un labo dans Scopus, OpenAlex et Pubmed avec sa collection HAL")
 
     # Saisie des paramètres
     scopus_api_key = st.text_input("Scopus API Key")
     scopus_lab_id = st.text_input("Scopus Lab ID")
     openalex_institution_id = st.text_input("OpenAlex Institution ID")
-    pubmed_id = st.text_input("PubMed ID")
+    pubmed_id = st.text_input("PubMed request")
     start_year = st.number_input("Start Year", min_value=1900, max_value=2100, value=2000)
     end_year = st.number_input("End Year", min_value=1900, max_value=2100, value=2023)
-    collection_a_chercher = st.text_input("Collection HAL", value="GEPEA")
+    collection_a_chercher = st.text_input("Collection HAL", value="Collection HAL")
 
     if st.button("Rechercher"):
         # Requêtes pour Scopus et OpenAlex
         scopus_query = f"af-ID({scopus_lab_id}) AND PUBYEAR > {start_year - 1} AND PUBYEAR < {end_year + 1}"
         openalex_query = f"institutions.id:{openalex_institution_id},publication_year:{start_year}-{end_year}"
-        pubmed_query = f"{pubmed_id}[Affiliation] AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
+        pubmed_query = f"{pubmed_id} AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
 
         # Récupérer les données de Scopus
         scopus_data = get_scopus_data(scopus_api_key, scopus_query)

@@ -215,10 +215,46 @@ def merge_rows_with_sources(group):
 
 # Fonction principale
 def main():
-    st.title("Comparez les publications d'un labo dans Scopus, OpenAlex et Pubmed avec sa collection HAL")
+    # Personnalisation du graphisme vintage
+    st.markdown("""
+        <style>
+        body {
+            background-color: #000;
+            color: #0F0;
+            font-family: 'Press Start 2P', cursive;
+        }
+        .title {
+            font-size: 3em;
+            color: #FFF;
+            text-shadow: 2px 2px #0F0;
+        }
+        .subheader {
+            font-size: 1.5em;
+            color: #0F0;
+            text-shadow: 1px 1px #FFF;
+        }
+        .dataframe {
+            background-color: #000;
+            color: #0F0;
+            border: 2px solid #0F0;
+        }
+        .dataframe th {
+            background-color: #000;
+            color: #FFF;
+            border: 2px solid #0F0;
+        }
+        .dataframe td {
+            background-color: #000;
+            color: #0F0;
+            border: 2px solid #0F0;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.title("c2LabHAL")
+    st.subheader("Comparez les publications d'un labo dans Scopus, OpenAlex et Pubmed avec sa collection HAL")
 
     # Saisie des paramètres
-    
     openalex_institution_id = st.text_input("Identifiant OpenAlex du labo")
     pubmed_id = st.text_input("Requête PubMed")
     scopus_lab_id = st.text_input("Identifiant Scopus du labo")
@@ -226,6 +262,10 @@ def main():
     start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020)
     end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025)
     collection_a_chercher = st.text_input("Collection HAL")
+
+
+    # Conteneur pour afficher les résultats
+    result_container = st.empty()
 
     if st.button("Rechercher"):
         # Initialiser des DataFrames vides
@@ -240,6 +280,7 @@ def main():
             scopus_df = convert_to_dataframe(scopus_data, 'scopus')
             scopus_df = scopus_df[['source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']]
             scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+            result_container.dataframe(scopus_df)  # Afficher les résultats partiels
 
         if openalex_institution_id:
             openalex_query = f"institutions.id:{openalex_institution_id},publication_year:{start_year}-{end_year}"
@@ -252,11 +293,13 @@ def main():
             openalex_df = openalex_df[['source', 'title', 'doi', 'id', 'Source title', 'Date']]
             openalex_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
             openalex_df['doi'] = openalex_df['doi'].apply(clean_doi)
+            result_container.dataframe(openalex_df)  # Afficher les résultats partiels
 
         if pubmed_id:
             pubmed_query = f"{pubmed_id} AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
             pubmed_data = get_pubmed_data(pubmed_query)
             pubmed_df = pd.DataFrame(pubmed_data)
+            result_container.dataframe(pubmed_df)  # Afficher les résultats partiels
 
         # Combiner les DataFrames
         combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
@@ -279,6 +322,9 @@ def main():
 
         # Fusionner les lignes en double
         merged_data = combined_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+
+        # Afficher les résultats finaux
+        result_container.dataframe(merged_data)
 
         # Générer le CSV à partir du DataFrame
         csv = merged_data.to_csv(index=False)

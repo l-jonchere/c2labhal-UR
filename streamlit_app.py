@@ -215,41 +215,7 @@ def merge_rows_with_sources(group):
 
 # Fonction principale
 def main():
-    # Personnalisation du graphisme vintage
-    st.markdown("""
-        <style>
-        body {
-            background-color: #000;
-            color: #0F0;
-            font-family: 'Press Start 2P', cursive;
-        }
-        .title {
-            font-size: 3em;
-            color: #FFF;
-            text-shadow: 2px 2px #0F0;
-        }
-        .subheader {
-            font-size: 1.5em;
-            color: #0F0;
-            text-shadow: 1px 1px #FFF;
-        }
-        .dataframe {
-            background-color: #000;
-            color: #0F0;
-            border: 2px solid #0F0;
-        }
-        .dataframe th {
-            background-color: #000;
-            color: #FFF;
-            border: 2px solid #0F0;
-        }
-        .dataframe td {
-            background-color: #000;
-            color: #0F0;
-            border: 2px solid #0F0;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    
 
     st.title("c2LabHAL")
     st.subheader("Comparez les publications d'un labo dans Scopus, OpenAlex et Pubmed avec sa collection HAL")

@@ -249,7 +249,7 @@ def main():
             border: 2px solid #0F0;
         }
         </style>
-    , unsafe_allow_html=True)
+    
 
     st.title("c2LabHAL")
     st.subheader("Comparez les publications d'un labo dans Scopus, OpenAlex et Pubmed avec sa collection HAL")

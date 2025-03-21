@@ -353,7 +353,7 @@ def main():
         # Étape 5 : Fusion des lignes en double
         progress_text.text("Étape 5 : Fusion des lignes en double")
         progress_bar.progress(90)
-        merged_data = combined_df.groupby('doi', as_index=False, include_groups=False).apply(merge_rows_with_sources)
+        merged_data = combined_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
 
         # Afficher les résultats finaux
         result_container.dataframe(merged_data)

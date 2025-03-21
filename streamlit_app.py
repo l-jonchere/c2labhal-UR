@@ -173,7 +173,7 @@ def get_hal_data(collection_a_chercher, start_year, end_year):
     return dois_coll, titres_coll
 
 def normalise(s):
-    return re.sub(' +', ' ', unidecode(re.sub(r'\W', ' ', s))).lower()
+    return re.sub(' +', ' ', unidecode(re.sub('\W', ' ', s))).lower()
 
 def inex_match(nti, nti_coll):
     for x in nti_coll:

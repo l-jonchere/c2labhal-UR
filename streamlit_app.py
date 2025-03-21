@@ -143,7 +143,7 @@ def get_hal_data(collection_a_chercher, start_year, end_year):
     endpoint = "http://api.archives-ouvertes.fr/search/"
     n = safe_get_json(f"{endpoint}{collection_a_chercher}/?q=*&fq=publicationDateY_i:[{start_year} TO {end_year}]&fl=doiId_s,title_s&rows=0&sort=docid asc&wt=json")
     n = n.get('response', {}).get('numFound', 0)
-    print(f'publications trouvées : {n}')
+    print(f'Publications trouvées : {n}')
 
     dois_coll = []
     titres_coll = []
@@ -153,7 +153,7 @@ def get_hal_data(collection_a_chercher, start_year, end_year):
         cursor = ""
         next_cursor = "*"
         while cursor != next_cursor:
-            print(f"\ren cours : {current}", end="\t")
+            print(f"\rEn cours : {current}", end="\t")
             cursor = next_cursor
             page = safe_get_json(f"{endpoint}{collection_a_chercher}/?q=*&fq=publicationDateY_i:[{start_year} TO {end_year}]&fl=doiId_s,title_s&rows=1000&cursorMark={cursor}&sort=docid asc&wt=json")
             for d in page.get('response', {}).get('docs', []):
@@ -169,11 +169,11 @@ def get_hal_data(collection_a_chercher, start_year, end_year):
                 titres_coll.append(t)
             dois_coll.append(d.get('doiId_s', '').lower())
 
-    print(f"\rterminé : {n} publications chargées", end="\t")
+    print(f"\rTerminé : {n} publications chargées", end="\t")
     return dois_coll, titres_coll
 
 def normalise(s):
-    return re.sub(' +', ' ', unidecode(re.sub('\W', ' ', s))).lower()
+    return re.sub(' +', ' ', unidecode(re.sub(r'\W', ' ', s))).lower()
 
 def inex_match(nti, nti_coll):
     for x in nti_coll:
@@ -244,6 +244,20 @@ def merge_rows_with_sources(group):
     first_row['Data source'] = merged_sources
 
     return first_row
+
+# Fonction pour récupérer les auteurs à partir de Crossref
+def get_authors_from_crossref(doi):
+    url = f"https://api.crossref.org/works/{doi}"
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        return []
+
+    data = response.json()
+    authors = data.get('message', {}).get('author', [])
+    author_names = [author.get('given', '') + ' ' + author.get('family', '') for author in authors]
+
+    return author_names
 
 # Fonction principale
 def main():
@@ -342,7 +356,7 @@ def main():
         combined_df['Statut'] = ''
 
         for i, r in combined_df.iterrows():
-            print(f"\rtraité : {i} sur {len(combined_df)}", end="\t\t")
+            print(f"\rTraité : {i} sur {len(combined_df)}", end="\t\t")
             ret_doi = statut_doi(r.doi, dois_coll)
             if ret_doi in ["pas de DOI valide", "hors HAL"]:
                 ret_ti = statut_titre(r.Title, nti_coll)
@@ -354,6 +368,11 @@ def main():
         progress_text.text("Étape 5 : Fusion des lignes en double")
         progress_bar.progress(90)
         merged_data = combined_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+
+        # Etape 6 : Ajouter les auteurs à partir de Crossref
+        progress_text.text("Étape 6 : Ajout des auteurs")
+        progress_bar.progress(95)
+        merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
 
         # Afficher les résultats finaux
         result_container.dataframe(merged_data)

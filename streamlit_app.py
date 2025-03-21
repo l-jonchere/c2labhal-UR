@@ -173,7 +173,7 @@ def get_hal_data(collection_a_chercher, start_year, end_year):
     return dois_coll, titres_coll
 
 def normalise(s):
-    return re.sub(' +', ' ', unidecode(re.sub('\W', ' ', s))).lower()
+    return re.sub(' +', ' ', unidecode(re.sub(r'\W', ' ', s))).lower()
 
 def inex_match(nti, nti_coll):
     for x in nti_coll:
@@ -353,7 +353,7 @@ def main():
         # Étape 5 : Fusion des lignes en double
         progress_text.text("Étape 5 : Fusion des lignes en double")
         progress_bar.progress(90)
-        merged_data = combined_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+        merged_data = combined_df.groupby('doi', as_index=False, include_groups=False).apply(merge_rows_with_sources)
 
         # Afficher les résultats finaux
         result_container.dataframe(merged_data)

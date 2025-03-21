@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import io
 import requests
+import json
 from metapub import PubMedFetcher
 import regex as re
 from unidecode import unidecode
@@ -39,6 +40,32 @@ def get_scopus_data(api_key, query, max_items=2000):
             break
 
     return JSON
+
+# Fonction pour récupérer les noms des auteurs à partir des EIDs en JSON
+def get_author_names_from_eid(eid, api_key):
+    scopus_id = eid.replace("2-s2.0-", "")
+    url = f"https://api.elsevier.com/content/abstract/scopus_id/{scopus_id}?field=author&apiKey={api_key}&httpAccept=application/json"
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        return ""
+
+    data = response.json()
+    author_names = []
+    authors = data.get('abstracts-retrieval-response', {}).get('authors', {}).get('author', [])
+    for author in authors:
+        preferred_name = author.get('preferred-name', {})
+        indexed_name = preferred_name.get('ce:indexed-name')
+        if indexed_name:
+            author_names.append(indexed_name)
+
+    return ', '.join(author_names)
+
+# Ajout de la fonction dans le script existant pour récupérer les auteurs Scopus dans le DataFrame
+def enrich_scopus_with_authors(scopus_df, api_key):
+    if 'dc:identifier' in scopus_df.columns:
+        scopus_df['Auteurs'] = scopus_df['dc:identifier'].apply(lambda eid: get_author_names_from_eid(eid, api_key))
+    return scopus_df
 
 # Fonction pour récupérer les données d'OpenAlex
 def get_openalex_data(query, max_items=2000):
@@ -82,6 +109,7 @@ def get_pubmed_data(query, max_items=50):
             'doi': article.doi,
             'id': pmid,
             'Source title': article.journal,
+            'Auteurs': article.authors,
             'Date': pub_date
         })
     return data
@@ -192,8 +220,12 @@ def statut_doi(do, dois_coll):
 # Fonction pour fusionner les lignes en gardant les valeurs identiques et en concaténant les valeurs différentes
 def merge_rows_with_sources(group):
     # Conserver les IDs et les sources séparés par un |, et fusionner les autres champs
-    merged_ids = '|'.join(group['id'])
-    merged_sources = '|'.join(group['Data source'])
+    if 'id' in group.columns:
+        merged_ids = '|'.join(map(str, group['id'].dropna()))
+    else:
+        merged_ids = None
+
+    merged_sources = '|'.join(group['Data source'].dropna())
 
     # Initialiser une nouvelle ligne avec les valeurs de la première ligne
     first_row = group.iloc[0].copy()
@@ -201,7 +233,7 @@ def merge_rows_with_sources(group):
     # Pour chaque colonne, vérifier si les valeurs sont identiques ou différentes
     for column in group.columns:
         if column not in ['id', 'Data source']:
-            unique_values = group[column].unique()
+            unique_values = group[column].dropna().apply(lambda x: str(x) if isinstance(x, list) else x).unique()
             if len(unique_values) == 1:
                 first_row[column] = unique_values[0]
             else:
@@ -215,20 +247,22 @@ def merge_rows_with_sources(group):
 
 # Fonction principale
 def main():
-    
-
     st.title("c2LabHAL")
     st.subheader("Comparez les publications d'un labo dans Scopus, OpenAlex et Pubmed avec sa collection HAL")
 
     # Saisie des paramètres
+    collection_a_chercher = st.text_input("Collection HAL")
     openalex_institution_id = st.text_input("Identifiant OpenAlex du labo")
     pubmed_id = st.text_input("Requête PubMed")
-    scopus_lab_id = st.text_input("Identifiant Scopus du labo")
-    scopus_api_key = st.text_input("Clé API Scopus")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        scopus_lab_id = st.text_input("Identifiant Scopus du labo")
+    with col2:
+        scopus_api_key = st.text_input("Clé API Scopus")
+
     start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020)
     end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025)
-    collection_a_chercher = st.text_input("Collection HAL")
-
 
     # Conteneur pour afficher les résultats
     result_container = st.empty()
@@ -239,15 +273,13 @@ def main():
         openalex_df = pd.DataFrame()
         pubmed_df = pd.DataFrame()
 
-        # Requêtes conditionnelles pour Scopus, OpenAlex et PubMed
-        if scopus_api_key and scopus_lab_id:
-            scopus_query = f"af-ID({scopus_lab_id}) AND PUBYEAR > {start_year - 1} AND PUBYEAR < {end_year + 1}"
-            scopus_data = get_scopus_data(scopus_api_key, scopus_query)
-            scopus_df = convert_to_dataframe(scopus_data, 'scopus')
-            scopus_df = scopus_df[['source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']]
-            scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
-            result_container.dataframe(scopus_df)  # Afficher les résultats partiels
+        # Initialiser la barre de progression
+        progress_bar = st.progress(0)
+        progress_text = st.empty()
 
+        # Étape 1 : Récupération des données OpenAlex
+        progress_text.text("Étape 1 : Récupération des données OpenAlex")
+        progress_bar.progress(10)
         if openalex_institution_id:
             openalex_query = f"institutions.id:{openalex_institution_id},publication_year:{start_year}-{end_year}"
             openalex_data = get_openalex_data(openalex_query)
@@ -255,18 +287,50 @@ def main():
             openalex_df['Source title'] = openalex_df.apply(
                 lambda row: row['primary_location']['source']['display_name'] if row['primary_location'] and row['primary_location'].get('source') else None, axis=1
             )
-            openalex_df['Date'] = openalex_df['publication_date']
+            openalex_df['Date'] = openalex_df.apply(
+                lambda row: row.get('publication_date', None), axis=1
+            )
+            openalex_df['doi'] = openalex_df.apply(
+                lambda row: row.get('doi', None), axis=1
+            )
+            openalex_df['id'] = openalex_df.apply(
+                lambda row: row.get('id', None), axis=1
+            )
+            openalex_df['title'] = openalex_df.apply(
+                lambda row: row.get('title', None), axis=1
+            )
             openalex_df = openalex_df[['source', 'title', 'doi', 'id', 'Source title', 'Date']]
             openalex_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
             openalex_df['doi'] = openalex_df['doi'].apply(clean_doi)
             result_container.dataframe(openalex_df)  # Afficher les résultats partiels
 
+        # Étape 2 : Récupération des données PubMed
+        progress_text.text("Étape 2 : Récupération des données PubMed")
+        progress_bar.progress(30)
         if pubmed_id:
             pubmed_query = f"{pubmed_id} AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
             pubmed_data = get_pubmed_data(pubmed_query)
             pubmed_df = pd.DataFrame(pubmed_data)
             result_container.dataframe(pubmed_df)  # Afficher les résultats partiels
 
+        # Étape 3 : Récupération des données Scopus
+        progress_text.text("Étape 3 : Récupération des données Scopus")
+        progress_bar.progress(50)
+        if scopus_api_key and scopus_lab_id:
+            scopus_query = f"af-ID({scopus_lab_id}) AND PUBYEAR > {start_year - 1} AND PUBYEAR < {end_year + 1}"
+            scopus_data = get_scopus_data(scopus_api_key, scopus_query)
+            scopus_df = convert_to_dataframe(scopus_data, 'scopus')
+
+            # Enrichir directement avec les auteurs via les EIDs
+            scopus_df = enrich_scopus_with_authors(scopus_df, scopus_api_key)
+
+            scopus_df = scopus_df[['source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate', 'Auteurs']]
+            scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date', 'Auteurs']
+            result_container.dataframe(scopus_df)  # Afficher les résultats partiels
+
+        # Étape 4 : Comparaison avec HAL
+        progress_text.text("Étape 4 : Comparaison avec HAL")
+        progress_bar.progress(70)
         # Combiner les DataFrames
         combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 
@@ -286,7 +350,9 @@ def main():
             else:
                 combined_df.loc[i, 'Statut'] = ret_doi
 
-        # Fusionner les lignes en double
+        # Étape 5 : Fusion des lignes en double
+        progress_text.text("Étape 5 : Fusion des lignes en double")
+        progress_bar.progress(90)
         merged_data = combined_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
 
         # Afficher les résultats finaux
@@ -307,6 +373,10 @@ def main():
             file_name="results.csv",
             mime="text/csv"
         )
+
+        # Mettre à jour la barre de progression à 100%
+        progress_bar.progress(100)
+        progress_text.text("Terminé !")
 
 if __name__ == "__main__":
     main()

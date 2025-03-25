@@ -1,7 +1,7 @@
 
 # c2LabHAL
 
-![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)
+![Streamlit App]([https://static.streamlit.io/badges/streamlit_badge_black_white.svg](https://c2labhal.streamlit.app/))
 
 ## Description
 

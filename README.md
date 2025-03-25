@@ -64,7 +64,7 @@ Les contributions sont les bienvenues ! Si vous souhaitez contribuer à ce proje
 
 ## Licence
 
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](license.md) pour plus de détails
+Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE.md) pour plus de détails
 
 
 

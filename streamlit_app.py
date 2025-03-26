@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import pandas as pd
 import io
@@ -356,8 +357,14 @@ def main():
     )
 
     openalex_institution_id = st.text_input("Identifiant OpenAlex du labo", help="Saisissez l'identifiant du labo dans OpenAlex, par exemple i4392021216")
-    pubmed_id = st.text_input("Requête PubMed", help="Saisissez la requête Pubmed qui rassemble le mieux les publications du labo, par exemple ((MIP[Affiliation]) AND ((mans[Affiliation]) OR (nantes[Affiliation]))) OR (EA 4334[Affiliation]) OR (EA4334[Affiliation]) OR (UR 4334[Affiliation]) OR (UR4334[Affiliation]) OR (Movement Interactions Performance[Affiliation] OR (Motricité Interactions Performance[Affiliation]) OR (mouvement interactions performance[Affiliation])")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        pubmed_id = st.text_input("Requête PubMed", help="Saisissez la requête Pubmed qui rassemble le mieux les publications du labo, par exemple ((MIP[Affiliation]) AND ((mans[Affiliation]) OR (nantes[Affiliation]))) OR (EA 4334[Affiliation]) OR (EA4334[Affiliation]) OR (UR 4334[Affiliation]) OR (UR4334[Affiliation]) OR (Movement Interactions Performance[Affiliation] OR (Motricité Interactions Performance[Affiliation]) OR (mouvement interactions performance[Affiliation])")
+    with col2:
+        pubmed_api_key = st.text_input("Clé API Pubmed", help="Pour obtenir une clé API, connectez vous sur Pubmed, cliquez sur Account, Account Settings, API Key Management.")
 
+    
     col1, col2 = st.columns(2)
     with col1:
         scopus_lab_id = st.text_input("Identifiant Scopus du labo", help="Saisissez le Scopus Affiliation Identifier du laboratoire, par exemple 60105638")
@@ -372,11 +379,15 @@ def main():
     progress_text = st.empty()
 
     if st.button("Rechercher"):
+        # Configurer la clé API PubMed si elle est fournie
+        if pubmed_api_key:
+            os.environ['NCBI_API_KEY'] = pubmed_api_key       
+        
         # Initialiser des DataFrames vides
         scopus_df = pd.DataFrame()
         openalex_df = pd.DataFrame()
         pubmed_df = pd.DataFrame()
-
+        
         # Étape 1 : Récupération des données OpenAlex
         with st.spinner("OpenAlex"):
             progress_text.text("Étape 1 : Récupération des données OpenAlex")

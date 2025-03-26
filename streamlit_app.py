@@ -13,6 +13,7 @@ from tqdm import tqdm
 tqdm.pandas()
 
 # Fonction pour récupérer les données de Scopus
+
 def get_scopus_data(api_key, query, max_items=2000):
     found_items_num = 1
     start_item = 0
@@ -35,7 +36,8 @@ def get_scopus_data(api_key, query, max_items=2000):
         if found_items_num == 0:
             break
 
-        JSON += resp.json()['search-results']['entry']
+        if 'entry' in resp.json()['search-results']:
+            JSON += resp.json()['search-results']['entry']
 
         start_item += items_per_query
         found_items_num -= items_per_query
@@ -240,10 +242,10 @@ def statut_doi(do,coll_df):
     elif do != do:
         return ["Pas de DOI valide","","",""]
 
-def check_df(df,coll_df):
+def check_df(df, coll_df):
     """Applies the full process to the dataframe or table given as an input."""
     results = df.progress_apply(
-        lambda x: statut_doi(x['doi'], coll_df) if statut_doi(x['doi'], coll_df)[0] in ("Dans la collection", "Dans HAL mais hors de la collection") else statut_titre(x['Title'], coll_df), axis=1
+        lambda x: statut_doi(x['doi'], coll_df) if statut_doi(x['doi'], coll_df) and statut_doi(x['doi'], coll_df)[0] in ("Dans la collection", "Dans HAL mais hors de la collection") else statut_titre(x['Title'], coll_df), axis=1
     )
     df['Statut'] = results.apply(lambda x: x[0])
     df['titre_si_trouvé'] = results.apply(lambda x: x[1])

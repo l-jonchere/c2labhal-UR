@@ -71,7 +71,7 @@ def get_openalex_data(query, max_items=2000):
     return JSON
 
 # Fonction pour récupérer les données de PubMed
-def get_pubmed_data(query, max_items=100):
+def get_pubmed_data(query, max_items=1000):
     fetch = PubMedFetcher()
     pmids = fetch.pmids_for_query(query, retmax=max_items)
     data = []

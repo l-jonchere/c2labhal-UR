@@ -420,11 +420,8 @@ def main():
                 scopus_data = get_scopus_data(scopus_api_key, scopus_query)
                 scopus_df = convert_to_dataframe(scopus_data, 'scopus')
 
-                # Enrichir directement avec les auteurs via les EIDs
-                scopus_df = enrich_scopus_with_authors(scopus_df, scopus_api_key)
-
-                scopus_df = scopus_df[['source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate', 'Auteurs']]
-                scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date', 'Auteurs']
+                scopus_df = scopus_df[['source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']]
+                scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
 
         # Étape 4 : Comparaison avec HAL
         with st.spinner("HAL"):

@@ -14,7 +14,6 @@ from tqdm import tqdm
 tqdm.pandas()
 
 # Fonction pour récupérer les données de Scopus
-
 def get_scopus_data(api_key, query, max_items=2000):
     found_items_num = 1
     start_item = 0
@@ -358,14 +357,13 @@ def main():
     )
 
     openalex_institution_id = st.text_input("Identifiant OpenAlex du labo", help="Saisissez l'identifiant du labo dans OpenAlex, par exemple i4392021216")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         pubmed_id = st.text_input("Requête PubMed", help="Saisissez la requête Pubmed qui rassemble le mieux les publications du labo, par exemple ((MIP[Affiliation]) AND ((mans[Affiliation]) OR (nantes[Affiliation]))) OR (EA 4334[Affiliation]) OR (EA4334[Affiliation]) OR (UR 4334[Affiliation]) OR (UR4334[Affiliation]) OR (Movement Interactions Performance[Affiliation] OR (Motricité Interactions Performance[Affiliation]) OR (mouvement interactions performance[Affiliation])")
     with col2:
         pubmed_api_key = st.text_input("Clé API Pubmed", help="Pour obtenir une clé API, connectez vous sur Pubmed, cliquez sur Account, Account Settings, API Key Management.")
 
-    
     col1, col2 = st.columns(2)
     with col1:
         scopus_lab_id = st.text_input("Identifiant Scopus du labo", help="Saisissez le Scopus Affiliation Identifier du laboratoire, par exemple 60105638")
@@ -374,6 +372,7 @@ def main():
 
     start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020)
     end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025)
+    fetch_authors = st.checkbox("Récupérer les auteurs sur Crossref", value=True)
 
     # Initialiser la barre de progression
     progress_bar = st.progress(0)
@@ -382,13 +381,13 @@ def main():
     if st.button("Rechercher"):
         # Configurer la clé API PubMed si elle est fournie
         if pubmed_api_key:
-            os.environ['NCBI_API_KEY'] = pubmed_api_key       
-        
+            os.environ['NCBI_API_KEY'] = pubmed_api_key
+
         # Initialiser des DataFrames vides
         scopus_df = pd.DataFrame()
         openalex_df = pd.DataFrame()
         pubmed_df = pd.DataFrame()
-        
+
         # Étape 1 : Récupération des données OpenAlex
         with st.spinner("OpenAlex"):
             progress_text.text("Étape 1 : Récupération des données OpenAlex")
@@ -437,18 +436,21 @@ def main():
                 scopus_df = scopus_df[['source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']]
                 scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
 
-        # Étape 4 : Comparaison avec HAL
-        with st.spinner("HAL"):
-            progress_text.text("Étape 4 : Comparaison avec HAL")
-            progress_bar.progress(70)
-            # Combiner les DataFrames
-            combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
+        # Étape 4 : Comparaison avec HAL (si le champ "Collection HAL" n'est pas vide)
+        if collection_a_chercher:
+            with st.spinner("HAL"):
+                progress_text.text("Étape 4 : Comparaison avec HAL")
+                progress_bar.progress(70)
+                # Combiner les DataFrames
+                combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 
-            # Récupérer les données HAL
-            coll=HalCollImporter(collection_a_chercher,start_year,end_year)
-            coll_df=coll.import_data()
-            coll_df['nti']=coll_df['Titres'].apply(lambda x : normalise(x).strip())
-            check_df(combined_df,coll_df)
+                # Récupérer les données HAL
+                coll=HalCollImporter(collection_a_chercher,start_year,end_year)
+                coll_df=coll.import_data()
+                coll_df['nti']=coll_df['Titres'].apply(lambda x : normalise(x).strip())
+                check_df(combined_df,coll_df)
+        else:
+            combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 
         # Étape 5 : Fusion des lignes en double
         with st.spinner("Fusion"):
@@ -456,11 +458,12 @@ def main():
             progress_bar.progress(90)
             merged_data = combined_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
 
-        # Étape 6 : Ajout des auteurs à partir de Crossref
-        with st.spinner("Auteurs Crossref"):
-            progress_text.text("Étape 6 : Ajout des auteurs")
-            progress_bar.progress(95)
-            merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
+        # Étape 6 : Ajout des auteurs à partir de Crossref (si la case est cochée)
+        if fetch_authors:
+            with st.spinner("Auteurs Crossref"):
+                progress_text.text("Étape 6 : Ajout des auteurs")
+                progress_bar.progress(95)
+                merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
 
         # Générer le CSV à partir du DataFrame
         csv = merged_data.to_csv(index=False)

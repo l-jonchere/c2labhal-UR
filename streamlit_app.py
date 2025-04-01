@@ -53,7 +53,7 @@ def get_openalex_data(query, max_items=2000):
     url = 'https://api.openalex.org/works'
     params = {'filter': query, 'per-page': 200}
     JSON = []
-    next_cursor = None
+    next_cursor = "*"
 
     while True:
         if next_cursor:
@@ -68,6 +68,7 @@ def get_openalex_data(query, max_items=2000):
         JSON += data['results']
         next_cursor = data['meta'].get('next_cursor')
 
+        # Sortir de la boucle si plus de pages ou max_items atteint
         if not next_cursor or len(JSON) >= max_items:
             break
 

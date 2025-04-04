@@ -21,14 +21,16 @@ def get_scopus_data(api_key, query, max_items=2000):
     JSON = []
 
     while found_items_num > 0:
-        resp = requests.get(
-            'https://api.elsevier.com/content/search/scopus',
-            headers={'Accept': 'application/json', 'X-ELS-APIKey': api_key},
-            params={'query': query, 'count': items_per_query, 'start': start_item}
-        )
-
-        if resp.status_code != 200:
-            raise Exception(f'Scopus API error {resp.status_code}, JSON dump: {resp.json()}')
+        try:
+            resp = requests.get(
+                'https://api.elsevier.com/content/search/scopus',
+                headers={'Accept': 'application/json', 'X-ELS-APIKey': api_key},
+                params={'query': query, 'count': items_per_query, 'start': start_item}
+            )
+            resp.raise_for_status()  # Lève une exception pour les codes d'état HTTP 4xx/5xx
+        except requests.exceptions.RequestException as e:
+            st.error(f"Erreur lors de la requête Scopus : {e}")
+            return []
 
         if found_items_num == 1:
             found_items_num = int(resp.json().get('search-results').get('opensearch:totalResults'))
@@ -46,6 +48,7 @@ def get_scopus_data(api_key, query, max_items=2000):
             break
 
     return JSON
+
 
 # Fonction pour récupérer les données d'OpenAlex
 def get_openalex_data(query, max_items=2000):
@@ -130,8 +133,10 @@ def escapedSeq(term):
 def escapeSolrArg(term):
     """ Apply escaping to the passed in query terms
     escaping special characters like : , etc."""
-    term = term.replace('\\',r'\\') # escape \ first
-    return"".join([nextStr for nextStr in escapedSeq(term)])
+    if not isinstance(term, str):
+        return ""
+    term = term.replace('\\', r'\\')  # escape \ first
+    return "".join([nextStr for nextStr in escapedSeq(term)])
 
 def normalise(s):
     """Takes any string and returns it with only normal characters, single spaces and in lower case."""
@@ -193,33 +198,40 @@ def in_hal(nti,ti):
                         ) else ["Hors HAL","","",""]
     return ["Hors HAL","","",""]
 
-def statut_titre(title,coll_df):
+def statut_titre(title, coll_df):
     """Applies the matching process to a title, from searching it exactly in the HAL collection to be compared, to searching it loosely in HAL search API."""
+    if not isinstance(title, str):
+        return ["Titre invalide", "", "", ""]
+
     try:
-        if title[len(title)-1]=="]" and detect(title[:re.match(r".*\[",ti).span()[1]]) != detect(title[re.match(r".*\[",title).span()[1]:]):
-            title=title[re.match(r".*\[",title).span()[1]:]
-        elif detect(title[:len(title)/2]) != detect(title[len(title)/2:]):
-            title=title[:len(title)/2]
-        else: title=title
+        if title[len(title)-1] == "]" and detect(title[:re.match(r".*\[", title).span()[1]]) != detect(title[re.match(r".*\[", title).span()[1]:]):
+            title = title[re.match(r".*\[", title).span()[1]:]
+        elif detect(title[:len(title)//2]) != detect(title[len(title)//2:]):
+            title = title[:len(title)//2]
+        else:
+            title = title
     except:
-        title=title
+        title = title
+
     try:
-        ti='\"'+escapeSolrArg(title)+'\"'
+        ti = '\"' + escapeSolrArg(title) + '\"'
     except TypeError:
-        return ["Titre invalide","","",""]
+        return ["Titre invalide", "", "", ""]
+
     try:
-        c_ex=ex_in_coll(title,coll_df)
+        c_ex = ex_in_coll(title, coll_df)
         if c_ex:
             return c_ex
         else:
-            c_inex = inex_in_coll(title,coll_df)
+            c_inex = inex_in_coll(title, coll_df)
             if c_inex:
                 return c_inex
             else:
-                r_ex=in_hal(ti,title)
+                r_ex = in_hal(ti, title)
                 return r_ex
     except KeyError:
-        return ["Titre incorrect, probablement absent de HAL","","",""]
+        return ["Titre incorrect, probablement absent de HAL", "", "", ""]
+
 
 def statut_doi(do,coll_df):
     """applies the matching process to a DOI, searching it in the collection to be compared then in all of HAL"""
@@ -369,9 +381,13 @@ def main():
         scopus_lab_id = st.text_input("Identifiant Scopus du labo", help="Saisissez le Scopus Affiliation Identifier du laboratoire, par exemple 60105638")
     with col2:
         scopus_api_key = st.text_input("Clé API Scopus", help="Pour obtenir une clé API : https://dev.elsevier.com/. Sinon, contactez la personne en charge de la bibliométrie dans votre établissement")
-
-    start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020)
-    end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020)
+    with col2:
+        end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025)
+    
     fetch_authors = st.checkbox("Récupérer les auteurs sur Crossref", value=True)
 
     # Initialiser la barre de progression

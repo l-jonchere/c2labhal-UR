@@ -49,7 +49,6 @@ def get_scopus_data(api_key, query, max_items=2000):
 
     return JSON
 
-
 # Fonction pour récupérer les données d'OpenAlex
 def get_openalex_data(query, max_items=2000):
     url = 'https://api.openalex.org/works'
@@ -93,7 +92,6 @@ def get_pubmed_data(query, max_items=1000):
             'doi': article.doi,
             'id': pmid,
             'Source title': article.journal,
-            'Auteurs': article.authors,
             'Date': pub_date
         })
     return data
@@ -232,7 +230,6 @@ def statut_titre(title, coll_df):
     except KeyError:
         return ["Titre incorrect, probablement absent de HAL", "", "", ""]
 
-
 def statut_doi(do,coll_df):
     """applies the matching process to a DOI, searching it in the collection to be compared then in all of HAL"""
     dois_coll=coll_df['DOIs'].tolist()
@@ -255,6 +252,142 @@ def statut_doi(do,coll_df):
     elif do != do:
         return ["Pas de DOI valide","","",""]
 
+def query_upw(doi):
+    """
+    recupérer données dans Unpaywall
+    """
+    req = requests.get(f"https://api.unpaywall.org/v2/{doi}?email=hal.dbm@listes.u-paris.fr")
+    res = req.json()
+
+    # if not in upw
+    if res.get("message") and "isn't in Unpaywall" in res.get("message"):
+        return {"upw_state": "missing"}
+
+    # if paper is closed
+    if not res.get("oa_locations"):
+        return {
+            "upw_state": "closed",
+            "published_date": res.get("published_date"),
+            "has_issn": True if res.get("journal_issns") else False
+        }
+
+    # if it is open
+    temp = {
+        "upw_state": "open",
+        "published_date": res.get("published_date"),
+        "oa_publisher_license": "",
+        "oa_publisher_link": "",
+        "oa_repo_link": ""
+    }
+
+    best_loc_is_publisher = False
+
+    # get best oa_location
+    if res.get("best_oa_location"):
+        if res["best_oa_location"]["host_type"] == "publisher":
+            best_loc_is_publisher = True
+            temp["oa_publisher_license"] = res["best_oa_location"]["license"] if res["best_oa_location"]["license"] else ""
+            temp["oa_publisher_link"] = res["best_oa_location"]["url_for_pdf"] if res["best_oa_location"]["url_for_pdf"] else res["best_oa_location"]["url_for_landing_page"]
+
+        if res["best_oa_location"]["host_type"] == "repository":
+            temp["oa_repo_link"] = str(res["best_oa_location"]["url_for_pdf"])
+
+    if best_loc_is_publisher:
+        for elem in res["oa_locations"]:
+            if elem["host_type"] == "repository":
+                temp["oa_repo_link"] = str(elem["url_for_pdf"])
+                break
+
+    return temp
+
+def enrich_w_upw(df):
+    """
+    enrichie la df avec les données de upw
+    """
+    print(f"nb DOI a verifier dans upw \t{len(df)}")
+    df.reset_index(drop=True, inplace=True)
+    for row in df.itertuples():
+        upw_data = query_upw(row.doi)
+        for field in upw_data:
+            try:
+                df.at[row.Index, field] = upw_data[field]
+            except:
+                print("\n\npb ac doi upw\n", field, row.doi, '\n\n', upw_data)
+                break
+    print("upw 100%")
+    return df
+
+def add_permissions(row):
+    """
+    ajouter les possibilité de dépôt en archvie via l'API persmission
+    """
+    if row.oa_repo_link or row.oa_publisher_license:
+        return ""
+
+    try:
+        req = requests.get(f"https://api.openaccessbutton.org/permissions/{row.doi}")
+        res = req.json()
+        res = res["best_permission"]
+    except:
+        print("doi problem w permissions", row.doi)
+        return ""
+
+    repository = False
+    if res.get("locations"):
+        locations_cut = []
+        for item in res["locations"]:
+            for word in item.split(" "):
+                locations_cut.append(word.lower())
+
+        if "repository" in locations_cut:
+            repository = True
+
+    if repository and res.get("versions"):
+        if "publishedVersion" in res["versions"]:
+            print(f"{row.doi} publishedVersion can be shared 🎉")
+            return f"publishedVersion ; {res.get('licence')} ; {res.get('embargo_months')} months"
+
+    if repository and res.get("versions"):
+        if "acceptedVersion" in res["versions"]:
+            if not res.get("embargo_months"):
+                print(f"{row.doi} acceptedVersion , no embargo")
+                return f"{res['version']} ; {res.get('licence')} ; no months"
+            else:
+                if isinstance(res["embargo_months"], int):
+                    if res["embargo_months"] < 6:
+                        print(f"{row.doi} acceptedVersion embargo of {res.get('embargo_months')} months")
+                        return f"{res['version']} ; {res.get('licence')} ; {res.get('embargo_months')} months"
+
+def deduce_todo(row):
+    """
+    deduire les actions à réaliser ; les indiquer sous formes de texte
+    """
+    if "publishedVersion" in str(row["deposit_condition"]):
+        return "recuperer le PDF editeur et ecrire a l auteur pour accord"
+
+    if row["oa_publisher_license"] and not row["oa_repo_link"]:
+        return "selon la licence ajouter le PDF editeur"
+
+    if row["upw_state"] != "open" and row["has_issn"]:
+        return "ecrire a l auteur pour appliquer la LRN"
+
+    if row["identifiant_hal_si_trouvé"] and row.get("linkExtId", "") == "" and row["upw_state"] == "open":
+        return "verifier les identifiants de la notice"
+
+    if not row["identifiant_hal_si_trouvé"]:
+        return "creer ou retrouver la notice"
+
+def addCaclLinkFormula(pre_url, post_url, txt):
+    """
+    fonction pour rendre les liens cliquables avec formule de libreOffice
+    """
+    if post_url:
+        post_url, txt = str(post_url), str(txt)
+        if txt.startswith("http"):
+            txt = txt[txt.index("/") + 2:]
+            txt = txt[4:25] if txt.startswith("www") else txt[:20]
+        return '=LIEN.HYPERTEXTE("' + pre_url + post_url + '";"' + txt + '")'
+
 def check_df(df, coll_df):
     """Applies the full process to the dataframe or table given as an input."""
     results = df.progress_apply(
@@ -264,6 +397,15 @@ def check_df(df, coll_df):
     df['titre_si_trouvé'] = results.apply(lambda x: x[1])
     df['identifiant_hal_si_trouvé'] = results.apply(lambda x: x[2])
     df['statut_dépôt_si_trouvé'] = results.apply(lambda x: x[3])
+
+    # Enrichir le DataFrame avec les données d'Unpaywall
+    df = enrich_w_upw(df)
+
+    # Ajouter les permissions
+    df['deposit_condition'] = df.apply(add_permissions, axis=1)
+
+    # Déduire les actions à entreprendre
+    df['Action'] = df.apply(deduce_todo, axis=1)
 
 class HalCollImporter:
 
@@ -312,6 +454,7 @@ class HalCollImporter:
                         dois_coll.append("")
                     submit_types_coll.append(d['submitType_s'])
         return pd.DataFrame({'Hal_ids':docid_coll,'DOIs':dois_coll,'Titres':titres_coll, 'Types de dépôts':submit_types_coll})
+
 
 # Fonction pour fusionner les lignes en gardant les valeurs identiques et en concaténant les valeurs différentes
 def merge_rows_with_sources(group):
@@ -381,13 +524,13 @@ def main():
         scopus_lab_id = st.text_input("Identifiant Scopus du labo", help="Saisissez le Scopus Affiliation Identifier du laboratoire, par exemple 60105638")
     with col2:
         scopus_api_key = st.text_input("Clé API Scopus", help="Pour obtenir une clé API : https://dev.elsevier.com/. Sinon, contactez la personne en charge de la bibliométrie dans votre établissement")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020)
     with col2:
         end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025)
-    
+
     fetch_authors = st.checkbox("Récupérer les auteurs sur Crossref", value=True)
 
     # Initialiser la barre de progression
@@ -461,19 +604,27 @@ def main():
                 combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 
                 # Récupérer les données HAL
-                coll=HalCollImporter(collection_a_chercher,start_year,end_year)
-                coll_df=coll.import_data()
-                coll_df['nti']=coll_df['Titres'].apply(lambda x : normalise(x).strip())
-                check_df(combined_df,coll_df)
+                coll = HalCollImporter(collection_a_chercher, start_year, end_year)
+                coll_df = coll.import_data()
+                coll_df['nti'] = coll_df['Titres'].apply(lambda x: normalise(x).strip())
+                check_df(combined_df, coll_df)
         else:
             combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 
-        # Étape 5 : Fusion des lignes en double
+         # Étape 5 : Fusion des lignes en double
         with st.spinner("Fusion"):
             progress_text.text("Étape 5 : Fusion des lignes en double")
             progress_bar.progress(90)
-            merged_data = combined_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+            # Séparer les lignes avec et sans DOI
+            with_doi = combined_df.dropna(subset=['doi'])
+            without_doi = combined_df[combined_df['doi'].isna()]
 
+            # Fusionner les lignes avec DOI
+            merged_with_doi = with_doi.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+
+            # Combiner les lignes fusionnées avec les lignes sans DOI
+            merged_data = pd.concat([merged_with_doi, without_doi], ignore_index=True)
+            
         # Étape 6 : Ajout des auteurs à partir de Crossref (si la case est cochée)
         if fetch_authors:
             with st.spinner("Auteurs Crossref"):
@@ -481,25 +632,29 @@ def main():
                 progress_bar.progress(95)
                 merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
 
-        # Générer le CSV à partir du DataFrame
-        csv = merged_data.to_csv(index=False)
+        # Vérifier si merged_data n'est pas vide avant de générer le CSV
+        if not merged_data.empty:
+            # Générer le CSV à partir du DataFrame
+            csv = merged_data.to_csv(index=False)
 
-        # Créer un objet BytesIO pour stocker le CSV
-        csv_bytes = io.BytesIO()
-        csv_bytes.write(csv.encode('utf-8'))
-        csv_bytes.seek(0)
+            # Créer un objet BytesIO pour stocker le CSV
+            csv_bytes = io.BytesIO()
+            csv_bytes.write(csv.encode('utf-8'))
+            csv_bytes.seek(0)
 
-        # Proposer le téléchargement du CSV
-        st.download_button(
-            label="Télécharger le CSV",
-            data=csv_bytes,
-            file_name="results.csv",
-            mime="text/csv"
-        )
+            # Proposer le téléchargement du CSV
+            st.download_button(
+                label="Télécharger le CSV",
+                data=csv_bytes,
+                file_name="results.csv",
+                mime="text/csv"
+            )
 
-        # Mettre à jour la barre de progression à 100%
-        progress_bar.progress(100)
-        progress_text.text("Terminé !")
+            # Mettre à jour la barre de progression à 100%
+            progress_bar.progress(100)
+            progress_text.text("Terminé !")
+        else:
+            st.error("Aucune donnée à exporter. Veuillez vérifier les paramètres de recherche.")
 
 if __name__ == "__main__":
     main()

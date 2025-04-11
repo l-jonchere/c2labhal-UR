@@ -341,9 +341,20 @@ def main():
             progress_bar.progress(50)
             scopus_query = f"af-ID({scopus_lab_id}) AND PUBYEAR > {start_year - 1} AND PUBYEAR < {end_year + 1}"
             scopus_data = get_scopus_data(scopus_api_key, scopus_query)
-            scopus_df = convert_to_dataframe(scopus_data, 'scopus')
-            scopus_df = scopus_df[['source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']]
-            scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+            scopus_df = pd.DataFrame()
+
+        if scopus_data:
+            raw_df = convert_to_dataframe(scopus_data, 'scopus')
+            expected_cols = ['dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']
+    
+        # Vérifie que toutes les colonnes attendues sont présentes
+            if all(col in raw_df.columns for col in expected_cols):
+                scopus_df = raw_df[['source'] + expected_cols]
+                scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+            else:
+                st.warning("Les données Scopus sont incomplètes ou mal formées.")
+        else:
+            st.info("Aucune donnée Scopus récupérée.")
 
         # Étape 4 : Comparaison avec HAL
         with st.spinner("HAL"):

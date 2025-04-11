@@ -277,7 +277,7 @@ def main():
     labos_df = pd.DataFrame(labos_list)
 
     # Sélection du labo
-    labo_choisi = st.selectbox("Choisissez un laboratoire nantais", labos_df['collection'].unique())
+    labo_choisi = st.selectbox("Choisissez une collection HAL", labos_df['collection'].unique())
 
     # Récupération des infos correspondantes
     row = labos_df[labos_df['collection'] == labo_choisi].iloc[0]
@@ -286,9 +286,10 @@ def main():
     openalex_institution_id = row['openalex_id']
     pubmed_query = row['pubmed_query']
 
+    
     # Clés API depuis Streamlit secrets
-    scopus_api_key = '9fe8080f11b255fade8b6c657353f108'
-    pubmed_api_key = "4d6f04f1dc910a69c585894c375f92f89108"
+    scopus_api_key = st.secrets["SCOPUS_API_KEY"]
+    pubmed_api_key = st.secrets["PUBMED_API_KEY"]
 
     # Paramètres supplémentaires
     col1, col2 = st.columns(2)

@@ -254,35 +254,36 @@ def statut_doi(do,coll_df):
 
 def query_upw(doi):
     """
-    recupérer données dans Unpaywall
+    Récupère les données dans Unpaywall.
     """
     req = requests.get(f"https://api.unpaywall.org/v2/{doi}?email=hal.dbm@listes.u-paris.fr")
     res = req.json()
 
-    # if not in upw
+    # Si l'article n'est pas dans Unpaywall
     if res.get("message") and "isn't in Unpaywall" in res.get("message"):
-        return {"upw_state": "missing"}
+        return {"Statut Unpaywall": "missing", "has_issn": False}
 
-    # if paper is closed
+    # Si l'article est fermé
     if not res.get("oa_locations"):
         return {
-            "upw_state": "closed",
+            "Statut Unpaywall": "closed",
             "published_date": res.get("published_date"),
-            "has_issn": True if res.get("journal_issns") else False
+            "has_issn": bool(res.get("journal_issns"))
         }
 
-    # if it is open
+    # Si l'article est ouvert
     temp = {
-        "upw_state": "open",
+        "Statut Unpaywall": "open",
         "published_date": res.get("published_date"),
         "oa_publisher_license": "",
         "oa_publisher_link": "",
-        "oa_repo_link": ""
+        "oa_repo_link": "",
+        "has_issn": bool(res.get("journal_issns"))
     }
 
     best_loc_is_publisher = False
 
-    # get best oa_location
+    # Obtenir le meilleur emplacement oa_location
     if res.get("best_oa_location"):
         if res["best_oa_location"]["host_type"] == "publisher":
             best_loc_is_publisher = True
@@ -302,80 +303,137 @@ def query_upw(doi):
 
 def enrich_w_upw(df):
     """
-    enrichie la df avec les données de upw
+    Enrichit le DataFrame avec les données d'Unpaywall.
     """
-    print(f"nb DOI a verifier dans upw \t{len(df)}")
+    print(f"nb DOI à vérifier dans Unpaywall : {len(df)}")
     df.reset_index(drop=True, inplace=True)
+    
+
     for row in df.itertuples():
         upw_data = query_upw(row.doi)
         for field in upw_data:
             try:
                 df.at[row.Index, field] = upw_data[field]
-            except:
-                print("\n\npb ac doi upw\n", field, row.doi, '\n\n', upw_data)
+            except Exception as e:
+                print("\n\nProblème avec le DOI Unpaywall\n", field, row.doi, '\n\n', upw_data, e)
                 break
-    print("upw 100%")
+    print("Unpaywall 100%")
     return df
+
+from concurrent.futures import ThreadPoolExecutor
+
+def enrich_w_upw_parallel(df):
+    df.reset_index(drop=True, inplace=True)
+
+    def process(index_row):
+        index, row = index_row
+        return query_upw(row['doi'])
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = list(executor.map(process, df.iterrows()))
+
+    # S'assurer que toutes les colonnes nécessaires sont bien typées en 'object' (texte)
+    for col in ["published_date", "oa_publisher_license", "oa_publisher_link", "oa_repo_link", "Statut Unpaywall", "has_issn"]:
+        if col not in df.columns:
+            df[col] = None
+            df[col] = df[col].astype("object")
+    for idx, upw_data in enumerate(results):
+        for field, value in upw_data.items():
+            df.at[idx, field] = value
+    return df
+
+
 
 def add_permissions(row):
     """
-    ajouter les possibilité de dépôt en archvie via l'API persmission
+    Ajoute les possibilités de dépôt en archive via l'API permissions.
     """
-    if row.oa_repo_link or row.oa_publisher_license:
+  
+    if pd.notna(row.get("oa_repo_link")) or pd.notna(row.get("oa_publisher_license")):
         return ""
 
     try:
-        req = requests.get(f"https://api.openaccessbutton.org/permissions/{row.doi}")
+        req = requests.get(f"https://bg.api.oa.works/permissions/{row['doi']}")
         res = req.json()
-        res = res["best_permission"]
-    except:
-        print("doi problem w permissions", row.doi)
+        best_permission = res.get("best_permission", {})
+        print(f"[INFO] DOI {row['doi']} - permission trouvée")
+    except Exception as e:
+        print(f"[ERREUR] DOI {row['doi']} - exception: {e}")
         return ""
 
-    repository = False
-    if res.get("locations"):
-        locations_cut = []
-        for item in res["locations"]:
-            for word in item.split(" "):
-                locations_cut.append(word.lower())
+    locations = best_permission.get("locations", [])
+    if not any("repository" in loc.lower() for loc in locations):
+        print(f"[INFO] DOI {row['doi']} - pas de dépôt en référentiel autorisé")
+        return ""
 
-        if "repository" in locations_cut:
-            repository = True
+    version = best_permission.get("version")
+    licence = best_permission.get("licence", "unknown licence")
+    embargo_months = best_permission.get("embargo_months", "no months")
+    embargo_str = f"{embargo_months} months" if isinstance(embargo_months, int) else embargo_months
 
-    if repository and res.get("versions"):
-        if "publishedVersion" in res["versions"]:
-            print(f"{row.doi} publishedVersion can be shared 🎉")
-            return f"publishedVersion ; {res.get('licence')} ; {res.get('embargo_months')} months"
+    if version in ["acceptedVersion", "publishedVersion"]:
+        print(f"[OK] DOI {row['doi']} - version autorisée : {version}, embargo : {embargo_str}")
+        return f"{version} ; {licence} ; {embargo_str}"
 
-    if repository and res.get("versions"):
-        if "acceptedVersion" in res["versions"]:
-            if not res.get("embargo_months"):
-                print(f"{row.doi} acceptedVersion , no embargo")
-                return f"{res['version']} ; {res.get('licence')} ; no months"
-            else:
-                if isinstance(res["embargo_months"], int):
-                    if res["embargo_months"] < 6:
-                        print(f"{row.doi} acceptedVersion embargo of {res.get('embargo_months')} months")
-                        return f"{res['version']} ; {res.get('licence')} ; {res.get('embargo_months')} months"
+    return ""
+
+def add_permissions_parallel(df):
+    def safe_add(row_dict):
+        return add_permissions(pd.Series(row_dict))
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = list(executor.map(safe_add, df.to_dict('records')))
+    df['deposit_condition'] = results
+    return df
+
+
+
 
 def deduce_todo(row):
     """
-    deduire les actions à réaliser ; les indiquer sous formes de texte
+    Déduit les actions à réaliser et les indique sous forme de texte avec des emojis.
     """
+
+    if row["Statut_HAL"] == "Dans la collection" and row["type_dépôt_si_trouvé"] == "file":
+        return "✅ Dépôt HAL déjà effectué"
+
+    if row["Statut_HAL"] == "Dans HAL mais hors de la collection":
+        return "🏷️ Vérifier l'affiliation dans HAL et corriger si besoin"
+
+    if row["Statut_HAL"] == "Hors HAL":
+        return "📥 Créer ou retrouver la notice dans HAL"
+
+    if row["Statut_HAL"] == "Titre approchant trouvé dans la collection : à vérifier":
+        return "🧐 Vérifier le titre — peut-être une variante déjà déposée"
+
+    if row["Statut_HAL"] == "Titre trouvé dans la collection : probablement déjà présent" and row["type_dépôt_si_trouvé"] == "file":
+        return "✅ Titre probablement déjà déposé"
+
+    if row["Statut_HAL"] == "Titre invalide":
+        return "❌ Titre invalide — corriger et réessayer"
+
+    if row["Statut_HAL"] == "Titre incorrect, probablement absent de HAL":
+        return "❌ Titre mal formé ou absent — à corriger"
+
+    if row["Statut_HAL"] == "Titre approchant trouvé dans HAL mais hors de la collection":
+        return "🔍 Présent dans HAL mais hors collection — vérifier affiliations"
+
+    # Conditions de dépôt à analyser
     if "publishedVersion" in str(row["deposit_condition"]):
-        return "recuperer le PDF editeur et ecrire a l auteur pour accord"
+        return "📄 Récupérer le PDF éditeur"
 
     if row["oa_publisher_license"] and not row["oa_repo_link"]:
-        return "selon la licence ajouter le PDF editeur"
+        return "📜 Ajouter le PDF éditeur selon la licence"
 
-    if row["upw_state"] != "open" and row["has_issn"]:
-        return "ecrire a l auteur pour appliquer la LRN"
-
-    if row["identifiant_hal_si_trouvé"] and row.get("linkExtId", "") == "" and row["upw_state"] == "open":
-        return "verifier les identifiants de la notice"
+    if row["Statut Unpaywall"] != "open" and row.get("has_issn", False):
+        return "📧 Article fermé : contacter l’auteur pour appliquer la LRN"
 
     if not row["identifiant_hal_si_trouvé"]:
-        return "creer ou retrouver la notice"
+        return "🆕 Aucune notice HAL détectée — en créer une"
+
+    return "🛠️ À vérifier manuellement"
+
+
 
 def addCaclLinkFormula(pre_url, post_url, txt):
     """
@@ -388,24 +446,77 @@ def addCaclLinkFormula(pre_url, post_url, txt):
             txt = txt[4:25] if txt.startswith("www") else txt[:20]
         return '=LIEN.HYPERTEXTE("' + pre_url + post_url + '";"' + txt + '")'
 
-def check_df(df, coll_df):
-    """Applies the full process to the dataframe or table given as an input."""
-    results = df.progress_apply(
-        lambda x: statut_doi(x['doi'], coll_df) if statut_doi(x['doi'], coll_df) and statut_doi(x['doi'], coll_df)[0] in ("Dans la collection", "Dans HAL mais hors de la collection") else statut_titre(x['Title'], coll_df), axis=1
-    )
-    df['Statut'] = results.apply(lambda x: x[0])
-    df['titre_si_trouvé'] = results.apply(lambda x: x[1])
-    df['identifiant_hal_si_trouvé'] = results.apply(lambda x: x[2])
-    df['statut_dépôt_si_trouvé'] = results.apply(lambda x: x[3])
+def check_df(df, coll_df, progress_bar=None, progress_text=None):
+    # Optimisations : accès rapide
+    dois_coll_set = set(coll_df['DOIs'].dropna().str.lower())
+    titres_coll_dict = {
+    normalise(t).strip(): (docid, submit_type, t)
+    for t, docid, submit_type in zip(coll_df['Titres'], coll_df['Hal_ids'], coll_df['Types de dépôts'])
+    }
 
-    # Enrichir le DataFrame avec les données d'Unpaywall
-    df = enrich_w_upw(df)
 
-    # Ajouter les permissions
-    df['deposit_condition'] = df.apply(add_permissions, axis=1)
+    # Nouvelle fonction statut_doi rapide
+    def fast_statut_doi(doi):
+        if pd.isna(doi):
+            return ["Pas de DOI valide", "", "", ""]
+        doi = doi.lower()
+        if doi in dois_coll_set:
+            match = coll_df[coll_df['DOIs'] == doi].iloc[0]
+            return ["Dans la collection", match['Titres'], match['Hal_ids'], match['Types de dépôts']]
+        else:
+            # Appel à HAL si nécessaire
+            try:
+                ndo = escapeSolrArg(re.sub(r"\[.*\]","",doi.replace("https://doi.org/","").lower()))
+                r=requests.get(f"{endpoint}?q=doiId_id:{ndo}&rows=1&fl={hal_fl}").json()
+                if r['response']['numFound'] > 0:
+                    d = r['response']['docs'][0]
+                    return ["Dans HAL mais hors de la collection", d['title_s'][0], d['docid'], d['submitType_s']]
+                return ["Hors HAL", "", "", ""]
+            except:
+                return ["Erreur HAL DOI", "", "", ""]
 
-    # Déduire les actions à entreprendre
+    # Fallback : enrichissement par titre, en parallèle
+    def enrich_titre(row):
+        return statut_titre(row["Title"], coll_df)
+
+    if progress_text: progress_text.text("Étape 4 : Matching avec HAL")
+    if progress_bar: progress_bar.progress(70)
+
+    # Résultats initiaux avec DOIs
+    first_pass_results = df.apply(lambda x: fast_statut_doi(x["doi"]), axis=1)
+    need_title_check = [i for i, r in enumerate(first_pass_results) if r[0] not in ("Dans la collection", "Dans HAL mais hors de la collection")]
+
+    # Enrichir par titre (parallèle)
+    if progress_text: progress_text.text("Étape 4bis : Recherche par titre dans HAL")
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        title_results = list(executor.map(lambda i: enrich_titre(df.iloc[i]), need_title_check))
+
+    # Remplacer les valeurs dans first_pass_results
+    for i, res in zip(need_title_check, title_results):
+        first_pass_results[i] = res
+
+    # Injecter les colonnes
+    df['Statut_HAL'] = [r[0] for r in first_pass_results]
+    df['titre_HAL_si_trouvé'] = [r[1] for r in first_pass_results]
+    df['identifiant_hal_si_trouvé'] = [r[2] for r in first_pass_results]
+    df['type_dépôt_si_trouvé'] = [r[3] for r in first_pass_results]
+
+    # Étape Unpaywall
+    if progress_text: progress_text.text("Étape 5 : Récupération des données Unpaywall")
+    if progress_bar: progress_bar.progress(75)
+    with st.spinner("Unpaywall"):
+        df = enrich_w_upw_parallel(df)
+
+    # Étape OA.Works
+    if progress_text: progress_text.text("Étape 6 : Récupération des permissions via OA.Works")
+    if progress_bar: progress_bar.progress(85)
+    with st.spinner("OA.Works"):
+        df = add_permissions_parallel(df)
+
+    # Étape finale : Déduction des actions à entreprendre
     df['Action'] = df.apply(deduce_todo, axis=1)
+
+    return df
 
 class HalCollImporter:
 
@@ -454,7 +565,6 @@ class HalCollImporter:
                         dois_coll.append("")
                     submit_types_coll.append(d['submitType_s'])
         return pd.DataFrame({'Hal_ids':docid_coll,'DOIs':dois_coll,'Titres':titres_coll, 'Types de dépôts':submit_types_coll})
-
 
 # Fonction pour fusionner les lignes en gardant les valeurs identiques et en concaténant les valeurs différentes
 def merge_rows_with_sources(group):
@@ -607,13 +717,13 @@ def main():
                 coll = HalCollImporter(collection_a_chercher, start_year, end_year)
                 coll_df = coll.import_data()
                 coll_df['nti'] = coll_df['Titres'].apply(lambda x: normalise(x).strip())
-                check_df(combined_df, coll_df)
+                check_df(combined_df, coll_df, progress_bar=progress_bar, progress_text=progress_text)
         else:
             combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 
          # Étape 5 : Fusion des lignes en double
         with st.spinner("Fusion"):
-            progress_text.text("Étape 5 : Fusion des lignes en double")
+            progress_text.text("Étape 7 : Fusion des lignes en double")
             progress_bar.progress(90)
             # Séparer les lignes avec et sans DOI
             with_doi = combined_df.dropna(subset=['doi'])
@@ -624,11 +734,11 @@ def main():
 
             # Combiner les lignes fusionnées avec les lignes sans DOI
             merged_data = pd.concat([merged_with_doi, without_doi], ignore_index=True)
-            
+
         # Étape 6 : Ajout des auteurs à partir de Crossref (si la case est cochée)
         if fetch_authors:
             with st.spinner("Auteurs Crossref"):
-                progress_text.text("Étape 6 : Ajout des auteurs")
+                progress_text.text("Étape 8 : Ajout des auteurs")
                 progress_bar.progress(95)
                 merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
 

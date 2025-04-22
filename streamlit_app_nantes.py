@@ -193,7 +193,7 @@ labos_list = [
         "pubmed_query": "((PHAN[Affiliation]) AND (nantes[Affiliation]) AND (1280[Affiliation])) OR (UMR 1280[Affiliation]) OR (UMR1280[Affiliation]) OR (Physiologie des Adaptations Nutritionnelles[Affiliation]) OR (Unité Mixte de Recherche 1280[Affiliation]) OR (Physiology of Nutritional Adaptations[Affiliation]) OR (Physiopathologie des Adaptations Nutritionnelles[Affiliation]) OR (Physiopathology of Nutritional Adaptations[Affiliation])"
     },
     {
-        "collection": "RMeS",
+        "collection": "RMES",
         "scopus_id": "60117279",
         "openalex_id": "I4387152865",
         "pubmed_query": "((RMES[Affiliation]) AND (nantes[Affiliation])) OR (UMRS 1229[Affiliation]) OR (UMR S 1229[Affiliation]) OR ((UMR 1229[Affiliation]) AND (nantes[Affiliation])) OR ((UMR1229[Affiliation]) AND (nantes[Affiliation])) OR (U 1229[Affiliation]) OR ((U1229[Affiliation]) AND (nantes[Affiliation])) OR (LIOAD[Affiliation]) OR (UMRS791[Affiliation]) OR (UMRS 791[Affiliation]) OR (UMR S 791[Affiliation]) OR (U 791[Affiliation]) OR (U791[Affiliation]) OR ((UMR 791[Affiliation]) AND (nantes[Affiliation])) OR ((UMR791[Affiliation]) AND (nantes[Affiliation])) OR (Regenerative Medicine and Skeleton[Affiliation]) OR (Osteoarticular and Dental Tissue Engineering[Affiliation]) OR (Laboratoire d'Ingénierie Ostéo-Articulaire et Dentaire[Affiliation]) OR (Ingénierie des Tissus Ostéo-Articulaires et Dentaires[Affiliation]) OR (osteo-articular and dental tissue engineering[Affiliation])"
@@ -205,7 +205,7 @@ labos_list = [
         "pubmed_query": "((SPHERE[Affiliation]) AND (1246[Affiliation])) OR (U 1246[Affiliation]) OR (U1246[Affiliation]) OR (UMR 1246[Affiliation]) OR (UMR1246[Affiliation]) OR (UMR S 1246[Affiliation]) OR (INSERM 1246[Affiliation]) OR (MethodS in Patients-centered outcomes and HEalth Research[Affiliation])"
     },
     {
-        "collection": "TaRGeT",
+        "collection": "TARGET",
         "scopus_id": "60105668",
         "openalex_id": "I4392021141",
         "pubmed_query": "((TARGET[Affiliation]) AND ((nantes université[Affiliation]) OR (nantes university[Affiliation]))) OR ((U1089[Affiliation]) AND (nantes[Affiliation])) OR (UMR S 1089[Affiliation]) OR ((UMR 1089[Affiliation]) AND (nantes[Affiliation])) OR ((UMR1089[Affiliation]) AND (nantes[Affiliation])) OR ((Laboratoire de Thérapie Génique[Affiliation]) AND (nantes[Affiliation])) OR (thérapie génique translationnelle des maladies génétiques[Affiliation]) OR (Translational Gene Therapy for Genetic Diseases[Affiliation]) OR (Gene Therapy Laboratory[Affiliation])"
@@ -226,31 +226,26 @@ labos_list = [
         "collection": "CDMO",
         "scopus_id": "60105527",
         "openalex_id": "I4392021194",
-        "pubmed_query": ""
     },
     {
         "collection": "CENS",
         "scopus_id": "60105489",
         "openalex_id": "I4210153136",
-        "pubmed_query": ""
     },
     {
         "collection": "DCS",
         "scopus_id": "60105572",
         "openalex_id": "I4210100746",
-        "pubmed_query": ""
     },
     {
         "collection": "IRDP",
         "scopus_id": "60105528",
         "openalex_id": "I4392021099",
-        "pubmed_query": ""
     },
     {
         "collection": "LEMNA",
         "scopus_id": "60105575",
         "openalex_id": "I4390039323",
-        "pubmed_query": ""
     },
     {
         "collection": "LHEEA",
@@ -262,7 +257,6 @@ labos_list = [
         "collection": "AAU",
         "scopus_id": "60110513",
         "openalex_id": "I4210162214",
-        "pubmed_query": ""
     }
 ]
 

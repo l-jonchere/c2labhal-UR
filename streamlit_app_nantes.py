@@ -217,7 +217,7 @@ labos_list = [
         "pubmed_query": "((TENS[Affiliation]) AND (nantes[Affiliation])) OR ((UMR 1235[Affiliation]) AND (nantes[Affiliation])) OR ((UMR1235[Affiliation]) AND (nantes[Affiliation])) OR ((U 1235[Affiliation]) AND (nantes[Affiliation])) OR ((U1235[Affiliation]) AND (nantes[Affiliation])) OR (U 913[Affiliation]) OR (U913[Affiliation]) OR (UMR 913[Affiliation]) OR (UMR913[Affiliation]) OR (UMR S 913[Affiliation]) OR (The Enteric Nervous System in Gut and Brain Diseases[Affiliation]) OR (neuropathies du système nerveux entérique[Affiliation])"
     },
     {
-        "collection": "ITX",
+        "collection": "THORAX-UMR",
         "scopus_id": "60105651",
         "openalex_id": "I4210144168",
         "pubmed_query": "(Umr1087[Affiliation]) OR (Umr 1087[Affiliation]) OR (UMR S 1087[Affiliation]) OR (UMR 6291[Affiliation]) OR (UMRS1087[Affiliation]) OR (UMR6291[Affiliation]) OR ((Inst Thorax[Affiliation])) AND (nantes[Affiliation]) OR (l'institut du thorax[Affiliation]) OR (Institut du Thorax[Affiliation])"

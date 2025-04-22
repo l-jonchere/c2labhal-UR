@@ -277,7 +277,7 @@ def main():
     labos_df = pd.DataFrame(labos_list)
 
     # Sélection du labo
-    labo_choisi = st.selectbox("Choisissez une collection HAL", labos_df['collection'].unique())
+    labo_choisi = st.selectbox("Choisissez une collection HAL", sorted(labos_df['collection'].unique()))
 
     # Récupération des infos correspondantes
     row = labos_df[labos_df['collection'] == labo_choisi].iloc[0]

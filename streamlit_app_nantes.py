@@ -25,7 +25,7 @@ labos_list = [
         "pubmed_query": "(CFV[Affiliation]) OR (\"EA 1161\"[Affiliation]) OR (Viete[Affiliation])"
     },
     {
-        "collection": "CReAAH",
+        "collection": "CREAAH",
         "scopus_id": "60105602",
         "openalex_id": "I4387153012",
         "pubmed_query": "CReAAH[Affiliation] OR (LARA[Affiliation]) OR (6566[Affiliation])"
@@ -85,7 +85,7 @@ labos_list = [
         "pubmed_query": "(CEISAM[Affiliation]) OR (UMR6230[Affiliation]) OR (UMR 6230[Affiliation]) OR (LAIEM[Affiliation]) OR (Laboratory of Isotopic and Electrochemical Analysis of Metabolism[Affiliation]) OR (Laboratoire d'Analyse Isotopique et Electrochimique des Métabolismes[Affiliation]) OR (Chimie et Interdisciplinarite Synthese Analyse Modelisation[Affiliation]) OR (CNRS 6230[Affiliation]) OR (CNRS6230[Affiliation]) OR (Interdisciplinary Chemistry Synthesis Analysis Modelling[Affiliation]) OR (CNRS 6513[Affiliation]) OR ((Laboratoire de Synthèse Organique[Affiliation]) AND (nantes[Affiliation])) OR (EA 1149[Affiliation]) OR ((Laboratoire de Spectrochimie[Affiliation]) AND (nantes[Affiliation]) NOT (villeneuve[Affiliation])) OR (UMR 6513[Affiliation]) OR (UMR6006[Affiliation]) OR (UMR 6006[Affiliation])"
     },
     {
-        "collection": "GeM",
+        "collection": "GEM",
         "scopus_id": "60105606",
         "openalex_id": "I4210137520",
         "pubmed_query": "((GEM[Affiliation]) AND ((nazaire[Affiliation]) OR (nantes[Affiliation])) NOT (chicago[Affiliation])) OR (UMR 6183[Affiliation]) OR (UMR6183[Affiliation]) OR (CNRS 6183[Affiliation]) OR ((Laboratoire de Mécanique et Matériaux [Affiliation]) AND (nantes[Affiliation])) OR (Institute for Research in Civil and Mechanical Engineering[Affiliation]) OR (Research Institute in Civil Engineering and Mechanics[Affiliation]) OR (Institut de Recherche en Génie Civil[Affiliation]) OR (Research Institute in Civil and Mechanical Engineering[Affiliation])"
@@ -133,7 +133,7 @@ labos_list = [
         "pubmed_query": "(LS2N[Affiliation]) OR (UMR 6004[Affiliation]) OR (UMR6004[Affiliation]) OR ((Cnrs 6004[Affiliation]) AND (nantes[Affiliation])) OR (Laboratoire des Sciences du Numérique[Affiliation]) OR ((Laboratory of Digital Sciences[Affiliation]) NOT (orsay[Affiliation])) OR (IRCCYN[Affiliation]) OR (Cnrs 6597[Affiliation]) OR (Umr 6597[Affiliation]) OR (UMR_C 6597[Affiliation]) OR (Institut de Recherche en Communications et Cybernétique de Nantes[Affiliation]) OR (Research Institute in Communications and Cybernetics of Nantes[Affiliation]) OR (UMR 6241[Affiliation]) OR (UMR6241[Affiliation]) OR (CNRS 6241[Affiliation]) OR (Computer Science Institute of Nantes-Atlantic[Affiliation]) OR (Computer Science Laboratory of Nantes Atlantique[Affiliation]) OR (Laboratoire d'Informatique de Nantes-Atlantique[Affiliation])"
     },
     {
-        "collection": "LTeN",
+        "collection": "LTEN",
         "scopus_id": "60105570",
         "openalex_id": "I4210109587",
         "pubmed_query": "((LTEN[Affiliation]) NOT (Louisville[Affiliation])) OR ((LTN[Affiliation]) AND (nantes[Affiliation])) OR (UMR 6607[Affiliation]) OR (CNRS 6607[Affiliation]) OR (Laboratoire de Thermocinétique[Affiliation]) OR (Laboratoire de Thermique et Energie de Nantes[Affiliation]) OR (Laboratoire Thermique et Energie[Affiliation])"
@@ -226,6 +226,7 @@ labos_list = [
         "collection": "CDMO",
         "scopus_id": "60105527",
         "openalex_id": "I4392021194",
+        "pubmed_query": ""
     },
     {
         "collection": "CENS",
@@ -237,16 +238,19 @@ labos_list = [
         "collection": "DCS",
         "scopus_id": "60105572",
         "openalex_id": "I4210100746",
+        "pubmed_query": ""
     },
     {
         "collection": "IRDP",
         "scopus_id": "60105528",
         "openalex_id": "I4392021099",
+        "pubmed_query": ""
     },
     {
         "collection": "LEMNA",
         "scopus_id": "60105575",
         "openalex_id": "I4390039323",
+        "pubmed_query": ""
     },
     {
         "collection": "LHEEA",
@@ -258,6 +262,7 @@ labos_list = [
         "collection": "AAU",
         "scopus_id": "60110513",
         "openalex_id": "I4210162214",
+        "pubmed_query": ""
     }
 ]
 
@@ -279,9 +284,8 @@ def main():
     collection_a_chercher = row['collection']
     scopus_lab_id = row['scopus_id']
     openalex_institution_id = row['openalex_id']
-    pubmed_query = row['pubmed_query']
+    pubmed_query = row.get('pubmed_query', '')  # utilisation sécurisée
 
-    
     # Clés API depuis Streamlit secrets
     scopus_api_key = st.secrets["SCOPUS_API_KEY"]
     pubmed_api_key = st.secrets["PUBMED_API_KEY"]
@@ -322,13 +326,14 @@ def main():
             openalex_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
             openalex_df['doi'] = openalex_df['doi'].apply(clean_doi)
 
-        # Étape 2 : PubMed
-        with st.spinner("PubMed"):
-            progress_text.text("Étape 2 : PubMed")
-            progress_bar.progress(30)
-            pubmed_query = f"{pubmed_query} AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
-            pubmed_data = get_pubmed_data(pubmed_query)
-            pubmed_df = pd.DataFrame(pubmed_data)
+        # Étape 2 : PubMed (si une requête est définie)
+        if pubmed_query:
+            with st.spinner("PubMed"):
+                progress_text.text("Étape 2 : PubMed")
+                progress_bar.progress(30)
+                full_pubmed_query = f"{pubmed_query} AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
+                pubmed_data = get_pubmed_data(full_pubmed_query)
+                pubmed_df = pd.DataFrame(pubmed_data)
 
         # Étape 3 : Scopus
         with st.spinner("Scopus"):
@@ -338,18 +343,18 @@ def main():
             scopus_data = get_scopus_data(scopus_api_key, scopus_query)
             scopus_df = pd.DataFrame()
 
-        if scopus_data:
-            raw_df = convert_to_dataframe(scopus_data, 'scopus')
-            expected_cols = ['dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']
-    
-        # Vérifie que toutes les colonnes attendues sont présentes
-            if all(col in raw_df.columns for col in expected_cols):
-                scopus_df = raw_df[['source'] + expected_cols]
-                scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+            if scopus_data:
+                raw_df = convert_to_dataframe(scopus_data, 'scopus')
+                expected_cols = ['dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']
+
+                # Vérifie que toutes les colonnes attendues sont présentes
+                if all(col in raw_df.columns for col in expected_cols):
+                    scopus_df = raw_df[['source'] + expected_cols]
+                    scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+                else:
+                    st.warning("Les données Scopus sont incomplètes ou mal formées.")
             else:
-                st.warning("Les données Scopus sont incomplètes ou mal formées.")
-        else:
-            st.info("Aucune donnée Scopus récupérée.")
+                st.info("Aucune donnée Scopus récupérée.")
 
         # Étape 4 : Comparaison avec HAL
         with st.spinner("HAL"):

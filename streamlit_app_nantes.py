@@ -46,7 +46,7 @@ labos_list = [
         "collection": "CRINI",
         "scopus_id": "60105525",
         "openalex_id": "I4387153799",
-        "pubmed_query": "(CRINI[Affiliation]) OR (1162[Affiliation]) OR (\"Ctr Rech Identites Nations\"[Affiliation])"
+        "pubmed_query": ""
     },
     {
         "collection": "ESO",

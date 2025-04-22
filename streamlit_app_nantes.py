@@ -163,7 +163,7 @@ labos_list = [
         "pubmed_query": "(CRCI2NA[Affiliation]) OR (CRC2INA[Affiliation]) OR ((CRCINA[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR (UMR 1307[Affiliation]) OR (UMR1307[Affiliation]) OR (U1307[Affiliation]) OR (UMR 6075[Affiliation]) OR (UMR6075[Affiliation]) OR (ERL6075[Affiliation]) OR ((ERL6001[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((ERL 6001[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((UMR 1232[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((UMR1232[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((Inserm 1232[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((Nantes-Angers Cancer Research Center[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((CRCNA[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR (Centre de Recherche en Cancérologie et Immunologie Intégrée[Affiliation]) OR ((Centre de Recherche en Cancérologie et Immunologie[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((Center for Research in Cancerology and Immunology[Affiliation]) AND ((2022[dp]) OR (2023[dp])))"
     },
     {
-        "collection": "IICiMed",
+        "collection": "IICIMED",
         "scopus_id": "60105522",
         "openalex_id": "I4387930219",
         "pubmed_query": "((IICIMED[Affiliation]) AND (nantes[Affiliation])) OR (UR 1155[Affiliation]) OR (UR1155[Affiliation]) OR (EA 1155[Affiliation]) OR (EA1155[Affiliation]) OR (Cibles et Médicaments des Infections et du Cancer[Affiliation]) OR (Cibles et médicaments des infections et de l'immunité[Affiliation]) OR (Cibles et Médicaments des Infections de l'Immunité et du Cancer[Affiliation]) OR (cibles et medicaments des infections et du l immunite[Affiliation])"

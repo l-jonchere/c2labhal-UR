@@ -231,6 +231,7 @@ labos_list = [
         "collection": "CENS",
         "scopus_id": "60105489",
         "openalex_id": "I4210153136",
+        "pubmed_query": ""
     },
     {
         "collection": "DCS",

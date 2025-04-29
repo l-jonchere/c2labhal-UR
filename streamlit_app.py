@@ -271,35 +271,42 @@ def query_upw(doi):
             "has_issn": bool(res.get("journal_issns"))
         }
 
-    # Si l'article est ouvert
+    # Initialisation du dictionnaire temp
     temp = {
-        "Statut Unpaywall": "open",
+        "Statut Unpaywall": "missing",
         "published_date": res.get("published_date"),
         "oa_publisher_license": "",
         "oa_publisher_link": "",
         "oa_repo_link": "",
-        "publisher": "",
-        "oa_status": "",
+        "publisher": res.get("publisher", ""),  # Extraire le nom de l'éditeur
+        "oa_status": res.get("oa_status", ""),  # Extraire le statut oa
         "has_issn": bool(res.get("journal_issns"))
     }
 
-    best_loc_is_publisher = False
+    # Vérification du statut de l'article
+    if res.get("message") and "isn't in Unpaywall" in res.get("message"):
+        return temp
+
+    # Si l'article est fermé
+    if not res.get("is_oa"):
+        temp["Statut Unpaywall"] = "closed"
+        temp["oa_status"] = "closed"
+        return temp
+
+    # Si l'article est ouvert
+    temp["Statut Unpaywall"] = "open"
 
     # Obtenir le meilleur emplacement oa_location
     if res.get("best_oa_location"):
-        if res["best_oa_location"]["host_type"] == "publisher":
-            best_loc_is_publisher = True
-            temp["oa_publisher_license"] = res["best_oa_location"]["license"] if res["best_oa_location"]["license"] else ""
-            temp["oa_publisher_link"] = res["best_oa_location"]["url_for_pdf"] if res["best_oa_location"]["url_for_pdf"] else res["best_oa_location"]["url_for_landing_page"]
+        best_loc = res["best_oa_location"]
+        if best_loc["host_type"] == "publisher":
+            temp["oa_publisher_license"] = best_loc.get("license", "")
+            temp["oa_publisher_link"] = best_loc.get("url_for_pdf") or best_loc.get("url_for_landing_page")
+        elif best_loc["host_type"] == "repository":
+            temp["oa_repo_link"] = str(best_loc.get("url_for_pdf"))
 
-        if res["best_oa_location"]["host_type"] == "repository":
-            temp["oa_repo_link"] = str(res["best_oa_location"]["url_for_pdf"])
-
-    if best_loc_is_publisher:
-        for elem in res["oa_locations"]:
-            if elem["host_type"] == "repository":
-                temp["oa_repo_link"] = str(elem["url_for_pdf"])
-                break
+    # Déterminer le statut oa_status
+    temp["oa_status"] = res.get("oa_status", "unknown")
 
     return temp
 

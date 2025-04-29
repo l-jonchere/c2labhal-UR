@@ -643,7 +643,7 @@ def main():
         scopus_df = pd.DataFrame()
         openalex_df = pd.DataFrame()
         pubmed_df = pd.DataFrame()
-
+        
         # Étape 1 : Récupération des données OpenAlex
         with st.spinner("OpenAlex"):
             progress_text.text("Étape 1 : Récupération des données OpenAlex")
@@ -693,65 +693,71 @@ def main():
                 scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
 
         # Étape 4 : Comparaison avec HAL (si le champ "Collection HAL" n'est pas vide)
+        
         if collection_a_chercher:
             with st.spinner("HAL"):
                 progress_text.text("Étape 4 : Comparaison avec HAL")
                 progress_bar.progress(70)
                 # Combiner les DataFrames
                 combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
-
+                
                 # Récupérer les données HAL
                 coll = HalCollImporter(collection_a_chercher, start_year, end_year)
                 coll_df = coll.import_data()
                 coll_df['nti'] = coll_df['Titres'].apply(lambda x: normalise(x).strip())
-                combined_df = check_df(combined_df, coll_df, progress_bar=progress_bar, progress_text=progress_text)
-        else:
-            combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 
-         # Étape 5 : Fusion des lignes en double
-        with st.spinner("Fusion"):
-            progress_text.text("Étape 7 : Fusion des lignes en double")
-            progress_bar.progress(90)
-            # Séparer les lignes avec et sans DOI
-            with_doi = combined_df.dropna(subset=['doi'])
-            without_doi = combined_df[combined_df['doi'].isna()]
+            # ✅ Important : assigner le retour de check_df()
+            combined_df = check_df(combined_df, coll_df, progress_bar=progress_bar, progress_text=progress_text)
+    else:
+        combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 
-            # Fusionner les lignes avec DOI
-            merged_with_doi = with_doi.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+    # Étape 5 : Fusion des lignes en double
+    with st.spinner("Fusion"):
+        progress_text.text("Étape 7 : Fusion des lignes en double")
+        progress_bar.progress(90)
 
-            # Combiner les lignes fusionnées avec les lignes sans DOI
-            merged_data = pd.concat([merged_with_doi, without_doi], ignore_index=True)
+        # Séparer les lignes avec et sans DOI
+        with_doi = combined_df.dropna(subset=['doi'])
+        without_doi = combined_df[combined_df['doi'].isna()]
 
-        # Étape 6 : Ajout des auteurs à partir de Crossref (si la case est cochée)
-        if fetch_authors:
-            with st.spinner("Auteurs Crossref"):
-                progress_text.text("Étape 8 : Ajout des auteurs")
-                progress_bar.progress(95)
-                merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
+        # Fusionner les lignes avec DOI
+        merged_with_doi = with_doi.groupby('doi', as_index=False).apply(merge_rows_with_sources)
 
-        # Vérifier si merged_data n'est pas vide avant de générer le CSV
-        if not merged_data.empty:
-            # Générer le CSV à partir du DataFrame
-            csv = merged_data.to_csv(index=False)
+        # Combiner avec les lignes sans DOI
+        merged_data = pd.concat([merged_with_doi, without_doi], ignore_index=True)
 
-            # Créer un objet BytesIO pour stocker le CSV
-            csv_bytes = io.BytesIO()
-            csv_bytes.write(csv.encode('utf-8'))
-            csv_bytes.seek(0)
+    # ✅ Vérifier si 'deposit_condition' est bien présente
+    if "deposit_condition" not in merged_data.columns:
+        st.warning("⚠️ La colonne 'deposit_condition' est absente après fusion. Vérifiez les étapes précédentes.")
+    else:
+        st.success("✅ La colonne 'deposit_condition' est bien présente.")
 
-            # Proposer le téléchargement du CSV
-            st.download_button(
-                label="Télécharger le CSV",
-                data=csv_bytes,
-                file_name="results.csv",
-                mime="text/csv"
+    # Étape 6 : Ajout des auteurs Crossref
+    if fetch_authors:
+        with st.spinner("Auteurs Crossref"):
+            progress_text.text("Étape 8 : Ajout des auteurs")
+            progress_bar.progress(95)
+            merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
+
+    # Export CSV
+    if not merged_data.empty:
+        csv = merged_data.to_csv(index=False)
+        csv_bytes = io.BytesIO()
+        csv_bytes.write(csv.encode('utf-8'))
+        csv_bytes.seek(0)
+
+        st.download_button(
+            label="📥 Télécharger le CSV",
+            data=csv_bytes,
+            file_name="results.csv",
+            mime="text/csv"
             )
 
-            # Mettre à jour la barre de progression à 100%
-            progress_bar.progress(100)
-            progress_text.text("Terminé !")
-        else:
+        progress_bar.progress(100)
+        progress_text.text("✅ Terminé !")
+    else:
             st.error("Aucune donnée à exporter. Veuillez vérifier les paramètres de recherche.")
+
 
 if __name__ == "__main__":
     main()

@@ -335,7 +335,7 @@ def enrich_w_upw_parallel(df):
         results = list(executor.map(process, df.iterrows()))
 
     # S'assurer que toutes les colonnes nécessaires sont bien typées en 'object' (texte)
-    for col in ["published_date", "oa_publisher_license", "oa_publisher_link", "oa_repo_link", "Statut Unpaywall", "has_issn"]:
+    for col in ["published_date", "oa_publisher_license", "oa_publisher_link", "oa_repo_link", "Statut Unpaywall", "has_issn", "publisher", "oa_status"]:
         if col not in df.columns:
             df[col] = None
             df[col] = df[col].astype("object")

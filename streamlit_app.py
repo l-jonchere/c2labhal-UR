@@ -260,17 +260,21 @@ def query_upw(doi):
         print(f"Erreur lors de la requête : {e}")
         return {}
 
-    # Initialisation du dictionnaire temp
+    # Si l'article n'est pas dans Unpaywall
+    if res.get("message") and "isn't in Unpaywall" in res.get("message"):
+        return {"Statut Unpaywall": "missing"}
+
+    # Construire toujours les métadonnées
     temp = {
         "Statut Unpaywall": "closed" if not res.get("is_oa") else "open",
         "oa_status": res.get("oa_status", ""), 
         "oa_publisher_license": "",
         "oa_publisher_link": "",
         "oa_repo_link": "",
-        "publisher": res.get("publisher", "")        
+        "publisher": res.get("publisher", "")
     }
 
-    # Obtenir le meilleur emplacement oa_location
+    # Ajouter les liens/licences s'ils existent
     if res.get("best_oa_location"):
         best_loc = res["best_oa_location"]
         if best_loc["host_type"] == "publisher":
@@ -280,6 +284,7 @@ def query_upw(doi):
             temp["oa_repo_link"] = str(best_loc.get("url_for_pdf"))
 
     return temp
+
 
 def enrich_w_upw(df):
     """
@@ -328,29 +333,22 @@ def add_permissions(row):
     """
     Ajoute les possibilités de dépôt en archive via l'API permissions.
     """
-
-    doi = row.get("doi", "")
-    if not isinstance(doi, str) or doi.strip() == "":
-        return ""  # DOI vide ou invalide
-
-    if pd.notna(row.get("oa_repo_link")) or pd.notna(row.get("oa_publisher_license")):
+  
+    if str(row.get("oa_repo_link") or "").strip() or str(row.get("oa_publisher_license") or "").strip():
         return ""
 
     try:
-        req = requests.get(f"https://bg.api.oa.works/permissions/{doi}")
+        req = requests.get(f"https://bg.api.oa.works/permissions/{row['doi']}")
         res = req.json()
+        best_permission = res.get("best_permission", {})
+        print(f"[INFO] DOI {row['doi']} - permission trouvée")
     except Exception as e:
-        print(f"[ERREUR] Requête permissions pour DOI {doi} : {e}")
-        return ""
-
-    best_permission = res.get("best_permission")
-    if not best_permission:
-        print(f"[INFO] Aucun champ 'best_permission' pour {doi}")
+        print(f"[ERREUR] DOI {row['doi']} - exception: {e}")
         return ""
 
     locations = best_permission.get("locations", [])
-    if not any("repository" in loc.lower() for loc in locations if isinstance(loc, str)):
-        print(f"[INFO] DOI {doi} - pas de dépôt en référentiel autorisé")
+    if not any("repository" in loc.lower() for loc in locations):
+        print(f"[INFO] DOI {row['doi']} - pas de dépôt en référentiel autorisé")
         return ""
 
     version = best_permission.get("version")
@@ -359,11 +357,10 @@ def add_permissions(row):
     embargo_str = f"{embargo_months} months" if isinstance(embargo_months, int) else embargo_months
 
     if version in ["acceptedVersion", "publishedVersion"]:
-        print(f"[OK] DOI {doi} - version : {version}, embargo : {embargo_str}")
+        print(f"[OK] DOI {row['doi']} - version autorisée : {version}, embargo : {embargo_str}")
         return f"{version} ; {licence} ; {embargo_str}"
 
     return ""
-
 
 def add_permissions_parallel(df):
     def safe_add(row_dict):
@@ -373,6 +370,7 @@ def add_permissions_parallel(df):
         results = list(executor.map(safe_add, df.to_dict('records')))
     df['deposit_condition'] = results
     return df
+
 
 
 
@@ -643,7 +641,7 @@ def main():
         scopus_df = pd.DataFrame()
         openalex_df = pd.DataFrame()
         pubmed_df = pd.DataFrame()
-        
+
         # Étape 1 : Récupération des données OpenAlex
         with st.spinner("OpenAlex"):
             progress_text.text("Étape 1 : Récupération des données OpenAlex")
@@ -693,71 +691,65 @@ def main():
                 scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
 
         # Étape 4 : Comparaison avec HAL (si le champ "Collection HAL" n'est pas vide)
-        
         if collection_a_chercher:
             with st.spinner("HAL"):
                 progress_text.text("Étape 4 : Comparaison avec HAL")
                 progress_bar.progress(70)
                 # Combiner les DataFrames
                 combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
-                
+
                 # Récupérer les données HAL
                 coll = HalCollImporter(collection_a_chercher, start_year, end_year)
                 coll_df = coll.import_data()
                 coll_df['nti'] = coll_df['Titres'].apply(lambda x: normalise(x).strip())
+                check_df(combined_df, coll_df, progress_bar=progress_bar, progress_text=progress_text)
+        else:
+            combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 
-            # ✅ Important : assigner le retour de check_df()
-            combined_df = check_df(combined_df, coll_df, progress_bar=progress_bar, progress_text=progress_text)
-    else:
-        combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
+         # Étape 5 : Fusion des lignes en double
+        with st.spinner("Fusion"):
+            progress_text.text("Étape 7 : Fusion des lignes en double")
+            progress_bar.progress(90)
+            # Séparer les lignes avec et sans DOI
+            with_doi = combined_df.dropna(subset=['doi'])
+            without_doi = combined_df[combined_df['doi'].isna()]
 
-    # Étape 5 : Fusion des lignes en double
-    with st.spinner("Fusion"):
-        progress_text.text("Étape 7 : Fusion des lignes en double")
-        progress_bar.progress(90)
+            # Fusionner les lignes avec DOI
+            merged_with_doi = with_doi.groupby('doi', as_index=False).apply(merge_rows_with_sources)
 
-        # Séparer les lignes avec et sans DOI
-        with_doi = combined_df.dropna(subset=['doi'])
-        without_doi = combined_df[combined_df['doi'].isna()]
+            # Combiner les lignes fusionnées avec les lignes sans DOI
+            merged_data = pd.concat([merged_with_doi, without_doi], ignore_index=True)
 
-        # Fusionner les lignes avec DOI
-        merged_with_doi = with_doi.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+        # Étape 6 : Ajout des auteurs à partir de Crossref (si la case est cochée)
+        if fetch_authors:
+            with st.spinner("Auteurs Crossref"):
+                progress_text.text("Étape 8 : Ajout des auteurs")
+                progress_bar.progress(95)
+                merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
 
-        # Combiner avec les lignes sans DOI
-        merged_data = pd.concat([merged_with_doi, without_doi], ignore_index=True)
+        # Vérifier si merged_data n'est pas vide avant de générer le CSV
+        if not merged_data.empty:
+            # Générer le CSV à partir du DataFrame
+            csv = merged_data.to_csv(index=False)
 
-    # ✅ Vérifier si 'deposit_condition' est bien présente
-    if "deposit_condition" not in merged_data.columns:
-        st.warning("⚠️ La colonne 'deposit_condition' est absente après fusion. Vérifiez les étapes précédentes.")
-    else:
-        st.success("✅ La colonne 'deposit_condition' est bien présente.")
+            # Créer un objet BytesIO pour stocker le CSV
+            csv_bytes = io.BytesIO()
+            csv_bytes.write(csv.encode('utf-8'))
+            csv_bytes.seek(0)
 
-    # Étape 6 : Ajout des auteurs Crossref
-    if fetch_authors:
-        with st.spinner("Auteurs Crossref"):
-            progress_text.text("Étape 8 : Ajout des auteurs")
-            progress_bar.progress(95)
-            merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
-
-    # Export CSV
-    if not merged_data.empty:
-        csv = merged_data.to_csv(index=False)
-        csv_bytes = io.BytesIO()
-        csv_bytes.write(csv.encode('utf-8'))
-        csv_bytes.seek(0)
-
-        st.download_button(
-            label="📥 Télécharger le CSV",
-            data=csv_bytes,
-            file_name="results.csv",
-            mime="text/csv"
+            # Proposer le téléchargement du CSV
+            st.download_button(
+                label="Télécharger le CSV",
+                data=csv_bytes,
+                file_name="results.csv",
+                mime="text/csv"
             )
 
-        progress_bar.progress(100)
-        progress_text.text("✅ Terminé !")
-    else:
+            # Mettre à jour la barre de progression à 100%
+            progress_bar.progress(100)
+            progress_text.text("Terminé !")
+        else:
             st.error("Aucune donnée à exporter. Veuillez vérifier les paramètres de recherche.")
-
 
 if __name__ == "__main__":
     main()

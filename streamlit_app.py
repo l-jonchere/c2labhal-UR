@@ -328,22 +328,29 @@ def add_permissions(row):
     """
     Ajoute les possibilités de dépôt en archive via l'API permissions.
     """
-  
+
+    doi = row.get("doi", "")
+    if not isinstance(doi, str) or doi.strip() == "":
+        return ""  # DOI vide ou invalide
+
     if pd.notna(row.get("oa_repo_link")) or pd.notna(row.get("oa_publisher_license")):
         return ""
 
     try:
-        req = requests.get(f"https://bg.api.oa.works/permissions/{row['doi']}")
+        req = requests.get(f"https://bg.api.oa.works/permissions/{doi}")
         res = req.json()
-        best_permission = res.get("best_permission", {})
-        print(f"[INFO] DOI {row['doi']} - permission trouvée")
     except Exception as e:
-        print(f"[ERREUR] DOI {row['doi']} - exception: {e}")
+        print(f"[ERREUR] Requête permissions pour DOI {doi} : {e}")
+        return ""
+
+    best_permission = res.get("best_permission")
+    if not best_permission:
+        print(f"[INFO] Aucun champ 'best_permission' pour {doi}")
         return ""
 
     locations = best_permission.get("locations", [])
-    if not any("repository" in loc.lower() for loc in locations):
-        print(f"[INFO] DOI {row['doi']} - pas de dépôt en référentiel autorisé")
+    if not any("repository" in loc.lower() for loc in locations if isinstance(loc, str)):
+        print(f"[INFO] DOI {doi} - pas de dépôt en référentiel autorisé")
         return ""
 
     version = best_permission.get("version")
@@ -352,10 +359,11 @@ def add_permissions(row):
     embargo_str = f"{embargo_months} months" if isinstance(embargo_months, int) else embargo_months
 
     if version in ["acceptedVersion", "publishedVersion"]:
-        print(f"[OK] DOI {row['doi']} - version autorisée : {version}, embargo : {embargo_str}")
+        print(f"[OK] DOI {doi} - version : {version}, embargo : {embargo_str}")
         return f"{version} ; {licence} ; {embargo_str}"
 
     return ""
+
 
 def add_permissions_parallel(df):
     def safe_add(row_dict):
@@ -365,7 +373,6 @@ def add_permissions_parallel(df):
         results = list(executor.map(safe_add, df.to_dict('records')))
     df['deposit_condition'] = results
     return df
-
 
 
 

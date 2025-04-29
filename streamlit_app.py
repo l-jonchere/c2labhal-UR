@@ -263,13 +263,11 @@ def query_upw(doi):
     # Initialisation du dictionnaire temp
     temp = {
         "Statut Unpaywall": "closed" if not res.get("is_oa") else "open",
-        "published_date": res.get("published_date"),
+        "oa_status": res.get("oa_status", ""), 
         "oa_publisher_license": "",
         "oa_publisher_link": "",
         "oa_repo_link": "",
-        "publisher": res.get("publisher", ""),  # Extraire le nom de l'éditeur
-        "oa_status": res.get("oa_status", ""),  # Extraire le statut oa
-        "has_issn": bool(res.get("journal_issns"))
+        "publisher": res.get("publisher", "")        
     }
 
     # Obtenir le meilleur emplacement oa_location
@@ -315,7 +313,7 @@ def enrich_w_upw_parallel(df):
         results = list(executor.map(process, df.iterrows()))
 
     # S'assurer que toutes les colonnes nécessaires sont bien typées en 'object' (texte)
-    for col in ["published_date", "oa_publisher_license", "oa_publisher_link", "oa_repo_link", "Statut Unpaywall", "has_issn", "publisher", "oa_status"]:
+    for col in ["Statut Unpaywall", "oa_status", "oa_publisher_license", "oa_publisher_link", "oa_repo_link", "publisher"]:
         if col not in df.columns:
             df[col] = None
             df[col] = df[col].astype("object")
@@ -377,13 +375,13 @@ def deduce_todo(row):
     """
 
     if row["Statut_HAL"] == "Dans la collection" and row["type_dépôt_si_trouvé"] == "file":
-        return "✅ Dépôt HAL déjà effectué"
+        return "✅ Dépôt HAL OK"
 
     if row["Statut_HAL"] == "Dans HAL mais hors de la collection":
-        return "🏷️ Vérifier l'affiliation dans HAL et corriger si besoin"
+        return "🏷️ Vérifier l'affiliation dans HAL"
 
     if row["Statut_HAL"] == "Hors HAL":
-        return "📥 Créer ou retrouver la notice dans HAL"
+        return "📥 Créer la référence dans HAL"
 
     if row["Statut_HAL"] == "Titre approchant trouvé dans la collection : à vérifier":
         return "🧐 Vérifier le titre — peut-être une variante déjà déposée"
@@ -407,7 +405,7 @@ def deduce_todo(row):
     if row["oa_publisher_license"] and not row["oa_repo_link"]:
         return "📜 Ajouter le PDF éditeur selon la licence"
 
-    if row["Statut Unpaywall"] != "open" and row.get("has_issn", False):
+    if row["Statut Unpaywall"] != "open":
         return "📧 Article fermé : contacter l’auteur pour appliquer la LRN"
 
     if not row["identifiant_hal_si_trouvé"]:

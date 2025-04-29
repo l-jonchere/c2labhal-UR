@@ -704,7 +704,7 @@ def main():
                 coll = HalCollImporter(collection_a_chercher, start_year, end_year)
                 coll_df = coll.import_data()
                 coll_df['nti'] = coll_df['Titres'].apply(lambda x: normalise(x).strip())
-                check_df(combined_df, coll_df, progress_bar=progress_bar, progress_text=progress_text)
+                combined_df = check_df(combined_df, coll_df, progress_bar=progress_bar, progress_text=progress_text)
         else:
             combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 

@@ -256,7 +256,7 @@ def query_upw(doi):
     """
     Récupère les données dans Unpaywall.
     """
-    req = requests.get(f"https://api.unpaywall.org/v2/{doi}?email=hal.dbm@listes.u-paris.fr")
+    req = requests.get(f"https://api.unpaywall.org/v2/{doi}?email=bu-science-ouverte@univ-nantes.fr")
     res = req.json()
 
     # Si l'article n'est pas dans Unpaywall
@@ -278,6 +278,8 @@ def query_upw(doi):
         "oa_publisher_license": "",
         "oa_publisher_link": "",
         "oa_repo_link": "",
+        "publisher": "",
+        "oa_status": "",
         "has_issn": bool(res.get("journal_issns"))
     }
 

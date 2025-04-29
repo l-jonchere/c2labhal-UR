@@ -253,27 +253,16 @@ def statut_doi(do,coll_df):
         return ["Pas de DOI valide","","",""]
 
 def query_upw(doi):
-    """
-    Récupère les données dans Unpaywall.
-    """
-    req = requests.get(f"https://api.unpaywall.org/v2/{doi}?email=bu-science-ouverte@univ-nantes.fr")
-    res = req.json()
-
-    # Si l'article n'est pas dans Unpaywall
-    if res.get("message") and "isn't in Unpaywall" in res.get("message"):
-        return {"Statut Unpaywall": "missing", "has_issn": False}
-
-    # Si l'article est fermé
-    if not res.get("oa_locations"):
-        return {
-            "Statut Unpaywall": "closed",
-            "published_date": res.get("published_date"),
-            "has_issn": bool(res.get("journal_issns"))
-        }
+    try:
+        req = requests.get(f"https://api.unpaywall.org/v2/{doi}?email=hal.dbm@listes.u-paris.fr")
+        res = req.json()
+    except requests.RequestException as e:
+        print(f"Erreur lors de la requête : {e}")
+        return {}
 
     # Initialisation du dictionnaire temp
     temp = {
-        "Statut Unpaywall": "missing",
+        "Statut Unpaywall": "closed" if not res.get("is_oa") else "open",
         "published_date": res.get("published_date"),
         "oa_publisher_license": "",
         "oa_publisher_link": "",
@@ -283,19 +272,6 @@ def query_upw(doi):
         "has_issn": bool(res.get("journal_issns"))
     }
 
-    # Vérification du statut de l'article
-    if res.get("message") and "isn't in Unpaywall" in res.get("message"):
-        return temp
-
-    # Si l'article est fermé
-    if not res.get("is_oa"):
-        temp["Statut Unpaywall"] = "closed"
-        temp["oa_status"] = "closed"
-        return temp
-
-    # Si l'article est ouvert
-    temp["Statut Unpaywall"] = "open"
-
     # Obtenir le meilleur emplacement oa_location
     if res.get("best_oa_location"):
         best_loc = res["best_oa_location"]
@@ -304,9 +280,6 @@ def query_upw(doi):
             temp["oa_publisher_link"] = best_loc.get("url_for_pdf") or best_loc.get("url_for_landing_page")
         elif best_loc["host_type"] == "repository":
             temp["oa_repo_link"] = str(best_loc.get("url_for_pdf"))
-
-    # Déterminer le statut oa_status
-    temp["oa_status"] = res.get("oa_status", "unknown")
 
     return temp
 

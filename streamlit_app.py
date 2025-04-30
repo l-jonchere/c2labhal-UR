@@ -553,9 +553,13 @@ class HalCollImporter:
 
 # Fonction pour fusionner les lignes en gardant les valeurs identiques et en concaténant les valeurs différentes
 def merge_rows_with_sources(group):
-    # Conserver les IDs et les sources séparés par un |, en forçant les types en string
-    merged_ids = '|'.join(group['id'].dropna().astype(str)) if 'id' in group.columns else None
-    merged_sources = '|'.join(group['Data source'].dropna().astype(str))
+    # Conserver les IDs et les sources séparés par un |, et fusionner les autres champs
+    if 'id' in group.columns:
+        merged_ids = '|'.join(map(str, group['id'].dropna()))
+    else:
+        merged_ids = None
+
+    merged_sources = '|'.join(group['Data source'].dropna())
 
     # Initialiser une nouvelle ligne avec les valeurs de la première ligne
     first_row = group.iloc[0].copy()
@@ -563,18 +567,17 @@ def merge_rows_with_sources(group):
     # Pour chaque colonne, vérifier si les valeurs sont identiques ou différentes
     for column in group.columns:
         if column not in ['id', 'Data source']:
-            unique_values = group[column].dropna().apply(lambda x: str(x) if not isinstance(x, str) else x).unique()
+            unique_values = group[column].dropna().apply(lambda x: str(x) if isinstance(x, list) else x).unique()
             if len(unique_values) == 1:
                 first_row[column] = unique_values[0]
             else:
                 first_row[column] = '|'.join(map(str, unique_values))
 
-    # Mettre à jour les IDs et les sources
+    # Mettre à jour les IDs et les sources dans la nouvelle ligne
     first_row['id'] = merged_ids
     first_row['Data source'] = merged_sources
 
     return first_row
-
 
 # Fonction pour récupérer les auteurs à partir de Crossref
 def get_authors_from_crossref(doi):
@@ -623,15 +626,7 @@ def main():
     with col2:
         end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025)
 
-    fetch_authors = st.checkbox("🧑‍🔬 Récupérer les auteurs sur Crossref")
-
-    compare_authors = False
-    uploaded_authors_file = None
-
-    if fetch_authors:
-        compare_authors = st.checkbox("🔍 Comparer les auteurs Crossref avec ma liste de chercheurs")
-    if compare_authors:
-        uploaded_authors_file = st.file_uploader("📤 Téléversez un fichier CSV avec deux colonnes : 'collection', 'prénom nom'", type=["csv"])
+    fetch_authors = st.checkbox("Récupérer les auteurs sur Crossref", value=True)
 
     # Initialiser la barre de progression
     progress_bar = st.progress(0)
@@ -720,74 +715,19 @@ def main():
             without_doi = combined_df[combined_df['doi'].isna()]
 
             # Fusionner les lignes avec DOI
-            merged_with_doi = with_doi.groupby('doi', group_keys=False).apply(merge_rows_with_sources).reset_index(drop=True)
+            merged_with_doi = with_doi.groupby('doi', as_index=False).apply(merge_rows_with_sources)
 
             # Combiner les lignes fusionnées avec les lignes sans DOI
             merged_data = pd.concat([merged_with_doi, without_doi], ignore_index=True)
 
-        
+        # Étape 6 : Ajout des auteurs à partir de Crossref (si la case est cochée)
+        if fetch_authors:
+            with st.spinner("Auteurs Crossref"):
+                progress_text.text("Étape 8 : Ajout des auteurs")
+                progress_bar.progress(95)
+                merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
 
-    # Étape 6 : Ajout des auteurs à partir de Crossref (si la case est cochée)
-    
-
-    if fetch_authors and 'merged_data' in locals() and not merged_data.empty:
-        with st.spinner("Auteurs Crossref"):
-            progress_text.text("Étape 8 : Ajout des auteurs")
-            progress_bar.progress(95)
-            merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
-
-        if compare_authors and uploaded_authors_file and collection_a_chercher:
-            import unicodedata
-            from difflib import get_close_matches
-            import re
-
-            user_df = pd.read_csv(uploaded_authors_file)
-
-            if "collection" not in user_df.columns or user_df.columns[1] not in user_df.columns:
-                st.error("❌ Le fichier doit contenir une colonne 'collection' et une colonne 'prénom nom'")
-            else:
-                # Filtrer selon la collection choisie
-                noms_ref = user_df[user_df["collection"].str.lower() == collection_a_chercher.lower()].iloc[:, 1].dropna().unique().tolist()
-
-                def normalize_name(name):
-                    name = name.strip().lower()
-                    name = ''.join(c for c in unicodedata.normalize('NFD', name) if unicodedata.category(c) != 'Mn')
-                    name = name.replace('-', ' ').replace('.', '')
-                    name = re.sub(r'\s+', ' ', name)
-                    if ',' in name:
-                        parts = [part.strip() for part in name.split(',')]
-                        if len(parts) == 2:
-                            name = f"{parts[1]} {parts[0]}"
-                    return name
-
-                def get_initial_form(name):
-                    parts = name.split()
-                    if len(parts) >= 2:
-                        return f"{parts[0][0]} {parts[-1]}"
-                    return name
-
-                chercheur_map = {normalize_name(n): n for n in noms_ref}
-                initial_map = {get_initial_form(normalize_name(n)): n for n in noms_ref}
-                all_forms = {**chercheur_map, **initial_map}
-
-                def detect_known_authors(auteur_str):
-                    if pd.isna(auteur_str):
-                        return ""
-                    auteurs = [a.strip() for a in str(auteur_str).split(';') if a.strip()]
-                    auteurs_normalized = [normalize_name(a) for a in auteurs]
-                    noms_detectes = []
-
-                    for a, norm in zip(auteurs, auteurs_normalized):
-                        forme = get_initial_form(norm)
-                        match = get_close_matches(norm, all_forms.keys(), n=1, cutoff=0.8) \
-                                or get_close_matches(forme, all_forms.keys(), n=1, cutoff=0.8)
-                        if match:
-                            noms_detectes.append(all_forms[match[0]])
-                    return "; ".join(noms_detectes)
-
-                merged_data['Auteurs fichier'] = merged_data['Auteurs'].apply(detect_known_authors)
-    
-# Vérifier si merged_data n'est pas vide avant de générer le CSV
+        # Vérifier si merged_data n'est pas vide avant de générer le CSV
         if not merged_data.empty:
             # Générer le CSV à partir du DataFrame
             csv = merged_data.to_csv(index=False)

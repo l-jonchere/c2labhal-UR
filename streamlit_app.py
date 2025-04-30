@@ -553,13 +553,9 @@ class HalCollImporter:
 
 # Fonction pour fusionner les lignes en gardant les valeurs identiques et en concaténant les valeurs différentes
 def merge_rows_with_sources(group):
-    # Conserver les IDs et les sources séparés par un |, et fusionner les autres champs
-    if 'id' in group.columns:
-        merged_ids = '|'.join(map(str, group['id'].dropna()))
-    else:
-        merged_ids = None
-
-    merged_sources = '|'.join(group['Data source'].dropna())
+    # Conserver les IDs et les sources séparés par un |, en forçant les types en string
+    merged_ids = '|'.join(group['id'].dropna().astype(str)) if 'id' in group.columns else None
+    merged_sources = '|'.join(group['Data source'].dropna().astype(str))
 
     # Initialiser une nouvelle ligne avec les valeurs de la première ligne
     first_row = group.iloc[0].copy()
@@ -567,17 +563,18 @@ def merge_rows_with_sources(group):
     # Pour chaque colonne, vérifier si les valeurs sont identiques ou différentes
     for column in group.columns:
         if column not in ['id', 'Data source']:
-            unique_values = group[column].dropna().apply(lambda x: str(x) if isinstance(x, list) else x).unique()
+            unique_values = group[column].dropna().apply(lambda x: str(x) if not isinstance(x, str) else x).unique()
             if len(unique_values) == 1:
                 first_row[column] = unique_values[0]
             else:
                 first_row[column] = '|'.join(map(str, unique_values))
 
-    # Mettre à jour les IDs et les sources dans la nouvelle ligne
+    # Mettre à jour les IDs et les sources
     first_row['id'] = merged_ids
     first_row['Data source'] = merged_sources
 
     return first_row
+
 
 # Fonction pour récupérer les auteurs à partir de Crossref
 def get_authors_from_crossref(doi):
@@ -723,7 +720,7 @@ def main():
             without_doi = combined_df[combined_df['doi'].isna()]
 
             # Fusionner les lignes avec DOI
-            merged_with_doi = with_doi.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+            merged_with_doi = with_doi.groupby('doi', group_keys=False).apply(merge_rows_with_sources).reset_index(drop=True)
 
             # Combiner les lignes fusionnées avec les lignes sans DOI
             merged_data = pd.concat([merged_with_doi, without_doi], ignore_index=True)

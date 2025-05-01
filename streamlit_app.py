@@ -795,7 +795,7 @@ def main():
             st.download_button(
                 label="Télécharger le CSV",
                 data=csv_bytes,
-                file_name="results.csv",
+                file_name=f"{collection_a_chercher}_c2LabHAL.csv",
                 mime="text/csv"
             )
 

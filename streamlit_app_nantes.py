@@ -1,9 +1,13 @@
-
-
 import os
 import streamlit as st
 import pandas as pd
 import io
+import requests
+import json
+import unicodedata
+from difflib import get_close_matches
+from langdetect import detect
+from tqdm import tqdm
 from streamlit_app import (
     get_scopus_data, get_openalex_data, get_pubmed_data, convert_to_dataframe,
     clean_doi, HalCollImporter, merge_rows_with_sources, get_authors_from_crossref,

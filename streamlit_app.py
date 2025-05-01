@@ -488,21 +488,6 @@ def check_df(df, coll_df, progress_bar=None, progress_text=None):
     df['identifiant_hal_si_trouvé'] = [r[2] for r in first_pass_results]
     df['type_dépôt_si_trouvé'] = [r[3] for r in first_pass_results]
 
-    # Étape Unpaywall
-    if progress_text: progress_text.text("Étape 5 : Récupération des données Unpaywall")
-    if progress_bar: progress_bar.progress(75)
-    with st.spinner("Unpaywall"):
-        df = enrich_w_upw_parallel(df)
-
-    # Étape OA.Works
-    if progress_text: progress_text.text("Étape 6 : Récupération des permissions via OA.Works")
-    if progress_bar: progress_bar.progress(85)
-    with st.spinner("OA.Works"):
-        df = add_permissions_parallel(df)
-
-    # Étape finale : Déduction des actions à entreprendre
-    df['Action'] = df.apply(deduce_todo, axis=1)
-
     return df
 
 class HalCollImporter:
@@ -734,11 +719,23 @@ def main():
                 coll = HalCollImporter(collection_a_chercher, start_year, end_year)
                 coll_df = coll.import_data()
                 coll_df['nti'] = coll_df['Titres'].apply(lambda x: normalise(x).strip())
-                check_df(combined_df, coll_df, progress_bar=progress_bar, progress_text=progress_text)
+                combined_df = check_df(combined_df, coll_df, progress_bar=progress_bar, progress_text=progress_text)
+
+            with st.spinner("Unpaywall"):
+                progress_text.text("Étape 5 : Récupération des données Unpaywall")
+                progress_bar.progress(75)
+                combined_df = enrich_w_upw_parallel(combined_df)
+
+            with st.spinner("OA.Works"):
+                progress_text.text("Étape 6 : Récupération des permissions via OA.Works")
+                progress_bar.progress(85)
+                combined_df = add_permissions_parallel(combined_df)
+
+            combined_df['Action'] = combined_df.apply(deduce_todo, axis=1)
         else:
             combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
 
-         # Étape 5 : Fusion des lignes en double
+         # Étape 7 : Fusion des lignes en double
         with st.spinner("Fusion"):
             progress_text.text("Étape 7 : Fusion des lignes en double")
             progress_bar.progress(90)
@@ -752,21 +749,46 @@ def main():
             # Combiner les lignes fusionnées avec les lignes sans DOI
             merged_data = pd.concat([merged_with_doi, without_doi], ignore_index=True)
 
-        # Étape 6 : Ajout des auteurs à partir de Crossref (si la case est cochée)
+           # Étape 8 : Ajout des auteurs à partir de Crossref (si la case est cochée)
         if fetch_authors:
-            merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
+               with st.spinner("Recherche des auteurs Crossref"):
+                   progress_text.text("Étape 8 : Recherche des auteurs via Crossref")
+                   progress_bar.progress(92)
+                   merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
 
-            if compare_authors and uploaded_authors_file and collection_a_chercher:
-                user_df = pd.read_csv(uploaded_authors_file)
-                if "collection" not in user_df.columns or user_df.columns[1] not in user_df.columns:
-                    st.error("❌ Le fichier doit contenir une colonne 'collection' et une colonne 'prénom nom'")
-                else:
-                    noms_ref = user_df[user_df["collection"].str.lower() == collection_a_chercher.lower()].iloc[:, 1].dropna().unique().tolist()
-                    chercheur_map = {normalize_name(n): n for n in noms_ref}
-                    initial_map = {get_initial_form(normalize_name(n)): n for n in noms_ref}
-                    all_forms = {**chercheur_map, **initial_map}
+            # Étape 9 : Comparaison avec le fichier de chercheurs
+               if compare_authors and uploaded_authors_file and collection_a_chercher:
+                with st.spinner("Comparaison des auteurs avec le fichier"):
+                    progress_text.text("Étape 9 : Comparaison des auteurs")
+                    progress_bar.progress(95)
 
-                    def detect_known_authors(auteur_str):
+                    user_df = pd.read_csv(uploaded_authors_file)
+                    if "collection" not in user_df.columns or user_df.columns[1] not in user_df.columns:
+                        st.error("❌ Le fichier doit contenir une colonne 'collection' et une colonne 'prénom nom'")
+                    else:
+                            noms_ref = user_df[user_df["collection"].str.lower() == collection_a_chercher.lower()].iloc[:, 1].dropna().unique().tolist()
+                            chercheur_map = {normalize_name(n): n for n in noms_ref}
+                            initial_map = {get_initial_form(normalize_name(n)): n for n in noms_ref}
+                            all_forms = {**chercheur_map, **initial_map}
+
+                def detect_known_authors(auteur_str):
+                    if pd.isna(auteur_str):
+                        return ""
+                    auteurs = [a.strip() for a in str(auteur_str).split(';') if a.strip()]
+                    noms_detectes = []
+                    for a in auteurs:
+                        norm = normalize_name(a)
+                        forme = get_initial_form(norm)
+                        match = get_close_matches(norm, all_forms.keys(), n=1, cutoff=0.8) or \
+                                get_close_matches(forme, all_forms.keys(), n=1, cutoff=0.8)
+                        if match:
+                            noms_detectes.append(all_forms[match[0]])
+                    return "; ".join(noms_detectes)
+
+                merged_data['Auteurs fichier'] = merged_data['Auteurs'].apply(detect_known_authors)
+
+
+                def detect_known_authors(auteur_str):
                         if pd.isna(auteur_str):
                             return ""
                         auteurs = [a.strip() for a in str(auteur_str).split(';') if a.strip()]
@@ -779,7 +801,7 @@ def main():
                                 noms_detectes.append(all_forms[match[0]])
                         return "; ".join(noms_detectes)
 
-                    merged_data['Auteurs fichier'] = merged_data['Auteurs'].apply(detect_known_authors)
+        merged_data['Auteurs fichier'] = merged_data['Auteurs'].apply(detect_known_authors)
 
         # Vérifier si merged_data n'est pas vide avant de générer le CSV
         if not merged_data.empty:

@@ -32,7 +32,7 @@ labos_list = [
         "collection": "CREAAH",
         "scopus_id": "60105602",
         "openalex_id": "I4387153012",
-        "pubmed_query": "CReAAH[Affiliation] OR (LARA[Affiliation]) OR (6566[Affiliation])"
+        "pubmed_query": ""
     },
     {
         "collection": "CREN",
@@ -44,7 +44,7 @@ labos_list = [
         "collection": "CRHIA",
         "scopus_id": "60105526",
         "openalex_id": "I4399598365",
-        "pubmed_query": "(CRHIA[Affiliation]) OR (1163[Affiliation]) OR (\"Ctr Rech Hist Int\"[Affiliation])"
+        "pubmed_query": ""
     },
     {
         "collection": "CRINI",
@@ -62,7 +62,7 @@ labos_list = [
         "collection": "LAMO",
         "scopus_id": "60105566",
         "openalex_id": "I4387152722",
-        "pubmed_query": "(\"L'AMO\"[Affiliation]) OR (LAMO[Affiliation]) OR (4276[Affiliation])"
+        "pubmed_query": ""
     },
     {
         "collection": "LETG",
@@ -254,7 +254,7 @@ labos_list = [
         "collection": "LEMNA",
         "scopus_id": "60105575",
         "openalex_id": "I4390039323",
-        "pubmed_query": ""
+        "pubmed_query": "(LEMNA[Affiliation]) and (nantes[Affiliation])"
     },
     {
         "collection": "LHEEA",

@@ -5,6 +5,8 @@
 
 [c2LabHAL](https://c2labhal.streamlit.app/) est une application conçue pour comparer les publications d'un laboratoire dans différentes bases de données (Scopus, OpenAlex, PubMed) avec sa collection HAL. Cette application permet aux utilisateurs de vérifier la présence des publications scientifiques dans plusieurs sources et de faciliter le repérage de celles qui n'ont pas encore été déposées dans la collection HAL du labo. 
 
+[Voir une présentation de ce projet](https://slides.com/guillaumegodet/deck-d5bc03)
+
 ## Fonctionnalités
 
 - **Récupération des données** : Import des principales métadonnées des publications depuis Scopus, OpenAlex et PubMed.

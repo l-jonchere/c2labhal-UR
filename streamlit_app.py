@@ -751,58 +751,45 @@ def main():
 
            # Étape 8 : Ajout des auteurs à partir de Crossref (si la case est cochée)
         if fetch_authors:
-               with st.spinner("Recherche des auteurs Crossref"):
-                   progress_text.text("Étape 8 : Recherche des auteurs via Crossref")
-                   progress_bar.progress(92)
-                   merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
-
+            with st.spinner("Recherche des auteurs Crossref"):
+                progress_text.text("Étape 8 : Recherche des auteurs via Crossref")
+                progress_bar.progress(92)
+                merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
+        
             # Étape 9 : Comparaison avec le fichier de chercheurs
-               if compare_authors and uploaded_authors_file and collection_a_chercher:
+            if compare_authors and uploaded_authors_file and collection_a_chercher:
                 with st.spinner("Comparaison des auteurs avec le fichier"):
                     progress_text.text("Étape 9 : Comparaison des auteurs")
                     progress_bar.progress(95)
-
+        
                     user_df = pd.read_csv(uploaded_authors_file)
                     if "collection" not in user_df.columns or user_df.columns[1] not in user_df.columns:
                         st.error("❌ Le fichier doit contenir une colonne 'collection' et une colonne 'prénom nom'")
                     else:
-                            noms_ref = user_df[user_df["collection"].str.lower() == collection_a_chercher.lower()].iloc[:, 1].dropna().unique().tolist()
-                            chercheur_map = {normalize_name(n): n for n in noms_ref}
-                            initial_map = {get_initial_form(normalize_name(n)): n for n in noms_ref}
-                            all_forms = {**chercheur_map, **initial_map}
+                        noms_ref = user_df[user_df["collection"].str.lower() == collection_a_chercher.lower()].iloc[:, 1].dropna().unique().tolist()
+                        chercheur_map = {normalize_name(n): n for n in noms_ref}
+                        initial_map = {get_initial_form(normalize_name(n)): n for n in noms_ref}
+                        all_forms = {**chercheur_map, **initial_map}
+        
+                        def detect_known_authors(auteur_str):
+                            if pd.isna(auteur_str):
+                                return ""
+                            auteurs = [a.strip() for a in str(auteur_str).split(';') if a.strip()]
+                            noms_detectes = []
+                            for a in auteurs:
+                                norm = normalize_name(a)
+                                forme = get_initial_form(norm)
+                                match = get_close_matches(norm, all_forms.keys(), n=1, cutoff=0.8) or \
+                                        get_close_matches(forme, all_forms.keys(), n=1, cutoff=0.8)
+                                if match:
+                                    noms_detectes.append(all_forms[match[0]])
+                            return "; ".join(noms_detectes)
+        
+                        merged_data['Auteurs fichier'] = merged_data['Auteurs'].apply(detect_known_authors)
 
-                def detect_known_authors(auteur_str):
-                    if pd.isna(auteur_str):
-                        return ""
-                    auteurs = [a.strip() for a in str(auteur_str).split(';') if a.strip()]
-                    noms_detectes = []
-                    for a in auteurs:
-                        norm = normalize_name(a)
-                        forme = get_initial_form(norm)
-                        match = get_close_matches(norm, all_forms.keys(), n=1, cutoff=0.8) or \
-                                get_close_matches(forme, all_forms.keys(), n=1, cutoff=0.8)
-                        if match:
-                            noms_detectes.append(all_forms[match[0]])
-                    return "; ".join(noms_detectes)
-
-                merged_data['Auteurs fichier'] = merged_data['Auteurs'].apply(detect_known_authors)
 
 
-                def detect_known_authors(auteur_str):
-                        if pd.isna(auteur_str):
-                            return ""
-                        auteurs = [a.strip() for a in str(auteur_str).split(';') if a.strip()]
-                        noms_detectes = []
-                        for a in auteurs:
-                            norm = normalize_name(a)
-                            forme = get_initial_form(norm)
-                            match = get_close_matches(norm, all_forms.keys(), n=1, cutoff=0.8)                                 or get_close_matches(forme, all_forms.keys(), n=1, cutoff=0.8)
-                            if match:
-                                noms_detectes.append(all_forms[match[0]])
-                        return "; ".join(noms_detectes)
-
-        merged_data['Auteurs fichier'] = merged_data['Auteurs'].apply(detect_known_authors)
-
+                
         # Vérifier si merged_data n'est pas vide avant de générer le CSV
         if not merged_data.empty:
             # Générer le CSV à partir du DataFrame

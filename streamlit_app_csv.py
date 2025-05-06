@@ -4,7 +4,7 @@ import pandas as pd
 import io
 import requests
 from streamlit_app import (
-    HalCollImporter, enrich_w_upw_parallel, add_permissions_parallel, deduce_todo
+    HalCollImporter, enrich_w_upw_parallel, add_permissions_parallel, deduce_todo, normalise, normalize_name, get_initial_form
 )
 
 def main():

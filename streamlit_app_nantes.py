@@ -273,190 +273,185 @@ labos_list = [
 # Convertir la liste en DataFrame
 labos_df = pd.DataFrame(labos_list)
 
-def main():
-    st.title("🥎 c2LabHAL - Version Nantes")
-    st.subheader("Comparez les publications d’un labo nantais avec sa collection HAL")
+class NantesApp:
+    def __init__(self):
+        self.labos_df = pd.DataFrame(labos_list)
+        self.labo_choisi = ""
+        self.collection_a_chercher = ""
+        self.scopus_lab_id = ""
+        self.openalex_institution_id = ""
+        self.pubmed_query = ""
+        self.scopus_api_key = ""
+        self.pubmed_api_key = ""
+        self.start_year = 2020
+        self.end_year = 2025
+        self.fetch_authors = False
+        self.compare_authors = False
+        self.uploaded_authors_file = None
+        self.progress_bar = None
+        self.progress_text = None
+        self.scopus_df = pd.DataFrame()
+        self.openalex_df = pd.DataFrame()
+        self.pubmed_df = pd.DataFrame()
+        self.combined_df = pd.DataFrame()
+        self.merged_data = pd.DataFrame()
 
-    # Chargement des labos depuis la liste
-    labos_df = pd.DataFrame(labos_list)
+    def run(self):
+        st.title("🥎 c2LabHAL - Version Nantes")
+        st.subheader("Comparez les publications d’un labo nantais avec sa collection HAL")
 
-    # Sélection du labo
-    labo_choisi = st.selectbox("Choisissez une collection HAL", sorted(labos_df['collection'].unique()))
+        # Chargement des labos depuis la liste
+        self.labos_df = pd.DataFrame(labos_list)
 
-    # Récupération des infos correspondantes
-    row = labos_df[labos_df['collection'] == labo_choisi].iloc[0]
-    collection_a_chercher = row['collection']
-    scopus_lab_id = row['scopus_id']
-    openalex_institution_id = row['openalex_id']
-    pubmed_query = row.get('pubmed_query', '')  # utilisation sécurisée
+        # Sélection du labo
+        self.labo_choisi = st.selectbox("Choisissez une collection HAL", sorted(self.labos_df['collection'].unique()), key="labo_choisi_app3")
 
-    # Clés API depuis Streamlit secrets
-    scopus_api_key = st.secrets["SCOPUS_API_KEY"]
-    pubmed_api_key = st.secrets["PUBMED_API_KEY"]
+        # Récupération des infos correspondantes
+        row = self.labos_df[self.labos_df['collection'] == self.labo_choisi].iloc[0]
+        self.collection_a_chercher = row['collection']
+        self.scopus_lab_id = row['scopus_id']
+        self.openalex_institution_id = row['openalex_id']
+        self.pubmed_query = row.get('pubmed_query', '')  # utilisation sécurisée
 
-    # Paramètres supplémentaires
-    col1, col2 = st.columns(2)
-    with col1:
-        start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020)
-    with col2:
-        end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025)
+        # Clés API depuis Streamlit secrets
+        self.scopus_api_key = st.secrets["SCOPUS_API_KEY"]
+        self.pubmed_api_key = st.secrets["PUBMED_API_KEY"]
 
-    fetch_authors = st.checkbox("🧑‍🔬 Récupérer les auteurs sur Crossref")
+        # Paramètres supplémentaires
+        col1, col2 = st.columns(2)
+        with col1:
+            self.start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020, key="start_year_app3")
+        with col2:
+            self.end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025, key="end_year_app3")
 
-    compare_authors = False
-    uploaded_authors_file = None
+        self.fetch_authors = st.checkbox("🧑‍🔬 Récupérer les auteurs sur Crossref", key="fetch_authors_app3")
 
-    if fetch_authors:
-        compare_authors = st.checkbox("🔍 Comparer les auteurs avec ma liste de chercheurs")
-        if compare_authors:
-            uploaded_authors_file = st.file_uploader("📤 Téléversez un fichier CSV avec deux colonnes : 'collection', 'prénom nom'", type=["csv"])
+        if self.fetch_authors:
+            self.compare_authors = st.checkbox("🔍 Comparer les auteurs avec ma liste de chercheurs", key="compare_authors_app3")
+            if self.compare_authors:
+                self.uploaded_authors_file = st.file_uploader("📤 Téléversez un fichier CSV avec deux colonnes : 'collection', 'prénom nom'", type=["csv"], key="authors_file_app3")
 
+        self.progress_bar = st.progress(0, key="progress_bar_app3")
+        self.progress_text = st.empty()
 
-    progress_bar = st.progress(0)
-    progress_text = st.empty()
+        if st.button("Rechercher", key="rechercher_app3"):
+            # Initialiser les DataFrames
+            self.scopus_df = pd.DataFrame()
+            self.openalex_df = pd.DataFrame()
+            self.pubmed_df = pd.DataFrame()
 
-    if st.button("Rechercher"):
-        # Initialiser les DataFrames
-        scopus_df = pd.DataFrame()
-        openalex_df = pd.DataFrame()
-        pubmed_df = pd.DataFrame()
+            # Étape 1 : OpenAlex
+            with st.spinner("OpenAlex"):
+                self.progress_text.text("Étape 1 : OpenAlex")
+                self.progress_bar.progress(10)
+                openalex_query = f"institutions.id:{self.openalex_institution_id},publication_year:{self.start_year}-{self.end_year}"
+                openalex_data = get_openalex_data(openalex_query)
+                self.openalex_df = convert_to_dataframe(openalex_data, 'openalex')
+                self.openalex_df['Source title'] = self.openalex_df.apply(
+                    lambda row: row['primary_location']['source']['display_name'] if row['primary_location'] and row['primary_location'].get('source') else None, axis=1
+                )
+                self.openalex_df['Date'] = self.openalex_df.apply(lambda row: row.get('publication_date', None), axis=1)
+                self.openalex_df['doi'] = self.openalex_df.apply(lambda row: row.get('doi', None), axis=1)
+                self.openalex_df['id'] = self.openalex_df.apply(lambda row: row.get('id', None), axis=1)
+                self.openalex_df['title'] = self.openalex_df.apply(lambda row: row.get('title', None), axis=1)
+                self.openalex_df = self.openalex_df[['source', 'title', 'doi', 'id', 'Source title', 'Date']]
+                self.openalex_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+                self.openalex_df['doi'] = self.openalex_df['doi'].apply(clean_doi)
 
-        # Étape 1 : OpenAlex
-        with st.spinner("OpenAlex"):
-            progress_text.text("Étape 1 : OpenAlex")
-            progress_bar.progress(10)
-            openalex_query = f"institutions.id:{openalex_institution_id},publication_year:{start_year}-{end_year}"
-            openalex_data = get_openalex_data(openalex_query)
-            openalex_df = convert_to_dataframe(openalex_data, 'openalex')
-            openalex_df['Source title'] = openalex_df.apply(
-                lambda row: row['primary_location']['source']['display_name'] if row['primary_location'] and row['primary_location'].get('source') else None, axis=1
-            )
-            openalex_df['Date'] = openalex_df.apply(lambda row: row.get('publication_date', None), axis=1)
-            openalex_df['doi'] = openalex_df.apply(lambda row: row.get('doi', None), axis=1)
-            openalex_df['id'] = openalex_df.apply(lambda row: row.get('id', None), axis=1)
-            openalex_df['title'] = openalex_df.apply(lambda row: row.get('title', None), axis=1)
-            openalex_df = openalex_df[['source', 'title', 'doi', 'id', 'Source title', 'Date']]
-            openalex_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
-            openalex_df['doi'] = openalex_df['doi'].apply(clean_doi)
+            # Étape 2 : PubMed (si une requête est définie)
+            if self.pubmed_query:
+                with st.spinner("PubMed"):
+                    self.progress_text.text("Étape 2 : PubMed")
+                    self.progress_bar.progress(30)
+                    full_pubmed_query = f"{self.pubmed_query} AND {self.start_year}/01/01:{self.end_year}/12/31[Date - Publication]"
+                    pubmed_data = get_pubmed_data(full_pubmed_query)
+                    self.pubmed_df = pd.DataFrame(pubmed_data)
 
-        # Étape 2 : PubMed (si une requête est définie)
-        if pubmed_query:
-            with st.spinner("PubMed"):
-                progress_text.text("Étape 2 : PubMed")
-                progress_bar.progress(30)
-                full_pubmed_query = f"{pubmed_query} AND {start_year}/01/01:{end_year}/12/31[Date - Publication]"
-                pubmed_data = get_pubmed_data(full_pubmed_query)
-                pubmed_df = pd.DataFrame(pubmed_data)
+            # Étape 3 : Scopus
+            with st.spinner("Scopus"):
+                self.progress_text.text("Étape 3 : Scopus")
+                self.progress_bar.progress(50)
+                scopus_query = f"af-ID({self.scopus_lab_id}) AND PUBYEAR > {self.start_year - 1} AND PUBYEAR < {self.end_year + 1}"
+                scopus_data = get_scopus_data(self.scopus_api_key, scopus_query)
+                self.scopus_df = pd.DataFrame()
 
-        # Étape 3 : Scopus
-        with st.spinner("Scopus"):
-            progress_text.text("Étape 3 : Scopus")
-            progress_bar.progress(50)
-            scopus_query = f"af-ID({scopus_lab_id}) AND PUBYEAR > {start_year - 1} AND PUBYEAR < {end_year + 1}"
-            scopus_data = get_scopus_data(scopus_api_key, scopus_query)
-            scopus_df = pd.DataFrame()
+                if scopus_data:
+                    raw_df = convert_to_dataframe(scopus_data, 'scopus')
+                    expected_cols = ['dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']
 
-            if scopus_data:
-                raw_df = convert_to_dataframe(scopus_data, 'scopus')
-                expected_cols = ['dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']
-
-                # Vérifie que toutes les colonnes attendues sont présentes
-                if all(col in raw_df.columns for col in expected_cols):
-                    scopus_df = raw_df[['source'] + expected_cols]
-                    scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
-                else:
-                    st.warning("Les données Scopus sont incomplètes ou mal formées.")
-            else:
-                st.info("Aucune donnée Scopus récupérée.")
-
-        # Comparaison HAL
-        with st.spinner("HAL"):
-            progress_text.text("Étape 4 : Comparaison avec HAL")
-            progress_bar.progress(70)
-            combined_df = pd.concat([scopus_df, openalex_df, pubmed_df], ignore_index=True)
-            coll = HalCollImporter(collection_a_chercher, start_year, end_year)
-            coll_df = coll.import_data()
-            coll_df['nti'] = coll_df['Titres'].apply(lambda x: normalise(x).strip())
-            combined_df = check_df(combined_df, coll_df, progress_bar=progress_bar, progress_text=progress_text)
-
-        # Unpaywall
-        with st.spinner("Unpaywall"):
-            progress_text.text("Étape 5 : Récupération des données Unpaywall")
-            progress_bar.progress(75)
-            combined_df = enrich_w_upw_parallel(combined_df)
-
-        # OA.Works
-        with st.spinner("OA.Works"):
-            progress_text.text("Étape 6 : Récupération des permissions via OA.Works")
-            progress_bar.progress(85)
-            combined_df = add_permissions_parallel(combined_df)
-
-        # Action
-        combined_df['Action'] = combined_df.apply(deduce_todo, axis=1)
-
-        # Fusion
-        with st.spinner("Fusion"):
-            progress_text.text("Étape 7 : Fusion des lignes en double")
-            progress_bar.progress(90)
-            with_doi = combined_df.dropna(subset=['doi'])
-            without_doi = combined_df[combined_df['doi'].isna()]
-            merged_with_doi = with_doi.groupby('doi', as_index=False).apply(merge_rows_with_sources)
-            merged_data = pd.concat([merged_with_doi, without_doi], ignore_index=True)
-
-        # Auteurs
-        if fetch_authors:
-            with st.spinner("Recherche des auteurs Crossref"):
-                progress_text.text("Étape 8 : Recherche des auteurs via Crossref")
-                progress_bar.progress(92)
-                merged_data['Auteurs'] = merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
-
-            if compare_authors and uploaded_authors_file and collection_a_chercher:
-                with st.spinner("Comparaison des auteurs avec le fichier"):
-                    progress_text.text("Étape 9 : Comparaison des auteurs")
-                    progress_bar.progress(95)
-                    user_df = pd.read_csv(uploaded_authors_file)
-                    if "collection" not in user_df.columns or user_df.columns[1] not in user_df.columns:
-                        st.error("❌ Le fichier doit contenir une colonne 'collection' et une colonne 'prénom nom'")
+                    # Vérifie que toutes les colonnes attendues sont présentes
+                    if all(col in raw_df.columns for col in expected_cols):
+                        self.scopus_df = raw_df[['source'] + expected_cols]
+                        self.scopus_df.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
                     else:
-                        noms_ref = user_df[user_df["collection"].str.lower() == collection_a_chercher.lower()].iloc[:, 1].dropna().unique().tolist()
-                        chercheur_map = {normalize_name(n): n for n in noms_ref}
-                        initial_map = {get_initial_form(normalize_name(n)): n for n in noms_ref}
-                        all_forms = {**chercheur_map, **initial_map}
+                        st.warning("Les données Scopus sont incomplètes ou mal formées.")
+                else:
+                    st.info("Aucune donnée Scopus récupérée.")
 
-                        def detect_known_authors(auteur_str):
-                            if pd.isna(auteur_str):
-                                return ""
-                            auteurs = [a.strip() for a in str(auteur_str).split(';') if a.strip()]
-                            noms_detectes = []
-                            for a in auteurs:
-                                norm = normalize_name(a)
-                                forme = get_initial_form(norm)
-                                match = get_close_matches(norm, all_forms.keys(), n=1, cutoff=0.8) or \
-                                        get_close_matches(forme, all_forms.keys(), n=1, cutoff=0.8)
-                                if match:
-                                    noms_detectes.append(all_forms[match[0]])
-                            return "; ".join(noms_detectes)
+            # Comparaison HAL
+            with st.spinner("HAL"):
+                self.progress_text.text("Étape 4 : Comparaison avec HAL")
+                self.progress_bar.progress(70)
+                self.combined_df = pd.concat([self.scopus_df, self.openalex_df, self.pubmed_df], ignore_index=True)
+                coll = HalCollImporter(self.collection_a_chercher, self.start_year, self.end_year)
+                coll_df = coll.import_data()
+                coll_df['nti'] = coll_df['Titres'].apply(lambda x: normalise(x).strip())
+                self.combined_df = check_df(self.combined_df, coll_df, progress_bar=self.progress_bar, progress_text=self.progress_text)
 
-                        merged_data['Auteurs fichier'] = merged_data['Auteurs'].apply(detect_known_authors)
+            # Unpaywall
+            with st.spinner("Unpaywall"):
+                self.progress_text.text("Étape 5 : Récupération des données Unpaywall")
+                self.progress_bar.progress(75)
+                self.combined_df = enrich_w_upw_parallel(self.combined_df)
 
-        # Export CSV
-        if not merged_data.empty:
-            csv = merged_data.to_csv(index=False)
-            csv_bytes = io.BytesIO()
-            csv_bytes.write(csv.encode('utf-8'))
-            csv_bytes.seek(0)
+            # OA.Works
+            with st.spinner("OA.Works"):
+                self.progress_text.text("Étape 6 : Récupération des permissions via OA.Works")
+                self.progress_bar.progress(85)
+                self.combined_df = add_permissions_parallel(self.combined_df)
 
-            st.download_button(
-                label="📥 Télécharger le CSV",
-                data=csv_bytes,
-                file_name=f"{collection_a_chercher}_c2LabHAL.csv",
-                mime="text/csv"
-            )
+            # Action
+            self.combined_df['Action'] = self.combined_df.apply(deduce_todo, axis=1)
 
-            progress_bar.progress(100)
-            progress_text.text("Terminé ✅")
-        else:
-            st.error("Aucune donnée à exporter. Veuillez vérifier les paramètres de recherche.")
+            # Fusion
+            with st.spinner("Fusion"):
+                self.progress_text.text("Étape 7 : Fusion des lignes en double")
+                self.progress_bar.progress(90)
+                with_doi = self.combined_df.dropna(subset=['doi'])
+                without_doi = self.combined_df[self.combined_df['doi'].isna()]
+                merged_with_doi = with_doi.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+                self.merged_data = pd.concat([merged_with_doi, without_doi], ignore_index=True)
 
-if __name__ == "__main__":
-    main()
+            # Auteurs
+            if self.fetch_authors:
+                with st.spinner("Recherche des auteurs Crossref"):
+                    self.progress_text.text("Étape 8 : Recherche des auteurs via Crossref")
+                    self.progress_bar.progress(92)
+                    self.merged_data['Auteurs'] = self.merged_data['doi'].apply(lambda doi: '; '.join(get_authors_from_crossref(doi)) if doi else '')
+
+                if self.compare_authors and self.uploaded_authors_file and self.collection_a_chercher:
+                    with st.spinner("Comparaison des auteurs avec le fichier"):
+                        self.progress_text.text("Étape 9 : Comparaison des auteurs")
+                        self.progress_bar.progress(95)
+                        user_df = pd.read_csv(self.uploaded_authors_file)
+                        if "collection" not in user_df.columns or user_df.columns[1] not in user_df.columns:
+                            st.error("❌ Le fichier doit contenir une colonne 'collection' et une colonne 'prénom nom'")
+                        else:
+                            noms_ref = user_df[user_df["collection"].str.lower() == self.collection_a_chercher.lower()].iloc[:, 1].dropna().unique().tolist()
+                            chercheur_map = {normalize_name(n): n for n in noms_ref}
+                            initial_map = {get_initial_form(normalize_name(n)): n for n in noms_ref}
+                            all_forms = {**chercheur_map, **initial_map}
+
+                            def detect_known_authors(auteur_str):
+                                if pd.isna(auteur_str):
+                                    return ""
+                                auteurs = [a.strip() for a in str(auteur_str).split(';') if a.strip()]
+                                noms_detectes = []
+                                for a in auteurs:
+                                    norm = normalize_name(a)
+                                    forme = get_initial_form(norm)
+                                    match = get_close_matches(norm, all_forms.keys(), n=1, cutoff=0.8) or \
+                                            get_close_matches(forme, all_forms.keys(), n=1, cutoff=0.8)
+                                    if match:
+                                        noms_detectes.append(all_forms[match[0]])
+                                return

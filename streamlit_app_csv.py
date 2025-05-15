@@ -1,27 +1,46 @@
 import streamlit as st
-from streamlit_app_Scopus_OpenAlex_Pubmed import ScopusOpenAlexPubmedApp
-from streamlit_app_csv import CSVApp
-from streamlit_app_nantes import NantesApp
+import pandas as pd
+import io
+from utils import (
+    get_scopus_data, get_openalex_data, get_pubmed_data, convert_to_dataframe,
+    clean_doi, HalCollImporter, merge_rows_with_sources, get_authors_from_crossref,
+    check_df, enrich_w_upw_parallel, add_permissions_parallel, deduce_todo,
+    normalise, normalize_name, get_initial_form
+)
 
-def main():
-    st.title("🥎 c2LabHAL - Application Fusionnée")
+class CSVApp:
+    def __init__(self):
+        self.uploaded_file = None
+        self.collection_a_chercher = ""
+        self.processed_df = pd.DataFrame()
 
-    tab1, tab2, tab3 = st.tabs([
-        "Comparer Scopus/OpenAlex/Pubmed avec HAL",
-        "Comparer CSV avec HAL",
-        "Comparer Labo Nantes Université avec HAL"
-    ])
+    def run(self):
+        st.title("🥎 c2LabHAL - Version import csv")
+        st.subheader("Comparez les publications contenues dans un fichier .csv avec une collection HAL")
 
-    app1 = ScopusOpenAlexPubmedApp()
-    app2 = CSVApp()
-    app3 = NantesApp()
+        self.uploaded_file = st.file_uploader("Téléversez un fichier CSV (ce fichier doit contenir une colonne 'doi' et une colonne 'Title')", type="csv", key="file_uploader_app2")
+        self.collection_a_chercher = st.text_input("Nom de la collection HAL à comparer :", "", key="collection_hal_app2")
 
-    with tab1:
-        app1.run()
-    with tab2:
-        app2.run()
-    with tab3:
-        app3.run()
+        if self.uploaded_file and self.collection_a_chercher:
+            with st.spinner("Traitement du fichier CSV..."):
+                self.processed_df = self.process_csv(self.uploaded_file, self.collection_a_chercher)
 
-if __name__ == "__main__":
-    main()
+            if self.processed_df is not None:  # Vérifie que process_csv n'a pas retourné None (erreur)
+                st.dataframe(self.processed_df)
+
+                # Génère un nom de fichier unique
+                filename = f"publications_verifiees_{self.collection_a_chercher}.csv"
+
+                # Convertit le DataFrame en CSV
+                csv = self.processed_df.to_csv(index=False, encoding='utf-8')
+
+                # Propose le téléchargement
+                st.download_button(
+                    label="Télécharger le CSV enrichi",
+                    data=csv.encode('utf-8'),
+                    file_name=filename,
+                    mime="text/csv",
+                    key="download_button_app2"
+                )
+            else:
+                st.error("Veuillez fournir un fichier CSV valide avec les colonnes 'doi' et 'Title', et un nom de collection HAL.")

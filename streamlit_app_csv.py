@@ -17,43 +17,7 @@ class CSVApp:
         self.collection_a_chercher = ""
         self.processed_df = pd.DataFrame()
 
-
-    def process_csv(self, uploaded_file, collection_a_chercher):
-        """
-        Traite le fichier CSV uploadé, effectue les vérifications HAL et Unpaywall,
-        et retourne le DataFrame enrichi.
-        """
-        df = pd.read_csv(uploaded_file)
-
-        # Assure que les colonnes 'doi' et 'Title' existent
-        if 'doi' not in df.columns or 'Title' not in df.columns:
-            st.error("Le fichier CSV doit contenir les colonnes 'doi' et 'Title'.")
-            return None
-
-        # Normalise les DOIs
-        df['doi'] = df['doi'].apply(lambda x: x.lower() if isinstance(x, str) else x)
-
-        # Récupère les données de la collection HAL
-        coll = HalCollImporter(collection_a_chercher)
-        coll_df = coll.import_data()
-        coll_df['nti'] = coll_df['Titres'].apply(lambda x: normalise(x).strip())
-
-        # Effectue les vérifications HAL
-        df_checked = check_df(df, coll_df)
-
-        # Enrichit avec les données Unpaywall
-        df_enriched = enrich_w_upw_parallel(df_checked)
-
-        # Ajoute les permissions de dépôt
-        df_final = add_permissions_parallel(df_enriched)
-
-        # Déduit les actions à effectuer
-        df_final['Action'] = df_final.apply(deduce_todo, axis=1)
-
-        return df_final
-
-
-def run(self):
+    def run(self):
         st.title("🥎 c2LabHAL - Version import csv")
         st.subheader("Comparez les publications contenues dans un fichier .csv avec une collection HAL")
 
@@ -83,6 +47,3 @@ def run(self):
                 )
             else:
                 st.error("Veuillez fournir un fichier CSV valide avec les colonnes 'doi' et 'Title', et un nom de collection HAL.")
-
-if __name__ == "__main__":
-    main()

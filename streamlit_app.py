@@ -1,16 +1,10 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu May 15 19:01:37 2025
-
-@author: godet-g
-"""
-
 import streamlit as st
-from streamlit_app_Scopus_OpenAlex_Pubmed import main as app1_main  # Renommer pour éviter les conflits
-from streamlit_app_csv import main as app2_main
-from streamlit_app_nantes import main as app3_main
+from streamlit_app_Scopus_OpenAlex_Pubmed import ScopusOpenAlexPubmedApp  # Nom de la classe !
+from streamlit_app_csv import CSVApp  # Nom de la classe !
+from streamlit_app_nantes import NantesApp  # Nom de la classe !
 
 def main():
+    st.title("🥎 c2LabHAL - Application Fusionnée")
 
     # Créer les onglets
     tab1, tab2, tab3 = st.tabs([
@@ -21,12 +15,14 @@ def main():
 
     # Contenu de chaque onglet
     with tab1:
-        app1_main()  # Exécutez le contenu de streamlit_app_Scopus_OpenAlex_Pubmed.py
+        app1 = ScopusOpenAlexPubmedApp()  # Instancier la classe
+        app1.run()  # Appeler la méthode run
     with tab2:
-        app2_main()  # Exécutez le contenu de streamlit_app_csv.py
+        app2 = CSVApp()
+        app2.run()
     with tab3:
-        app3_main()  # Exécutez le contenu de streamlit_app_nantes.py
-        col1, col2 = st.columns(2)
+        app3 = NantesApp()
+        app3.run()
 
 if __name__ == "__main__":
     main()

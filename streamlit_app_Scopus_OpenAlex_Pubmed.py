@@ -969,6 +969,3 @@ def run(self):  # La fonction main() devient run()
 
         else:
             st.error("Aucune donnée à exporter. Veuillez vérifier les paramètres de recherche.")
-
-if __name__ == "__main__":
-    main()

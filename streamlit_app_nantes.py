@@ -389,29 +389,32 @@ class NantesApp:
                     st.info("Aucune donnée Scopus récupérée.")
 
             # Comparaison HAL
-            with st.spinner("HAL"):
-                self.progress_text.text("Étape 4 : Comparaison avec HAL")
-                self.progress_bar.progress(70)
-                self.combined_df = pd.concat([self.scopus_df, self.openalex_df, self.pubmed_df], ignore_index=True)
-                coll = HalCollImporter(self.collection_a_chercher, self.start_year, self.end_year)
-                coll_df = coll.import_data()
-                coll_df['nti'] = coll_df['Titres'].apply(lambda x: normalise(x).strip())
-                self.combined_df = check_df(self.combined_df, coll_df, progress_bar=self.progress_bar, progress_text=self.progress_text)
+            if self.collection_a_chercher:  # Ajout de la condition
+                with st.spinner("HAL"):
+                    self.progress_text.text("Étape 4 : Comparaison avec HAL")
+                    self.progress_bar.progress(70)
+                    self.combined_df = pd.concat([self.scopus_df, self.openalex_df, self.pubmed_df], ignore_index=True)
+                    coll = HalCollImporter(self.collection_a_chercher, self.start_year, self.end_year)
+                    coll_df = coll.import_data()
+                    coll_df['nti'] = coll_df['Titres'].apply(lambda x: normalise(x).strip())
+                    self.combined_df = check_df(self.combined_df, coll_df, progress_bar=self.progress_bar, progress_text=self.progress_text)
 
-            # Unpaywall
-            with st.spinner("Unpaywall"):
-                self.progress_text.text("Étape 5 : Récupération des données Unpaywall")
-                self.progress_bar.progress(75)
-                self.combined_df = enrich_w_upw_parallel(self.combined_df)
+                # Unpaywall
+                with st.spinner("Unpaywall"):
+                    self.progress_text.text("Étape 5 : Récupération des données Unpaywall")
+                    self.progress_bar.progress(75)
+                    self.combined_df = enrich_w_upw_parallel(self.combined_df)
 
-            # OA.Works
-            with st.spinner("OA.Works"):
-                self.progress_text.text("Étape 6 : Récupération des permissions via OA.Works")
-                self.progress_bar.progress(85)
-                self.combined_df = add_permissions_parallel(self.combined_df)
+                # OA.Works
+                with st.spinner("OA.Works"):
+                    self.progress_text.text("Étape 6 : Récupération des permissions via OA.Works")
+                    self.progress_bar.progress(85)
+                    self.combined_df = add_permissions_parallel(self.combined_df)
 
-            # Action
-            self.combined_df['Action'] = self.combined_df.apply(deduce_todo, axis=1)
+                # Action
+                self.combined_df['Action'] = self.combined_df.apply(deduce_todo, axis=1)
+            else:
+                 self.combined_df = pd.concat([self.scopus_df, self.openalex_df, self.pubmed_df], ignore_index=True)
 
             # Fusion
             with st.spinner("Fusion"):
@@ -454,4 +457,31 @@ class NantesApp:
                                             get_close_matches(forme, all_forms.keys(), n=1, cutoff=0.8)
                                     if match:
                                         noms_detectes.append(all_forms[match[0]])
-                                return
+                                return "; ".join(noms_detectes)
+
+                            self.merged_data['Auteurs fichier'] = self.merged_data['Auteurs'].apply(detect_known_authors)
+
+            # Vérifier si merged_data n'est pas vide avant de générer le CSV
+            if not self.merged_data.empty:
+                # Générer le CSV à partir du DataFrame
+                csv = self.merged_data.to_csv(index=False)
+
+                # Créer un objet BytesIO pour stocker le CSV
+                csv_bytes = io.BytesIO()
+                csv_bytes.write(csv.encode('utf-8'))
+                csv_bytes.seek(0)
+
+                # Proposer le téléchargement du CSV
+                st.download_button(
+                    label="Télécharger le CSV",
+                    data=csv_bytes,
+                    file_name=f"{self.collection_a_chercher}_c2LabHAL.csv",
+                    mime="text/csv"
+                )
+
+                # Mettre à jour la barre de progression à 100%
+                self.progress_bar.progress(100)
+                self.progress_text.text("Terminé !")
+
+            else:
+                st.error("Aucune donnée à exporter. Veuillez vérifier les paramètres de recherche.")

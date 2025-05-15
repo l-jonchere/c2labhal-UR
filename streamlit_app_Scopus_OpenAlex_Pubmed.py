@@ -125,7 +125,7 @@ class ScopusOpenAlexPubmedApp:
                     key=self.prefix + "authors_file"  # Préfixe ajouté
                 )
 
-        self.progress_bar = st.progress(0, key=self.prefix + "progress_bar")  # Préfixe ajouté
+        self.progress_bar = st.progress(0)  # Préfixe ajouté
         self.progress_text = st.empty()
 
         if st.button("Rechercher", key=self.prefix + "rechercher"):  

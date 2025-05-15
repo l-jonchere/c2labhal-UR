@@ -10,6 +10,7 @@ from utils import (
 
 class CSVApp:
     def __init__(self):
+        self.prefix = "app2_" 
         self.uploaded_file = None
         self.collection_a_chercher = ""
         self.processed_df = pd.DataFrame()

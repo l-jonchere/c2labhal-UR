@@ -45,7 +45,7 @@ class ScopusOpenAlexPubmedApp:
         self.merged_data = pd.DataFrame()
 
 
-def run(self):
+    def run(self): # La méthode run est maintenant à l'intérieur de la classe
         st.title("🥎 c2LabHAL")
         st.subheader("Comparez les publications d'un labo dans Scopus, OpenAlex et Pubmed avec sa collection HAL")
 

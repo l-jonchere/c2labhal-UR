@@ -11,7 +11,8 @@ from tqdm import tqdm
 from streamlit_app_Scopus_OpenAlex_Pubmed import (
     get_scopus_data, get_openalex_data, get_pubmed_data, convert_to_dataframe,
     clean_doi, HalCollImporter, merge_rows_with_sources, get_authors_from_crossref,
-    check_df, enrich_w_upw_parallel, add_permissions_parallel, deduce_todo, normalise, normalize_name, get_initial_form
+    check_df, enrich_w_upw_parallel, add_permissions_parallel, deduce_todo,
+    normalise, normalize_name, get_initial_form
 )
 
 # Liste des laboratoires avec leurs informations
@@ -273,8 +274,9 @@ labos_list = [
 # Convertir la liste en DataFrame
 labos_df = pd.DataFrame(labos_list)
 
-class NantesApp:
+ class NantesApp:
     def __init__(self):
+        self.prefix = "app3_"  # Préfixe unique
         self.labos_df = pd.DataFrame(labos_list)
         self.labo_choisi = ""
         self.collection_a_chercher = ""
@@ -300,41 +302,62 @@ class NantesApp:
         st.title("🥎 c2LabHAL - Version Nantes")
         st.subheader("Comparez les publications d’un labo nantais avec sa collection HAL")
 
-        # Chargement des labos depuis la liste
         self.labos_df = pd.DataFrame(labos_list)
 
-        # Sélection du labo
-        self.labo_choisi = st.selectbox("Choisissez une collection HAL", sorted(self.labos_df['collection'].unique()), key="labo_choisi_app3")
+        self.labo_choisi = st.selectbox(
+            "Choisissez une collection HAL",
+            sorted(self.labos_df['collection'].unique()),
+            key=self.prefix + "labo_choisi"  # Préfixe
+        )
 
-        # Récupération des infos correspondantes
         row = self.labos_df[self.labos_df['collection'] == self.labo_choisi].iloc[0]
         self.collection_a_chercher = row['collection']
         self.scopus_lab_id = row['scopus_id']
         self.openalex_institution_id = row['openalex_id']
-        self.pubmed_query = row.get('pubmed_query', '')  # utilisation sécurisée
+        self.pubmed_query = row.get('pubmed_query', '')
 
-        # Clés API depuis Streamlit secrets
         self.scopus_api_key = st.secrets["SCOPUS_API_KEY"]
         self.pubmed_api_key = st.secrets["PUBMED_API_KEY"]
 
-        # Paramètres supplémentaires
         col1, col2 = st.columns(2)
         with col1:
-            self.start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020, key="start_year_app3")
+            self.start_year = st.number_input(
+                "Année de début",
+                min_value=1900,
+                max_value=2100,
+                value=2020,
+                key=self.prefix + "start_year"  # Préfixe
+            )
         with col2:
-            self.end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025, key="end_year_app3")
+            self.end_year = st.number_input(
+                "Année de fin",
+                min_value=1900,
+                max_value=2100,
+                value=2025,
+                key=self.prefix + "end_year"  # Préfixe
+            )
 
-        self.fetch_authors = st.checkbox("🧑‍🔬 Récupérer les auteurs sur Crossref", key="fetch_authors_app3")
+        self.fetch_authors = st.checkbox(
+            "🧑‍🔬 Récupérer les auteurs sur Crossref",
+            key=self.prefix + "fetch_authors"  # Préfixe
+        )
 
         if self.fetch_authors:
-            self.compare_authors = st.checkbox("🔍 Comparer les auteurs avec ma liste de chercheurs", key="compare_authors_app3")
+            self.compare_authors = st.checkbox(
+                "🔍 Comparer les auteurs avec ma liste de chercheurs",
+                key=self.prefix + "compare_authors"  # Préfixe
+            )
             if self.compare_authors:
-                self.uploaded_authors_file = st.file_uploader("📤 Téléversez un fichier CSV avec deux colonnes : 'collection', 'prénom nom'", type=["csv"], key="authors_file_app3")
+                self.uploaded_authors_file = st.file_uploader(
+                    "📤 Téléversez un fichier CSV avec deux colonnes : 'collection', 'prénom nom'",
+                    type=["csv"],
+                    key=self.prefix + "authors_file"  # Préfixe
+                )
 
-        self.progress_bar = st.progress(0, key="progress_bar_app3")
+        self.progress_bar = st.progress(0, key=self.prefix + "progress_bar")  # Préfixe
         self.progress_text = st.empty()
 
-        if st.button("Rechercher", key="rechercher_app3"):
+         if st.button("Rechercher", key=self.prefix + "rechercher"):
             # Initialiser les DataFrames
             self.scopus_df = pd.DataFrame()
             self.openalex_df = pd.DataFrame()

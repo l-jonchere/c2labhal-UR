@@ -274,7 +274,7 @@ labos_list = [
 # Convertir la liste en DataFrame
 labos_df = pd.DataFrame(labos_list)
 
- class NantesApp:
+class NantesApp:
     def __init__(self):
         self.prefix = "app3_"  # Préfixe unique
         self.labos_df = pd.DataFrame(labos_list)
@@ -321,21 +321,9 @@ labos_df = pd.DataFrame(labos_list)
 
         col1, col2 = st.columns(2)
         with col1:
-            self.start_year = st.number_input(
-                "Année de début",
-                min_value=1900,
-                max_value=2100,
-                value=2020,
-                key=self.prefix + "start_year"  # Préfixe
-            )
+            self.start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020, key="nantes_app_start_year")
         with col2:
-            self.end_year = st.number_input(
-                "Année de fin",
-                min_value=1900,
-                max_value=2100,
-                value=2025,
-                key=self.prefix + "end_year"  # Préfixe
-            )
+            self.end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025, key="nantes_app_last_year")
 
         self.fetch_authors = st.checkbox(
             "🧑‍🔬 Récupérer les auteurs sur Crossref",
@@ -357,7 +345,7 @@ labos_df = pd.DataFrame(labos_list)
         self.progress_bar = st.progress(0, key=self.prefix + "progress_bar")  # Préfixe
         self.progress_text = st.empty()
 
-         if st.button("Rechercher", key=self.prefix + "rechercher"):
+        if st.button("Rechercher", key=self.prefix + "rechercher"):
             # Initialiser les DataFrames
             self.scopus_df = pd.DataFrame()
             self.openalex_df = pd.DataFrame()

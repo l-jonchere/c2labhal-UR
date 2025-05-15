@@ -47,8 +47,7 @@ def process_csv(uploaded_file, collection_a_chercher):
 
 
 def main():
-    st.title("Vérification des publications avec HAL et Unpaywall")
-    st.subheader("Chargez un fichier CSV pour vérifier les publications.")
+
     st.title("🥎 c2LabHAL - Version import csv")
     st.subheader("Comparez les publications contenues dans un fichier .csv avec une collection HAL")
 

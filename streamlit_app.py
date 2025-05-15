@@ -6,7 +6,7 @@ Created on Thu May 15 19:01:37 2025
 """
 
 import streamlit as st
-from streamlit_app import main as app1_main  # Renommer pour éviter les conflits
+from streamlit_app_Scopus_OpenAlex_Pubmed import main as app1_main  # Renommer pour éviter les conflits
 from streamlit_app_csv import main as app2_main
 from streamlit_app_nantes import main as app3_main
 
@@ -21,7 +21,7 @@ def main():
 
     # Contenu de chaque onglet
     with tab1:
-        app1_main()  # Exécutez le contenu de streamlit_app.py
+        app1_main()  # Exécutez le contenu de streamlit_app_Scopus_OpenAlex_Pubmed.py
     with tab2:
         app2_main()  # Exécutez le contenu de streamlit_app_csv.py
     with tab3:

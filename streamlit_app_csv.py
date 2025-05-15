@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
-from streamlit_app import (
+from streamlit_app_Scopus_OpenAlex_Pubmed import (
     check_df,
     enrich_w_upw_parallel,
     add_permissions_parallel,

@@ -771,9 +771,10 @@ def main():
 
     col1, col2 = st.columns(2)
     with col1:
-        start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020)
+           start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020, key="start_year_app1")
     with col2:
-        end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025)
+           end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=2025, key="end_year_app1")
+        
 
     fetch_authors = st.checkbox("🧑‍🔬 Récupérer les auteurs sur Crossref")
 

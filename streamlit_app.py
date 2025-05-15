@@ -26,6 +26,7 @@ def main():
         app2_main()  # Exécutez le contenu de streamlit_app_csv.py
     with tab3:
         app3_main()  # Exécutez le contenu de streamlit_app_nantes.py
+        col1, col2 = st.columns(2)
 
 if __name__ == "__main__":
     main()

@@ -51,7 +51,7 @@ def main():
     st.title("🥎 c2LabHAL - Version import csv")
     st.subheader("Comparez les publications contenues dans un fichier .csv avec une collection HAL")
 
-    uploaded_file = st.file_uploader("Téléversez un fichier CSV", type="csv")
+    uploaded_file = st.file_uploader("Téléversez un fichier CSV (ce fichier doit contenir une colonne 'doi' et une colonne 'Title')", type="csv")
     collection_a_chercher = st.text_input("Nom de la collection HAL à comparer :", "")
 
     if uploaded_file and collection_a_chercher:

@@ -104,7 +104,7 @@ def get_scopus_data(api_key, query, max_items=2000):
 
 def get_openalex_data(query, max_items=2000):
     url = 'https://api.openalex.org/works'
-    email = "hal.dbm@listes.u-paris.fr" 
+    email = "bu-science-ouverte@univ-nantes.fr" 
     params = {'filter': query, 'per-page': 200, 'mailto': email} 
     results_json = []
     next_cursor = "*" 
@@ -366,7 +366,7 @@ def statut_doi(doi_to_check, collection_df):
         if r_json.get('response', {}).get('numFound', 0) > 0:
             doc = r_json['response']['docs'][0]
             return [
-                "Dans HAL mais hors de la collection",
+                "Dans HAL mais hors de la collection", # This is the generic status from DOI search
                 doc.get('title_s', [""])[0], 
                 doc.get('docid', ''),
                 doc.get('submitType_s', ''),
@@ -491,11 +491,8 @@ def add_permissions(row_series_data):
         elif status_code == 501: # Not Implemented
             return f"Permissions API non applicable pour ce type de document (501 oa.works) pour DOI {doi_cleaned_for_api}"
         else:
-            # For other HTTP errors, return a descriptive string.
-            # _display_long_warning was removed as this function can be called in threads.
             return f"Erreur HTTP {status_code} permissions (oa.works) pour DOI {doi_cleaned_for_api}: {str(e)}"
     except requests.exceptions.RequestException as e:
-        # For non-HTTP request errors (e.g., network issues)
         return f"Erreur requête permissions (oa.works) pour DOI {doi_cleaned_for_api}: {type(e).__name__}"
     except json.JSONDecodeError:
         return f"Erreur JSON permissions (oa.works) pour DOI {doi_cleaned_for_api}"
@@ -561,7 +558,7 @@ def deduce_todo(row_data):
     oa_repo_link_val = str(row_data.get("oa_repo_link", "") or "").strip()
     oa_publisher_link_val = str(row_data.get("oa_publisher_link", "") or "").strip()
     oa_publisher_license_val = str(row_data.get("oa_publisher_license", "") or "").strip()
-    deposit_condition_val = str(row_data.get("deposit_condition", "")).lower() # Ensure it's a string and lowercased
+    deposit_condition_val = str(row_data.get("deposit_condition", "")).lower() 
 
     suggested_actions = []
 
@@ -571,10 +568,15 @@ def deduce_todo(row_data):
     elif statut_hal_val == "Titre trouvé dans la collection : probablement déjà présent" and type_depot_hal_val == "file":
         suggested_actions.append("✅ Titre probablement déjà déposé dans la collection (avec fichier).")
     
-    if statut_hal_val == "Dans HAL mais hors de la collection":
-        suggested_actions.append("🏷️ Affiliation à vérifier dans HAL (trouvé hors collection).")
-    if statut_hal_val == "Titre approchant trouvé dans HAL mais hors de la collection":
-        suggested_actions.append("🔍 Titre approchant hors collection. Vérifier affiliations HAL.")
+    # Cas où le document est dans HAL mais hors de la collection spécifiée (ou affiliation à vérifier)
+    # Ces statuts peuvent venir de la recherche par DOI (statut_doi) ou par titre (statut_titre -> in_hal)
+    if statut_hal_val == "Dans HAL mais hors de la collection": # Souvent de statut_doi
+        suggested_actions.append("🏷️ Affiliation à vérifier dans HAL.")
+    elif statut_hal_val == "Titre trouvé dans HAL mais hors de la collection : affiliation probablement à corriger": # de statut_titre
+        suggested_actions.append("🏷️ Affiliation à vérifier dans HAL.")
+    elif statut_hal_val == "Titre approchant trouvé dans HAL mais hors de la collection : vérifier les affiliations": # de statut_titre
+        suggested_actions.append("🏷️ Affiliation à vérifier dans HAL.")
+
 
     if statut_hal_val == "Dans la collection" and type_depot_hal_val != "file" and id_hal_val:
         suggested_actions.append(f"📄 Notice HAL ({id_hal_val}) sans fichier. Vérifier possibilité d'ajout de fichier.")
@@ -608,13 +610,12 @@ def deduce_todo(row_data):
         elif "version autorisée (oa.works): acceptedversion" in deposit_condition_val:
             suggested_actions.append(f"✍️ Dépôt postprint possible selon oa.works. ({deposit_condition_val})")
         
-        # --- Gestion spécifique des messages d'erreur de deposit_condition_val ---
+        # --- Gestion spécifique des messages d'erreur/info de deposit_condition_val ---
         if "permissions api non applicable pour ce type de document (501 oa.works)" in deposit_condition_val:
-            # User does not want a warning for this. Add a mild info or nothing.
-            suggested_actions.append(f"ℹ️ Permissions sur oa.works non applicable pour ce DOI.")
+            suggested_actions.append(f"ℹ️ Permissions API oa.works non applicable pour ce DOI (ex: chapitre, etc.).")
         elif "permissions non trouvées (404 oa.works)" in deposit_condition_val:
-            suggested_actions.append(f"ℹ️ Permissions sur oa.works non trouvées pour ce DOI.")
-        elif "doi manquant pour permissions" in deposit_condition_val and not oa_repo_link_val and not oa_publisher_link_val:
+            suggested_actions.append(f"ℹ️ Permissions non trouvées sur oa.works pour ce DOI.")
+        elif "doi manquant pour permissions" in deposit_condition_val and not oa_repo_link_val and not oa_publisher_link_val: # Only if no other OA route found
             suggested_actions.append(f"⚠️ DOI manquant pour la vérification des permissions oa.works. Vérification manuelle nécessaire.")
         elif ("erreur" in deposit_condition_val or "timeout" in deposit_condition_val) and \
              not ("501 oa.works" in deposit_condition_val or "404 oa.works" in deposit_condition_val): # Generic errors not caught above
@@ -625,13 +626,14 @@ def deduce_todo(row_data):
         if statut_upw_val == "closed" and \
            not ("publishedversion" in deposit_condition_val or "acceptedversion" in deposit_condition_val) and \
            not oa_repo_link_val and not (oa_publisher_link_val and oa_publisher_license_val) and \
-           not ("501 oa.works" in deposit_condition_val or "404 oa.works" in deposit_condition_val): # Only if no other info is available
+           not ("501 oa.works" in deposit_condition_val or "404 oa.works" in deposit_condition_val): 
             suggested_actions.append("📧 Article fermé (Unpaywall) et pas de permission claire (oa.works). Contacter auteur pour LRN/dépôt.")
         
 
     if not suggested_actions:
         return "🛠️ À vérifier manuellement (aucune action spécifique déduite)."
         
+    # Utiliser un set pour éliminer les doublons exacts avant de joindre
     return " | ".join(sorted(list(set(suggested_actions))))
 
 

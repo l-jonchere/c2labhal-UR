@@ -680,7 +680,7 @@ def deduce_todo(row_data):
 
         # OA.works informational messages (errors, non-applicable, etc.)
         if "permissions api non applicable pour ce type de document (501 oa.works)" in deposit_condition_val:
-            action_parts.append(f"ℹ️ Permissions API oa.works non applicable pour ce DOI (ex: chapitre).")
+            action_parts.append(f"ℹ️ Permissions API oa.works non applicable pour ce DOI.")
         elif "permissions non trouvées (404 oa.works)" in deposit_condition_val:
             action_parts.append(f"ℹ️ Permissions non trouvées sur oa.works pour ce DOI.")
         elif ("erreur" in deposit_condition_val or "timeout" in deposit_condition_val or "doi manquant pour permissions" in deposit_condition_val) and \

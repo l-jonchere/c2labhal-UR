@@ -475,7 +475,7 @@ def add_permissions(row_series_data):
 
     doi_cleaned_for_api = str(doi_val).strip()
     try:
-        req = requests.get(f"https://api.permissions.oa.works/permissions/{doi_cleaned_for_api}", timeout=15)
+        req = requests.get(f"https://bg.api.oa.works/permissions/{doi_cleaned_for_api}", timeout=15)
         req.raise_for_status() 
         res_json = req.json()
         

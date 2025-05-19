@@ -50,26 +50,19 @@ def main():
     st.subheader("Comparez les publications d'un labo dans Scopus, OpenAlex et Pubmed avec sa collection HAL")
 
     collection_a_chercher = st.text_input(
-        "Code de la collection HAL (ex: MIP, CRHIA)",
+        "Collection HAL",
         value="", 
         key="collection_hal",
         help="Saisissez le code de la collection HAL du laboratoire (ex: MIP). Laissez vide pour comparer avec tout HAL (non recommandé, très long)."
     )
 
-    openalex_institution_id = st.text_input("Identifiant OpenAlex du labo (ex: I4392021216)", help="Saisissez l'identifiant du labo dans OpenAlex (ex: I4210128962 pour CNRS).")
+    openalex_institution_id = st.text_input("Identifiant OpenAlex du labo", help="Saisissez l'identifiant du labo dans OpenAlex (ex: i4392021216 pour MIP).")
 
-    col1_pubmed, col2_pubmed = st.columns(2)
-    with col1_pubmed:
-        pubmed_query_input = st.text_input("Requête PubMed (ex: (Nantes Univ[Affiliation]) AND (Cancer[Mesh]))", help="Saisissez la requête Pubmed. Ex: ((MIP[Affiliation]) AND (Nantes Univ[Affiliation]))")
-    with col2_pubmed:
-        st.caption("La clé API PubMed est gérée via les secrets de l'application si configurée.")
-
-    col1_scopus, col2_scopus = st.columns(2)
-    with col1_scopus:
-        scopus_lab_id = st.text_input("Identifiant Scopus du labo (AF-ID, ex: 60105638)", help="Saisissez le Scopus Affiliation Identifier (AF-ID) du laboratoire.")
-    with col2_scopus:
-        st.caption("La clé API Scopus est gérée via les secrets de l'application si configurée.")
-
+    pubmed_query_input = st.text_input("Requête PubMed", help="Saisissez la requête Pubmed qui rassemble le mieux les publications du labo, par exemple ((MIP[Affiliation]) AND ((mans[Affiliation]) OR (nantes[Affiliation]))) OR (EA 4334[Affiliation]) OR (EA4334[Affiliation]) OR (UR 4334[Affiliation]) OR (UR4334[Affiliation]) OR (Movement Interactions Performance[Affiliation] OR (Motricité Interactions Performance[Affiliation]) OR (mouvement interactions performance[Affiliation])")
+    
+    scopus_lab_id = st.text_input("Identifiant Scopus du labo (AF-ID)", help="Saisissez le Scopus Affiliation Identifier (AF-ID) du laboratoire.")
+    
+    
     col1_dates, col2_dates = st.columns(2)
     with col1_dates:
         start_year = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020)
@@ -77,16 +70,16 @@ def main():
         end_year = st.number_input("Année de fin", min_value=1900, max_value=2100, value=pd.Timestamp.now().year) 
 
     with st.expander("🔧 Options avancées"):
-        fetch_authors = st.checkbox("🧑‍🔬 Récupérer les auteurs via Crossref (peut ralentir)", value=False)
+        fetch_authors = st.checkbox("🧑‍🔬 Récupérer les auteurs via Crossref", value=False)
         compare_authors = False
         uploaded_authors_file = None
         if fetch_authors:
-            compare_authors = st.checkbox("🔍 Comparer les auteurs avec une liste de chercheurs (si auteurs récupérés)", value=False)
+            compare_authors = st.checkbox("🔍 Comparer les auteurs Crossref avec ma liste de chercheurs", value=False)
             if compare_authors:
                 uploaded_authors_file = st.file_uploader(
-                    "📤 Téléversez un fichier CSV de chercheurs (colonnes: 'collection', 'prénom nom')", 
+                    "📤 Téléversez un fichier CSV avec la liste des chercheurs du labo (colonnes: 'collection', 'prénom nom')", 
                     type=["csv"],
-                    help="Le fichier CSV doit avoir une colonne 'collection' (code de la collection HAL) et une colonne avec les noms des chercheurs (ex: 'prénom nom')."
+                    help="Le fichier CSV doit avoir une colonne 'collection' (code de la collection HAL) et une colonne 'prénom nom' avec les noms des chercheurs."
                 )
 
     progress_bar = st.progress(0)

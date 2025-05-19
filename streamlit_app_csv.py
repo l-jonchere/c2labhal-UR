@@ -88,7 +88,7 @@ def process_csv(uploaded_file_data, collection_hal_code, start_year_hal, end_yea
 
     progress_text_area_st.info("Étape 4/5 : Récupération des permissions de dépôt...")
     df_enriched_perms = add_permissions_parallel(df_enriched_upw.copy())
-    st.success("Récupération des permissions terminée.")
+    st.success("Récupération des permissions OA.works terminée.")
     progress_bar_st.progress(85)
 
     progress_text_area_st.info("Étape 5/5 : Déduction des actions...")

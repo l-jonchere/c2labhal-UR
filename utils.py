@@ -7,7 +7,7 @@ import regex as re
 from unidecode import unidecode
 import unicodedata
 from difflib import get_close_matches
-from langdetect import detect
+from langdetect import detect # Bien que non utilisé directement, gardé si une fonction importée en dépend
 from tqdm import tqdm 
 from concurrent.futures import ThreadPoolExecutor
 
@@ -39,8 +39,10 @@ def _display_long_warning(base_message, item_identifier, item_value, exception_d
     """
     full_error_message = f"{base_message} pour {item_identifier} '{item_value}': {exception_details}"
     
-    if len(str(item_value)) > max_len:
-        short_item_value = str(item_value)[:max_len-3] + "..."
+    item_value_str = str(item_value) # Ensure item_value is a string for len()
+
+    if len(item_value_str) > max_len:
+        short_item_value = item_value_str[:max_len-3] + "..."
         st.warning(f"{base_message} pour {item_identifier} '{short_item_value}' (détails ci-dessous).")
         with st.expander("Voir les détails de l'erreur"):
             st.error(full_error_message)
@@ -372,7 +374,6 @@ def statut_doi(doi_to_check, collection_df):
                 doc.get('linkExtId_s', '')
             ]
     except requests.exceptions.RequestException as e:
-        # Utilisation de _display_long_warning pour les erreurs liées au DOI
         _display_long_warning("Erreur de requête à l'API HAL", "DOI", doi_to_check, e)
     except (KeyError, IndexError, json.JSONDecodeError) as e_json:
         _display_long_warning("Structure de réponse HAL inattendue ou erreur JSON", "DOI", doi_to_check, e_json)
@@ -466,16 +467,14 @@ def enrich_w_upw_parallel(input_df):
 
 
 def add_permissions(row_series_data):
-    oa_repo_link_val = str(row_series_data.get("oa_repo_link", "") or "").strip()
-    oa_publisher_license_val = str(row_series_data.get("oa_publisher_license", "") or "").strip()
-
     doi_val = row_series_data.get('doi') 
     if pd.isna(doi_val) or not str(doi_val).strip():
         return "DOI manquant pour permissions"
 
     doi_cleaned_for_api = str(doi_val).strip()
+    permissions_api_url = f"https://bg.api.oa.works/permissions/{doi_cleaned_for_api}"
     try:
-        req = requests.get(f"https://bg.api.oa.works/permissions/{doi_cleaned_for_api}", timeout=15)
+        req = requests.get(permissions_api_url, timeout=15)
         req.raise_for_status() 
         res_json = req.json()
         
@@ -486,10 +485,17 @@ def add_permissions(row_series_data):
     except requests.exceptions.Timeout:
         return f"Timeout permissions (oa.works) pour DOI {doi_cleaned_for_api}"
     except requests.exceptions.HTTPError as e:
-        if e.response.status_code == 404:
+        status_code = e.response.status_code if hasattr(e, 'response') and e.response is not None else 'N/A'
+        if status_code == 404:
             return f"Permissions non trouvées (404 oa.works) pour DOI {doi_cleaned_for_api}"
-        return f"Erreur HTTP permissions ({e.response.status_code} oa.works) pour DOI {doi_cleaned_for_api}"
+        elif status_code == 501: # Not Implemented
+            return f"Permissions API non applicable pour ce type de document (501 oa.works) pour DOI {doi_cleaned_for_api}"
+        else:
+            # For other HTTP errors, return a descriptive string.
+            # _display_long_warning was removed as this function can be called in threads.
+            return f"Erreur HTTP {status_code} permissions (oa.works) pour DOI {doi_cleaned_for_api}: {str(e)}"
     except requests.exceptions.RequestException as e:
+        # For non-HTTP request errors (e.g., network issues)
         return f"Erreur requête permissions (oa.works) pour DOI {doi_cleaned_for_api}: {type(e).__name__}"
     except json.JSONDecodeError:
         return f"Erreur JSON permissions (oa.works) pour DOI {doi_cleaned_for_api}"
@@ -555,10 +561,11 @@ def deduce_todo(row_data):
     oa_repo_link_val = str(row_data.get("oa_repo_link", "") or "").strip()
     oa_publisher_link_val = str(row_data.get("oa_publisher_link", "") or "").strip()
     oa_publisher_license_val = str(row_data.get("oa_publisher_license", "") or "").strip()
-    deposit_condition_val = str(row_data.get("deposit_condition", "")).lower()
+    deposit_condition_val = str(row_data.get("deposit_condition", "")).lower() # Ensure it's a string and lowercased
 
     suggested_actions = []
 
+    # --- Analyse du statut HAL ---
     if statut_hal_val == "Dans la collection" and type_depot_hal_val == "file":
         suggested_actions.append("✅ Dépôt HAL OK (avec fichier).")
     elif statut_hal_val == "Titre trouvé dans la collection : probablement déjà présent" and type_depot_hal_val == "file":
@@ -595,21 +602,32 @@ def deduce_todo(row_data):
         elif oa_publisher_link_val and not oa_publisher_license_val:
              suggested_actions.append(f"🔗 OA éditeur (sans licence claire via UPW): {oa_publisher_link_val}. Vérifier conditions de dépôt HAL.")
 
+        # --- Analyse des conditions de dépôt (oa.works) ---
         if "version autorisée (oa.works): publishedversion" in deposit_condition_val:
             suggested_actions.append(f"📄 Dépôt version éditeur possible selon oa.works. ({deposit_condition_val})")
         elif "version autorisée (oa.works): acceptedversion" in deposit_condition_val:
             suggested_actions.append(f"✍️ Dépôt postprint possible selon oa.works. ({deposit_condition_val})")
         
+        # --- Gestion spécifique des messages d'erreur de deposit_condition_val ---
+        if "permissions api non applicable pour ce type de document (501 oa.works)" in deposit_condition_val:
+            # User does not want a warning for this. Add a mild info or nothing.
+            suggested_actions.append(f"ℹ️ Permissions sur oa.works non applicable pour ce DOI.")
+        elif "permissions non trouvées (404 oa.works)" in deposit_condition_val:
+            suggested_actions.append(f"ℹ️ Permissions sur oa.works non trouvées pour ce DOI.")
+        elif "doi manquant pour permissions" in deposit_condition_val and not oa_repo_link_val and not oa_publisher_link_val:
+            suggested_actions.append(f"⚠️ DOI manquant pour la vérification des permissions oa.works. Vérification manuelle nécessaire.")
+        elif ("erreur" in deposit_condition_val or "timeout" in deposit_condition_val) and \
+             not ("501 oa.works" in deposit_condition_val or "404 oa.works" in deposit_condition_val): # Generic errors not caught above
+            suggested_actions.append(f"⚠️ Problème avec l'API permissions (oa.works): {deposit_condition_val}. Vérification manuelle nécessaire.")
+
+
+        # --- Suggestion finale si fermé et pas d'option claire ---
         if statut_upw_val == "closed" and \
            not ("publishedversion" in deposit_condition_val or "acceptedversion" in deposit_condition_val) and \
-           not oa_repo_link_val and not (oa_publisher_link_val and oa_publisher_license_val) : 
+           not oa_repo_link_val and not (oa_publisher_link_val and oa_publisher_license_val) and \
+           not ("501 oa.works" in deposit_condition_val or "404 oa.works" in deposit_condition_val): # Only if no other info is available
             suggested_actions.append("📧 Article fermé (Unpaywall) et pas de permission claire (oa.works). Contacter auteur pour LRN/dépôt.")
         
-        if statut_upw_val not in ["open", "closed", "doi manquant", "non trouvé dans unpaywall", "non trouvé dans unpaywall (message api)"] and "erreur" in statut_upw_val: 
-            suggested_actions.append(f"⚠️ Statut Unpaywall: {statut_upw_val}. Vérification manuelle des droits nécessaire.")
-        if "erreur" in deposit_condition_val or "timeout" in deposit_condition_val or ("doi manquant" in deposit_condition_val and not oa_repo_link_val and not oa_publisher_link_val) :
-             suggested_actions.append(f"⚠️ Info permissions (oa.works): {deposit_condition_val}. Vérification manuelle nécessaire.")
-
 
     if not suggested_actions:
         return "🛠️ À vérifier manuellement (aucune action spécifique déduite)."

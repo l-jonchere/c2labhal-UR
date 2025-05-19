@@ -550,91 +550,106 @@ def add_permissions_parallel(input_df):
 
 
 def deduce_todo(row_data):
+    # Initialize lists for different categories of actions
+    hal_actions = []
+    unpaywall_actions = []
+    oaworks_actions = []
+    final_fallback_action = "🛠️ À vérifier manuellement (aucune action spécifique déduite)."
+
+    # Extract data from the row
     statut_hal_val = str(row_data.get("Statut_HAL", "")).strip()
-    type_depot_hal_val = str(row_data.get("type_dépôt_si_trouvé", "")).strip().lower() 
+    type_depot_hal_val = str(row_data.get("type_dépôt_si_trouvé", "")).strip().lower()
     id_hal_val = str(row_data.get("identifiant_hal_si_trouvé", "")).strip()
 
     statut_upw_val = str(row_data.get("Statut Unpaywall", "")).strip().lower()
     oa_repo_link_val = str(row_data.get("oa_repo_link", "") or "").strip()
     oa_publisher_link_val = str(row_data.get("oa_publisher_link", "") or "").strip()
     oa_publisher_license_val = str(row_data.get("oa_publisher_license", "") or "").strip()
-    deposit_condition_val = str(row_data.get("deposit_condition", "")).lower() 
+    deposit_condition_val = str(row_data.get("deposit_condition", "")).lower()
 
-    suggested_actions = []
-
-    # --- Analyse du statut HAL ---
+    # --- 1. HAL Actions ---
     if statut_hal_val == "Dans la collection" and type_depot_hal_val == "file":
-        suggested_actions.append("✅ Dépôt HAL OK (avec fichier).")
+        hal_actions.append("✅ Dépôt HAL OK (avec fichier).")
     elif statut_hal_val == "Titre trouvé dans la collection : probablement déjà présent" and type_depot_hal_val == "file":
-        suggested_actions.append("✅ Titre probablement déjà déposé dans la collection (avec fichier).")
+        hal_actions.append("✅ Titre probablement déjà déposé dans la collection (avec fichier).")
     
-    # Cas où le document est dans HAL mais hors de la collection spécifiée (ou affiliation à vérifier)
-    # Ces statuts peuvent venir de la recherche par DOI (statut_doi) ou par titre (statut_titre -> in_hal)
-    if statut_hal_val == "Dans HAL mais hors de la collection": # Souvent de statut_doi
-        suggested_actions.append("🏷️ Affiliation à vérifier dans HAL.")
-    elif statut_hal_val == "Titre trouvé dans HAL mais hors de la collection : affiliation probablement à corriger": # de statut_titre
-        suggested_actions.append("🏷️ Affiliation à vérifier dans HAL.")
-    elif statut_hal_val == "Titre approchant trouvé dans HAL mais hors de la collection : vérifier les affiliations": # de statut_titre
-        suggested_actions.append("🏷️ Affiliation à vérifier dans HAL.")
-
+    if statut_hal_val in [
+        "Dans HAL mais hors de la collection",
+        "Titre trouvé dans HAL mais hors de la collection : affiliation probablement à corriger",
+        "Titre approchant trouvé dans HAL mais hors de la collection : vérifier les affiliations"
+    ]:
+        hal_actions.append("🏷️ Affiliation à vérifier dans HAL.")
 
     if statut_hal_val == "Dans la collection" and type_depot_hal_val != "file" and id_hal_val:
-        suggested_actions.append(f"📄 Notice HAL ({id_hal_val}) sans fichier. Vérifier possibilité d'ajout de fichier.")
+        hal_actions.append(f"📄 Notice HAL ({id_hal_val}) sans fichier. Vérifier possibilité d'ajout de fichier.")
     
     if statut_hal_val in ["Hors HAL", "Titre incorrect, probablement absent de HAL"] and not id_hal_val:
-        suggested_actions.append("📥 Créer la notice (et si possible déposer le fichier) dans HAL.")
+        hal_actions.append("📥 Créer la notice (et si possible déposer le fichier) dans HAL.")
     elif statut_hal_val == "Pas de DOI valide" and not id_hal_val: 
-        suggested_actions.append("📥 DOI manquant/invalide et titre non trouvé dans HAL. Créer notice si pertinent.")
-
+        hal_actions.append("📥 DOI manquant/invalide et titre non trouvé dans HAL. Créer notice si pertinent.")
 
     if statut_hal_val == "Titre invalide":
-        suggested_actions.append("❌ Titre considéré invalide par le script. Vérifier/corriger le titre source.")
+        hal_actions.append("❌ Titre considéré invalide par le script. Vérifier/corriger le titre source.")
     if statut_hal_val == "Titre approchant trouvé dans la collection : à vérifier":
-        suggested_actions.append("🧐 Titre approchant dans la collection. Vérifier si c'est une variante déjà déposée.")
+        hal_actions.append("🧐 Titre approchant dans la collection. Vérifier si c'est une variante déjà déposée.")
 
-    is_hal_ok_with_file = any("✅ Dépôt HAL OK (avec fichier)" in act for act in suggested_actions) or \
-                          any("✅ Titre probablement déjà déposé" in act for act in suggested_actions)
+    # Determine if HAL status is "OK with file"
+    is_hal_ok_with_file = any("✅ Dépôt HAL OK (avec fichier)" in act for act in hal_actions) or \
+                          any("✅ Titre probablement déjà déposé" in act for act in hal_actions)
 
+    # --- 2. Unpaywall Actions (only if not already OK in HAL with file) ---
     if not is_hal_ok_with_file:
         if oa_repo_link_val:
-            suggested_actions.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}. Si pas dans HAL, envisager dépôt notice/fichier.")
+            unpaywall_actions.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}. Si pas dans HAL, envisager dépôt notice/fichier.")
         
         if oa_publisher_link_val and oa_publisher_license_val:
-            suggested_actions.append(f"📜 OA éditeur (licence {oa_publisher_license_val}): {oa_publisher_link_val}. Vérifier si dépôt HAL souhaité/possible.")
+            unpaywall_actions.append(f"📜 OA éditeur (licence {oa_publisher_license_val}): {oa_publisher_link_val}. Vérifier si dépôt HAL souhaité/possible.")
         elif oa_publisher_link_val and not oa_publisher_license_val:
-             suggested_actions.append(f"🔗 OA éditeur (sans licence claire via UPW): {oa_publisher_link_val}. Vérifier conditions de dépôt HAL.")
-
-        # --- Analyse des conditions de dépôt (oa.works) ---
-        if "version autorisée (oa.works): publishedversion" in deposit_condition_val:
-            suggested_actions.append(f"📄 Dépôt version éditeur possible selon oa.works. ({deposit_condition_val})")
-        elif "version autorisée (oa.works): acceptedversion" in deposit_condition_val:
-            suggested_actions.append(f"✍️ Dépôt postprint possible selon oa.works. ({deposit_condition_val})")
+             unpaywall_actions.append(f"🔗 OA éditeur (sans licence claire via UPW): {oa_publisher_link_val}. Vérifier conditions de dépôt HAL.")
         
-        # --- Gestion spécifique des messages d'erreur/info de deposit_condition_val ---
-        if "permissions api non applicable pour ce type de document (501 oa.works)" in deposit_condition_val:
-            suggested_actions.append(f"ℹ️ Permissions API oa.works non applicable pour ce DOI (ex: chapitre, etc.).")
-        elif "permissions non trouvées (404 oa.works)" in deposit_condition_val:
-            suggested_actions.append(f"ℹ️ Permissions non trouvées sur oa.works pour ce DOI.")
-        elif "doi manquant pour permissions" in deposit_condition_val and not oa_repo_link_val and not oa_publisher_link_val: # Only if no other OA route found
-            suggested_actions.append(f"⚠️ DOI manquant pour la vérification des permissions oa.works. Vérification manuelle nécessaire.")
-        elif ("erreur" in deposit_condition_val or "timeout" in deposit_condition_val) and \
-             not ("501 oa.works" in deposit_condition_val or "404 oa.works" in deposit_condition_val): # Generic errors not caught above
-            suggested_actions.append(f"⚠️ Problème avec l'API permissions (oa.works): {deposit_condition_val}. Vérification manuelle nécessaire.")
-
-
-        # --- Suggestion finale si fermé et pas d'option claire ---
+        if statut_upw_val not in ["open", "closed", "doi manquant", "non trouvé dans unpaywall", "non trouvé dans unpaywall (message api)"] and "erreur" in statut_upw_val: 
+            unpaywall_actions.append(f"⚠️ Statut Unpaywall: {statut_upw_val}. Vérification manuelle des droits nécessaire.")
+        
+        # This action depends on both Unpaywall and OA.works, place it carefully.
+        # It's primarily triggered by Unpaywall "closed" and lack of other OA avenues.
         if statut_upw_val == "closed" and \
            not ("publishedversion" in deposit_condition_val or "acceptedversion" in deposit_condition_val) and \
            not oa_repo_link_val and not (oa_publisher_link_val and oa_publisher_license_val) and \
            not ("501 oa.works" in deposit_condition_val or "404 oa.works" in deposit_condition_val): 
-            suggested_actions.append("📧 Article fermé (Unpaywall) et pas de permission claire (oa.works). Contacter auteur pour LRN/dépôt.")
-        
+            unpaywall_actions.append("📧 Article fermé (Unpaywall) et pas de permission claire (oa.works). Contacter auteur pour LRN/dépôt.")
 
-    if not suggested_actions:
-        return "🛠️ À vérifier manuellement (aucune action spécifique déduite)."
+    # --- 3. OA.works Actions (only if not already OK in HAL with file) ---
+    if not is_hal_ok_with_file:
+        if "version autorisée (oa.works): publishedversion" in deposit_condition_val:
+            oaworks_actions.append(f"📄 Dépôt version éditeur possible selon oa.works. ({deposit_condition_val})")
+        elif "version autorisée (oa.works): acceptedversion" in deposit_condition_val:
+            oaworks_actions.append(f"✍️ Dépôt postprint possible selon oa.works. ({deposit_condition_val})")
         
-    # Utiliser un set pour éliminer les doublons exacts avant de joindre
-    return " | ".join(sorted(list(set(suggested_actions))))
+        if "permissions api non applicable pour ce type de document (501 oa.works)" in deposit_condition_val:
+            oaworks_actions.append(f"ℹ️ Permissions API oa.works non applicable pour ce DOI (ex: chapitre, etc.).")
+        elif "permissions non trouvées (404 oa.works)" in deposit_condition_val:
+            oaworks_actions.append(f"ℹ️ Permissions non trouvées sur oa.works pour ce DOI.")
+        elif "doi manquant pour permissions" in deposit_condition_val and not oa_repo_link_val and not oa_publisher_link_val:
+            oaworks_actions.append(f"⚠️ DOI manquant pour la vérification des permissions oa.works. Vérification manuelle nécessaire.")
+        elif ("erreur" in deposit_condition_val or "timeout" in deposit_condition_val) and \
+             not ("501 oa.works" in deposit_condition_val or "404 oa.works" in deposit_condition_val): 
+            oaworks_actions.append(f"⚠️ Problème avec l'API permissions (oa.works): {deposit_condition_val}. Vérification manuelle nécessaire.")
+
+    # Combine all actions in the desired order
+    all_actions_ordered = hal_actions + unpaywall_actions + oaworks_actions
+
+    # Remove duplicates while preserving order
+    final_unique_actions = []
+    seen_actions = set()
+    for action in all_actions_ordered:
+        if action not in seen_actions:
+            final_unique_actions.append(action)
+            seen_actions.add(action)
+
+    if not final_unique_actions:
+        return final_fallback_action
+        
+    return " | ".join(final_unique_actions)
 
 
 def addCaclLinkFormula(pre_url_str, post_url_str, text_for_link):

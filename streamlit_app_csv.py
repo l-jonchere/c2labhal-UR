@@ -24,9 +24,8 @@ def add_sidebar_menu():
     )
     st.sidebar.markdown("---")
    
-    st.sidebar.header("Applications c2LabHAL")
+    st.sidebar.header("Autres applications c2LabHAL")
     st.sidebar.markdown("📖 [c2LabHAL - Application Principale](https://c2labhal.streamlit.app/)")
-    st.sidebar.markdown("📄 [c2LabHAL version CSV](https://c2labhal-csv.streamlit.app/)")
     st.sidebar.markdown("🏛️ [c2LabHAL version Nantes Université](https://c2labhal-nantes.streamlit.app/)")
 
 

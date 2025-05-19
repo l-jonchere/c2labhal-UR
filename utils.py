@@ -659,7 +659,7 @@ def add_permissions(row_series_data):
     doi_cleaned_for_api = str(doi_val).strip()
     try:
         # Utiliser l'API permissions.oa.works
-        req = requests.get(f"bg.api.oa.works/permissions/{doi_cleaned_for_api}", timeout=15)
+        req = requests.get(f"https://bg.api.oa.works/permissions/{doi_cleaned_for_api}", timeout=15)
         # Noter que cette API peut retourner 404 si le DOI n'est pas trouvé, ce qui est géré ci-dessous.
         req.raise_for_status() # Lève une exception pour les erreurs HTTP 4xx/5xx autres que 404 (si on ne les gère pas spécifiquement)
         res_json = req.json()

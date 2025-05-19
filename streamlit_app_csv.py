@@ -14,15 +14,6 @@ from utils import (
 
 # Fonction pour ajouter le menu de navigation dans la barre latérale (spécifique à cette app)
 def add_sidebar_menu():
-    st.sidebar.title("Menu de Navigation")
-    st.sidebar.markdown("---")
-
-    st.sidebar.header("Applications c2LabHAL")
-    st.sidebar.markdown("📖 [Application Principale](https://c2labhal.streamlit.app/)")
-    st.sidebar.markdown("📄 [Application CSV](https://c2labhal-csv.streamlit.app/)")
-    st.sidebar.markdown("🏛️ [Application Nantes](https://c2labhal-nantes.streamlit.app/)")
-
-    st.sidebar.markdown("---")
     st.sidebar.header("À Propos")
     st.sidebar.info(
         """
@@ -31,6 +22,16 @@ def add_sidebar_menu():
         avec une collection HAL spécifique. Il enrichit également les données avec Unpaywall et les permissions de dépôt.
         """
     )
+    st.sidebar.markdown("---")
+   
+    st.sidebar.header("Applications c2LabHAL")
+    st.sidebar.markdown("📖 [c2LabHAL - Application Principale](https://c2labhal.streamlit.app/)")
+    st.sidebar.markdown("📄 [c2LabHAL version CSV](https://c2labhal-csv.streamlit.app/)")
+    st.sidebar.markdown("🏛️ [c2LabHAL version Nantes Université](https://c2labhal-nantes.streamlit.app/)")
+
+
+    st.sidebar.markdown("---")
+   
     st.sidebar.markdown("Présentation du projet :")
     st.sidebar.markdown("[📊 Voir les diapositives](https://slides.com/guillaumegodet/deck-d5bc03#/2)")
     st.sidebar.markdown("Code source :")

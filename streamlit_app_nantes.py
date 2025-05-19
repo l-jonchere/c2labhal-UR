@@ -163,24 +163,25 @@ labos_df_nantes_global = pd.DataFrame(labos_list_nantes)
 
 # Fonction pour ajouter le menu de navigation (spécifique à cette app)
 def add_sidebar_menu():
-    st.sidebar.title("Menu de Navigation")
+    st.sidebar.header("À Propos")
+    st.sidebar.info(
+    """
+    **c2LabHAL - Version Nantes Université** :
+    Cette version est préconfigurée pour les laboratoires de Nantes Université.
+    Sélectionnez un laboratoire dans la liste pour lancer la comparaison de ses publications
+    (Scopus, OpenAlex, PubMed) avec sa collection HAL.
+    """
+)
     st.sidebar.markdown("---")
 
     st.sidebar.header("Applications c2LabHAL")
-    st.sidebar.markdown("📖 [Application Principale](https://c2labhal.streamlit.app/)")
-    st.sidebar.markdown("📄 [Application CSV](https://c2labhal-csv.streamlit.app/)")
-    st.sidebar.markdown("🏛️ [Application Nantes](https://c2labhal-nantes.streamlit.app/)")
+    st.sidebar.markdown("📖 [c2LabHAL - Application Principale](https://c2labhal.streamlit.app/)")
+    st.sidebar.markdown("📄 [c2LabHAL version CSV](https://c2labhal-csv.streamlit.app/)")
+    st.sidebar.markdown("🏛️ [c2LabHAL version Nantes Université](https://c2labhal-nantes.streamlit.app/)")
+
 
     st.sidebar.markdown("---")
-    st.sidebar.header("À Propos")
-    st.sidebar.info(
-        """
-        **c2LabHAL - Version Nantes** :
-        Cette version est préconfigurée pour les laboratoires de Nantes Université.
-        Sélectionnez un laboratoire dans la liste pour lancer la comparaison de ses publications
-        (Scopus, OpenAlex, PubMed) avec sa collection HAL.
-        """
-    )
+    
     st.sidebar.markdown("Présentation du projet :")
     st.sidebar.markdown("[📊 Voir les diapositives](https://slides.com/guillaumegodet/deck-d5bc03#/2)")
     st.sidebar.markdown("Code source :")

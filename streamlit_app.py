@@ -60,7 +60,7 @@ def main():
 
     pubmed_query_input = st.text_input("Requête PubMed", help="Saisissez la requête Pubmed qui rassemble le mieux les publications du labo, par exemple ((MIP[Affiliation]) AND ((mans[Affiliation]) OR (nantes[Affiliation]))) OR (EA 4334[Affiliation]) OR (EA4334[Affiliation]) OR (UR 4334[Affiliation]) OR (UR4334[Affiliation]) OR (Movement Interactions Performance[Affiliation] OR (Motricité Interactions Performance[Affiliation]) OR (mouvement interactions performance[Affiliation])")
     
-    scopus_lab_id = st.text_input("Identifiant Scopus du labo (AF-ID)", help="Saisissez le Scopus Affiliation Identifier (AF-ID) du laboratoire.")
+    scopus_lab_id = st.text_input("Identifiant Scopus du labo (AF-ID)", help="Saisissez le Scopus Affiliation Identifier (AF-ID) du laboratoire, par exemple 60105638.")
     
     
     col1_dates, col2_dates = st.columns(2)

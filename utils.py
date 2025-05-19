@@ -550,12 +550,6 @@ def add_permissions_parallel(input_df):
 
 
 def deduce_todo(row_data):
-    # Initialize lists for different categories of actions
-    hal_actions = []
-    unpaywall_actions = []
-    oaworks_actions = []
-    final_fallback_action = "🛠️ À vérifier manuellement (aucune action spécifique déduite)."
-
     # Extract data from the row
     statut_hal_val = str(row_data.get("Statut_HAL", "")).strip()
     type_depot_hal_val = str(row_data.get("type_dépôt_si_trouvé", "")).strip().lower()
@@ -563,93 +557,139 @@ def deduce_todo(row_data):
 
     statut_upw_val = str(row_data.get("Statut Unpaywall", "")).strip().lower()
     oa_repo_link_val = str(row_data.get("oa_repo_link", "") or "").strip()
-    oa_publisher_link_val = str(row_data.get("oa_publisher_link", "") or "").strip()
-    oa_publisher_license_val = str(row_data.get("oa_publisher_license", "") or "").strip()
-    deposit_condition_val = str(row_data.get("deposit_condition", "")).lower()
+    oa_publisher_link_val = str(row_data.get("oa_publisher_link", "") or "").strip() # Lien direct éditeur depuis Unpaywall
+    # oa_publisher_license_val = str(row_data.get("oa_publisher_license", "") or "").strip() # Moins utilisé directement dans la logique concise
+    deposit_condition_val = str(row_data.get("deposit_condition", "")).lower() # Contient les infos d'OA.works
 
-    # --- 1. HAL Actions ---
-    if statut_hal_val == "Dans la collection" and type_depot_hal_val == "file":
-        hal_actions.append("✅ Dépôt HAL OK (avec fichier).")
-    elif statut_hal_val == "Titre trouvé dans la collection : probablement déjà présent" and type_depot_hal_val == "file":
-        hal_actions.append("✅ Titre probablement déjà déposé dans la collection (avec fichier).")
+    # --- Flags for conditions ---
+    is_hal_ok_with_file = (statut_hal_val == "Dans la collection" and type_depot_hal_val == "file") or \
+                          (statut_hal_val == "Titre trouvé dans la collection : probablement déjà présent" and type_depot_hal_val == "file")
     
-    if statut_hal_val in [
+    needs_hal_creation = (statut_hal_val in ["Hors HAL", "Titre incorrect, probablement absent de HAL"] and not id_hal_val) or \
+                         (statut_hal_val == "Pas de DOI valide" and not id_hal_val) # Si ni DOI ni titre n'ont abouti à une notice HAL
+
+    hal_notice_needs_file_flag = (statut_hal_val == "Dans la collection" and type_depot_hal_val != "file" and id_hal_val)
+    hal_notice_needs_file_text = f"📄 Notice HAL ({id_hal_val}) sans fichier." if hal_notice_needs_file_flag else ""
+
+
+    needs_affiliation_check = statut_hal_val in [
         "Dans HAL mais hors de la collection",
         "Titre trouvé dans HAL mais hors de la collection : affiliation probablement à corriger",
         "Titre approchant trouvé dans HAL mais hors de la collection : vérifier les affiliations"
-    ]:
-        hal_actions.append("🏷️ Affiliation à vérifier dans HAL.")
+    ]
 
-    if statut_hal_val == "Dans la collection" and type_depot_hal_val != "file" and id_hal_val:
-        hal_actions.append(f"📄 Notice HAL ({id_hal_val}) sans fichier. Vérifier possibilité d'ajout de fichier.")
+    # OA.works deposit version flags
+    can_deposit_published_oaw = "version autorisée (oa.works): publishedversion" in deposit_condition_val
+    can_deposit_accepted_oaw = "version autorisée (oa.works): acceptedversion" in deposit_condition_val
+
+    # --- Build action string step-by-step ---
+    action_parts = []
+
+    # Priority 1: HAL is already OK
+    if is_hal_ok_with_file:
+        base_message = "✅ Dépôt HAL OK (avec fichier)."
+        if "probablement déjà déposé" in statut_hal_val:
+            base_message = "✅ Titre probablement déjà déposé dans la collection (avec fichier)."
+        action_parts.append(base_message)
+        if needs_affiliation_check: # Could still be an affiliation issue even if in collection
+            action_parts.append("🏷️ Affiliation à vérifier dans HAL.")
+        return " | ".join(action_parts)
+
+    # Priority 2: Needs HAL creation
+    if needs_hal_creation:
+        if can_deposit_published_oaw:
+            action_parts.append("📥 Créer la notice et déposer la version éditeur dans HAL" + (f" : {oa_publisher_link_val}" if oa_publisher_link_val else "."))
+        elif can_deposit_accepted_oaw:
+            action_parts.append("📥 Créer la notice et déposer la version postprint dans HAL.")
+        else:
+            # No specific deposit version from OA.works, use generic HAL creation
+            action_parts.append("📥 Créer la notice (et si possible déposer le fichier) dans HAL.")
+            # Add Unpaywall info if it provides an OA link not already used
+            if oa_repo_link_val:
+                action_parts.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}.")
+            elif oa_publisher_link_val: # If no specific version, but UPW has a publisher link
+                 action_parts.append(f"🔗 Lien éditeur (Unpaywall): {oa_publisher_link_val}. Vérifier droits avant dépôt.")
+
+
+    # Priority 3: HAL notice exists, needs file
+    elif hal_notice_needs_file_flag:
+        if can_deposit_published_oaw:
+            action_parts.append(f"{hal_notice_needs_file_text} Déposer la version éditeur" + (f" : {oa_publisher_link_val}" if oa_publisher_link_val else "."))
+        elif can_deposit_accepted_oaw:
+            action_parts.append(f"{hal_notice_needs_file_text} Déposer la version postprint.")
+        else:
+            action_parts.append(f"{hal_notice_needs_file_text} Vérifier possibilité d'ajout de fichier.")
+            if oa_repo_link_val:
+                action_parts.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}.")
+            elif oa_publisher_link_val:
+                 action_parts.append(f"🔗 Lien éditeur (Unpaywall): {oa_publisher_link_val}. Vérifier droits avant dépôt.")
+
+
+    # Priority 4: Affiliation check (if not already part of a primary action)
+    if needs_affiliation_check:
+        affiliation_text = "🏷️ Affiliation à vérifier dans HAL."
+        # Add only if no other action has been set, or if it's a distinct issue
+        if not action_parts or affiliation_text not in " | ".join(action_parts):
+            action_parts.append(affiliation_text)
+            
+    # Priority 5: Other specific HAL statuses (if no major action yet)
+    if not action_parts:
+        if statut_hal_val == "Titre invalide":
+            action_parts.append("❌ Titre considéré invalide par le script. Vérifier/corriger le titre source.")
+        elif statut_hal_val == "Titre approchant trouvé dans la collection : à vérifier":
+            action_parts.append("🧐 Titre approchant dans la collection. Vérifier si c'est une variante déjà déposée.")
+
+    # --- Add complementary informational messages (Unpaywall, OA.works errors/infos) ---
+    # These are added if they don't contradict or overly repeat the primary action.
     
-    if statut_hal_val in ["Hors HAL", "Titre incorrect, probablement absent de HAL"] and not id_hal_val:
-        hal_actions.append("📥 Créer la notice (et si possible déposer le fichier) dans HAL.")
-    elif statut_hal_val == "Pas de DOI valide" and not id_hal_val: 
-        hal_actions.append("📥 DOI manquant/invalide et titre non trouvé dans HAL. Créer notice si pertinent.")
+    # Check if a specific deposit action was already decided
+    is_specific_deposit_action_formed = any("déposer la version éditeur" in act or \
+                                            "déposer la version postprint" in act for act in action_parts)
 
-    if statut_hal_val == "Titre invalide":
-        hal_actions.append("❌ Titre considéré invalide par le script. Vérifier/corriger le titre source.")
-    if statut_hal_val == "Titre approchant trouvé dans la collection : à vérifier":
-        hal_actions.append("🧐 Titre approchant dans la collection. Vérifier si c'est une variante déjà déposée.")
+    # Unpaywall info (if no specific deposit action was formed and link not used)
+    if not is_specific_deposit_action_formed:
+        if oa_repo_link_val and oa_repo_link_val not in " | ".join(action_parts):
+            action_parts.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}.")
+        if oa_publisher_link_val and oa_publisher_link_val not in " | ".join(action_parts) : # Check if link is already in an action
+            # Distinguish if license is known
+            # license_text = f"(licence {oa_publisher_license_val})" if oa_publisher_license_val else "(sans licence claire via UPW)"
+            # action_parts.append(f"🔗 Lien éditeur {license_text}: {oa_publisher_link_val}.")
+            # Simplified:
+            if not any(oa_publisher_link_val in act for act in action_parts): # Avoid repeating the link if already used
+                 action_parts.append(f"🔗 Lien éditeur (Unpaywall): {oa_publisher_link_val}.")
 
-    # Determine if HAL status is "OK with file"
-    is_hal_ok_with_file = any("✅ Dépôt HAL OK (avec fichier)" in act for act in hal_actions) or \
-                          any("✅ Titre probablement déjà déposé" in act for act in hal_actions)
 
-    # --- 2. Unpaywall Actions (only if not already OK in HAL with file) ---
-    if not is_hal_ok_with_file:
-        if oa_repo_link_val:
-            unpaywall_actions.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}. Si pas dans HAL, envisager dépôt notice/fichier.")
-        
-        if oa_publisher_link_val and oa_publisher_license_val:
-            unpaywall_actions.append(f"📜 OA éditeur (licence {oa_publisher_license_val}): {oa_publisher_link_val}. Vérifier si dépôt HAL souhaité/possible.")
-        elif oa_publisher_link_val and not oa_publisher_license_val:
-             unpaywall_actions.append(f"🔗 OA éditeur (sans licence claire via UPW): {oa_publisher_link_val}. Vérifier conditions de dépôt HAL.")
-        
-        if statut_upw_val not in ["open", "closed", "doi manquant", "non trouvé dans unpaywall", "non trouvé dans unpaywall (message api)"] and "erreur" in statut_upw_val: 
-            unpaywall_actions.append(f"⚠️ Statut Unpaywall: {statut_upw_val}. Vérification manuelle des droits nécessaire.")
-        
-        # This action depends on both Unpaywall and OA.works, place it carefully.
-        # It's primarily triggered by Unpaywall "closed" and lack of other OA avenues.
-        if statut_upw_val == "closed" and \
-           not ("publishedversion" in deposit_condition_val or "acceptedversion" in deposit_condition_val) and \
-           not oa_repo_link_val and not (oa_publisher_link_val and oa_publisher_license_val) and \
-           not ("501 oa.works" in deposit_condition_val or "404 oa.works" in deposit_condition_val): 
-            unpaywall_actions.append("📧 Article fermé (Unpaywall) et pas de permission claire (oa.works). Contacter auteur pour LRN/dépôt.")
+    # OA.works informational messages (errors, non-applicable, etc.)
+    if "permissions api non applicable pour ce type de document (501 oa.works)" in deposit_condition_val:
+        action_parts.append(f"ℹ️ Permissions API oa.works non applicable pour ce DOI (ex: chapitre).")
+    elif "permissions non trouvées (404 oa.works)" in deposit_condition_val:
+        action_parts.append(f"ℹ️ Permissions non trouvées sur oa.works pour ce DOI.")
+    elif ("erreur" in deposit_condition_val or "timeout" in deposit_condition_val or "doi manquant pour permissions" in deposit_condition_val) and \
+         not any(err_type in deposit_condition_val for err_type in ["501 oa.works", "404 oa.works"]):
+        # Add generic OA.works problem only if no specific deposit action was formed from it
+        if not (can_deposit_published_oaw or can_deposit_accepted_oaw): # i.e. if deposit_condition_val wasn't used for a primary action
+            action_parts.append(f"⚠️ Problème avec l'API permissions (oa.works): {deposit_condition_val}.")
+    
+    # --- Final "contact author" if still closed and no clear path ---
+    is_oa_path_identified = is_specific_deposit_action_formed or \
+                            oa_repo_link_val or \
+                            oa_publisher_link_val or \
+                            any(info_type in deposit_condition_val for info_type in ["501 oa.works", "404 oa.works"]) # If we have info, even if not a version
 
-    # --- 3. OA.works Actions (only if not already OK in HAL with file) ---
-    if not is_hal_ok_with_file:
-        if "version autorisée (oa.works): publishedversion" in deposit_condition_val:
-            oaworks_actions.append(f"📄 Dépôt version éditeur possible selon oa.works. ({deposit_condition_val})")
-        elif "version autorisée (oa.works): acceptedversion" in deposit_condition_val:
-            oaworks_actions.append(f"✍️ Dépôt postprint possible selon oa.works. ({deposit_condition_val})")
-        
-        if "permissions api non applicable pour ce type de document (501 oa.works)" in deposit_condition_val:
-            oaworks_actions.append(f"ℹ️ Permissions API oa.works non applicable pour ce DOI (ex: chapitre, etc.).")
-        elif "permissions non trouvées (404 oa.works)" in deposit_condition_val:
-            oaworks_actions.append(f"ℹ️ Permissions non trouvées sur oa.works pour ce DOI.")
-        elif "doi manquant pour permissions" in deposit_condition_val and not oa_repo_link_val and not oa_publisher_link_val:
-            oaworks_actions.append(f"⚠️ DOI manquant pour la vérification des permissions oa.works. Vérification manuelle nécessaire.")
-        elif ("erreur" in deposit_condition_val or "timeout" in deposit_condition_val) and \
-             not ("501 oa.works" in deposit_condition_val or "404 oa.works" in deposit_condition_val): 
-            oaworks_actions.append(f"⚠️ Problème avec l'API permissions (oa.works): {deposit_condition_val}. Vérification manuelle nécessaire.")
+    if statut_upw_val == "closed" and not is_oa_path_identified and not is_hal_ok_with_file :
+        action_parts.append("📧 Article fermé (Unpaywall) et pas de permission claire. Contacter auteur pour LRN/dépôt.")
+            
+    if not action_parts:
+        return "🛠️ À vérifier manuellement (aucune action spécifique déduite)."
 
-    # Combine all actions in the desired order
-    all_actions_ordered = hal_actions + unpaywall_actions + oaworks_actions
-
-    # Remove duplicates while preserving order
-    final_unique_actions = []
-    seen_actions = set()
-    for action in all_actions_ordered:
-        if action not in seen_actions:
-            final_unique_actions.append(action)
-            seen_actions.add(action)
-
-    if not final_unique_actions:
-        return final_fallback_action
-        
-    return " | ".join(final_unique_actions)
+    # Deduplicate and join
+    final_actions = []
+    seen = set()
+    for part in action_parts:
+        if part and part not in seen: # Ensure part is not empty
+            final_actions.append(part)
+            seen.add(part)
+    return " | ".join(final_actions)
 
 
 def addCaclLinkFormula(pre_url_str, post_url_str, text_for_link):

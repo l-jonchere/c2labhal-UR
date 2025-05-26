@@ -555,10 +555,13 @@ def add_permissions_parallel(input_df):
 
 def deduce_todo(row_data):
     # Extract data from the row
+    doi_val = row_data.get("doi") # Get the original DOI value to check if it's missing
+    has_doi = pd.notna(doi_val) and str(doi_val).strip() != ""
+
     statut_hal_val = str(row_data.get("Statut_HAL", "")).strip()
     type_depot_hal_val = str(row_data.get("type_dépôt_si_trouvé", "")).strip().lower()
     id_hal_val = str(row_data.get("identifiant_hal_si_trouvé", "")).strip()
-    hal_uri_val = str(row_data.get("HAL_URI", "")).strip() # Direct HAL URI for the notice
+    hal_uri_val = str(row_data.get("HAL_URI", "")).strip() 
 
     statut_upw_val = str(row_data.get("Statut Unpaywall", "")).strip().lower()
     oa_repo_link_val = str(row_data.get("oa_repo_link", "") or "").strip()
@@ -570,9 +573,8 @@ def deduce_todo(row_data):
                           (statut_hal_val == "Titre trouvé dans la collection : probablement déjà présent" and type_depot_hal_val == "file")
     
     needs_hal_creation = (statut_hal_val in ["Hors HAL", "Titre incorrect, probablement absent de HAL"] and not id_hal_val) or \
-                         (statut_hal_val == "Pas de DOI valide" and not id_hal_val)
+                         (statut_hal_val == "Pas de DOI valide" and not id_hal_val) # Pas de DOI valide from check_df means no DOI was found or it was invalid
 
-    # Broader condition for a notice in collection (exact or "probablement déjà présent" from title match) that needs a file
     is_in_collection_as_notice = (
         (statut_hal_val == "Dans la collection" or \
          statut_hal_val == "Titre trouvé dans la collection : probablement déjà présent") and \
@@ -591,72 +593,70 @@ def deduce_todo(row_data):
 
     # --- Build action string step-by-step ---
     action_parts = []
-    primary_hal_action_taken = False # To track if a core HAL status action is set
+    primary_hal_action_taken = False 
 
-    # Determine link for HAL notice (used in multiple places)
     notice_link_text = hal_uri_val if hal_uri_val else (f"https://hal.science/{id_hal_val}" if id_hal_val else id_hal_val)
-
 
     # Priority 1: HAL is already OK with file
     if is_hal_ok_with_file:
         base_message = "✅ Dépôt HAL OK (avec fichier)."
-        if "probablement déjà déposé" in statut_hal_val: # More specific if title match led to this
+        if "probablement déjà déposé" in statut_hal_val:
             base_message = "✅ Titre probablement déjà déposé dans la collection (avec fichier)."
         action_parts.append(base_message)
-        # Affiliation check can still be relevant even if file is present (e.g. wrong lab in an existing record)
         if needs_affiliation_check: 
             affiliation_text = "🏷️ Affiliation à vérifier dans HAL"
             if hal_uri_val: affiliation_text += f" : {hal_uri_val}"
             elif id_hal_val: affiliation_text += f" : https://hal.science/{id_hal_val}"
             action_parts.append(affiliation_text)
-        # If HAL is OK with file, no further Unpaywall/OA.works actions are needed for the "Action" column
-        # because the primary goal (file in HAL) is met.
-        # (Informational columns for Unpaywall/OA.works will still exist in the DataFrame)
-        return " | ".join(action_parts)
+        return " | ".join(action_parts) # Early exit if HAL is OK with file
 
-
-    # Priority 2: Needs HAL creation (if not already found in HAL in any form)
+    # Priority 2: Needs HAL creation
     if needs_hal_creation:
         primary_hal_action_taken = True
-        if can_deposit_published_oaw:
+        if has_doi and can_deposit_published_oaw:
             action_parts.append("📥 Créer la notice et déposer la version éditeur dans HAL" + (f" (source: {oa_publisher_link_val})" if oa_publisher_link_val else "."))
-        elif can_deposit_accepted_oaw:
+        elif has_doi and can_deposit_accepted_oaw:
             action_parts.append("📥 Créer la notice et déposer la version postprint dans HAL.")
-        else:
+        else: # No DOI or no specific OA.works version
             action_parts.append("📥 Créer la notice (et si possible déposer le fichier) dans HAL.")
-            # If generic creation, add Unpaywall info if it provides an OA link not already covered
-            if oa_repo_link_val:
-                action_parts.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}.")
-            elif oa_publisher_link_val and not (can_deposit_published_oaw or can_deposit_accepted_oaw) : 
-                 action_parts.append(f"🔗 Lien éditeur (Unpaywall): {oa_publisher_link_val}. Vérifier droits avant dépôt.")
+            if has_doi: # Only add Unpaywall/OA.works info if DOI exists
+                if oa_repo_link_val:
+                    action_parts.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}.")
+                elif oa_publisher_link_val and not (can_deposit_published_oaw or can_deposit_accepted_oaw) : 
+                     action_parts.append(f"🔗 Lien éditeur (Unpaywall): {oa_publisher_link_val}. Vérifier droits avant dépôt.")
 
-    # Priority 3: HAL notice (exact match) exists in collection, needs file
+    # Priority 3: HAL notice (exact match or probable title match) exists in collection, needs file
     elif is_in_collection_as_notice:
         primary_hal_action_taken = True
         base_text = f"📄 Notice HAL ({notice_link_text}) sans fichier."
         deposit_suggestion = ""
-        if can_deposit_published_oaw:
+        if has_doi and can_deposit_published_oaw:
             deposit_suggestion = "Déposer la version éditeur" + (f" (source: {oa_publisher_link_val})" if oa_publisher_link_val else ".")
-        elif can_deposit_accepted_oaw:
+        elif has_doi and can_deposit_accepted_oaw:
             deposit_suggestion = "Déposer la version postprint."
-        else:
+        else: # No DOI or no specific OA.works version
             deposit_suggestion = "Vérifier possibilité d'ajout de fichier."
+            if has_doi:
+                if oa_repo_link_val:
+                    action_parts.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}.")
+                elif oa_publisher_link_val and not (can_deposit_published_oaw or can_deposit_accepted_oaw):
+                     action_parts.append(f"🔗 Lien éditeur (Unpaywall): {oa_publisher_link_val}. Vérifier droits avant dépôt.")
         action_parts.append(f"{base_text} {deposit_suggestion}")
 
     # Priority 4: Title APPROCHANT in collection, and it's a NOTICE
     elif statut_hal_val == "Titre approchant trouvé dans la collection : à vérifier" and \
          type_depot_hal_val == "notice" and id_hal_val:
         primary_hal_action_taken = True
-        action_parts.append(f"🧐 Titre approchant dans la collection ({notice_link_text}). Vérifier si c'est une variante déjà déposée.")
+        action_parts.append(f"🧐 Titre approchant dans la collection ({notice_link_text}).")
         
         base_text_for_approaching = f"Si c'est le bon document, la notice HAL est sans fichier."
         deposit_suggestion_for_approaching = ""
-        if can_deposit_published_oaw:
-            deposit_suggestion_for_approaching = "Option pour ce HAL ID: Déposer la version éditeur" + (f" (source: {oa_publisher_link_val})" if oa_publisher_link_val else ".")
-        elif can_deposit_accepted_oaw:
-            deposit_suggestion_for_approaching = "Option pour ce HAL ID: Déposer la version postprint."
-        else:
-            deposit_suggestion_for_approaching = "Option pour ce HAL ID: Vérifier possibilité d'ajout de fichier."
+        if has_doi and can_deposit_published_oaw:
+            deposit_suggestion_for_approaching = "Déposer la version éditeur" + (f" (source: {oa_publisher_link_val})" if oa_publisher_link_val else ".")
+        elif has_doi and can_deposit_accepted_oaw:
+            deposit_suggestion_for_approaching = "Déposer la version postprint."
+        else: # No DOI or no specific OA.works version
+            deposit_suggestion_for_approaching = "Vérifier possibilité d'ajout de fichier."
         action_parts.append(f"{base_text_for_approaching} {deposit_suggestion_for_approaching}")
 
     # Priority 5: Affiliation check (if not covered by HAL OK, and is a primary finding)
@@ -664,12 +664,8 @@ def deduce_todo(row_data):
         affiliation_text = "🏷️ Affiliation à vérifier dans HAL"
         if hal_uri_val: affiliation_text += f" : {hal_uri_val}"
         elif id_hal_val: affiliation_text += f" : https://hal.science/{id_hal_val}"
-        # else: affiliation_text += "." # Should have id_hal_val or hal_uri_val if needs_affiliation_check is true from global search
-
-        # Add only if not already part of a more specific message, or if it's the main action
-        # Check if a similar message isn't already present to avoid redundancy
+        
         is_affiliation_msg_present = any(affiliation_text_part in " | ".join(action_parts) for affiliation_text_part in ["Affiliation à vérifier", notice_link_text if notice_link_text != id_hal_val else ""])
-
         if not is_affiliation_msg_present:
             action_parts.append(affiliation_text)
         if not primary_hal_action_taken and not is_hal_ok_with_file : primary_hal_action_taken = True
@@ -679,43 +675,26 @@ def deduce_todo(row_data):
         if statut_hal_val == "Titre invalide":
             action_parts.append("❌ Titre considéré invalide par le script. Vérifier/corriger le titre source.")
         elif statut_hal_val == "Titre approchant trouvé dans la collection : à vérifier": 
-            # This covers "approchant" if it wasn't a notice (already handled)
             action_parts.append(f"🧐 Titre approchant dans la collection ({notice_link_text}). Vérifier si c'est une variante déjà déposée.")
 
-
     # --- Add complementary informational messages (Unpaywall, OA.works errors/infos) ---
-    # These are added if HAL is NOT OK with file AND they provide non-redundant info.
-    if not is_hal_ok_with_file:
+    # Only if HAL is NOT OK with file AND a DOI exists for these services to be queried
+    if not is_hal_ok_with_file and has_doi:
         is_specific_deposit_action_formed_using_oaw = can_deposit_published_oaw or can_deposit_accepted_oaw
         
-        # Unpaywall info (if no specific deposit action was formed using these links)
         if oa_repo_link_val and oa_repo_link_val not in " | ".join(action_parts):
             action_parts.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}.")
         
-        # Add Unpaywall publisher link if not used in a primary "deposit editor version" action
-        # and link itself is not already somewhere in action_parts
-        if oa_publisher_link_val and not (primary_hal_action_taken and can_deposit_published_oaw and oa_publisher_link_val in " | ".join(action_parts)):
+        if oa_publisher_link_val and not (primary_hal_action_taken and (can_deposit_published_oaw or can_deposit_accepted_oaw) and oa_publisher_link_val in " | ".join(action_parts)):
              if not any(oa_publisher_link_val in act for act in action_parts):
                  action_parts.append(f"🔗 Lien éditeur (Unpaywall): {oa_publisher_link_val}.")
 
-        # OA.works informational messages
-        if "permissions api non applicable pour ce type de document (501 oa.works)" in deposit_condition_val:
-            action_parts.append(f"ℹ️ Permissions API oa.works non applicable pour ce DOI (ex: chapitre).")
-        elif "permissions non trouvées (404 oa.works)" in deposit_condition_val:
-            action_parts.append(f"ℹ️ Permissions non trouvées sur oa.works pour ce DOI.")
-        elif ("erreur" in deposit_condition_val or "timeout" in deposit_condition_val or "doi manquant pour permissions" in deposit_condition_val) and \
-             not any(err_type in deposit_condition_val for err_type in ["501 oa.works", "404 oa.works"]):
-            # Add generic OA.works problem only if no specific deposit action was formed from it by OA.works
-            # and this exact error message isn't already there from a more specific handling
-            if not is_specific_deposit_action_formed_using_oaw: 
-                action_parts.append(f"⚠️ Problème avec l'API permissions (oa.works): {deposit_condition_val}.")
         
-        # Final "contact author" if still closed and no clear path
         is_oa_path_identified_for_contact = is_specific_deposit_action_formed_using_oaw or \
                                 oa_repo_link_val or \
                                 oa_publisher_link_val or \
                                 any(info_type in deposit_condition_val for info_type in ["501 oa.works", "404 oa.works"]) or \
-                                any("déposer la version" in act for act in action_parts) # If any deposit action suggested
+                                any("déposer la version" in act for act in action_parts)
 
         if statut_upw_val == "closed" and not is_oa_path_identified_for_contact :
             action_parts.append("📧 Article fermé (Unpaywall) et pas de permission claire. Contacter auteur pour LRN/dépôt.")

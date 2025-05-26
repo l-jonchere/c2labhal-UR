@@ -309,39 +309,53 @@ def main():
             combined_df_nantes['doi'] = combined_df_nantes['doi'].astype(str).apply(clean_doi).str.lower().str.strip()
             combined_df_nantes['doi'] = combined_df_nantes['doi'].replace(['nan', ''], pd.NA)
 
-        progress_text_area_nantes.info("Étape 5/9 : Fusion des doublons...")
-        progress_bar_nantes.progress(40)
+        progress_text_area.info("Étape 5/9 : Fusion des doublons...")
+        progress_bar.progress(40)
         
-        with_doi_df_nantes = combined_df_nantes[combined_df_nantes['doi'].notna()].copy()
-        without_doi_df_nantes = combined_df_nantes[combined_df_nantes['doi'].isna()].copy()
+        # S'assurer que la colonne 'doi' existe
+        if 'doi' not in combined_df.columns:
+            combined_df['doi'] = pd.NA # Assigner pd.NA pour créer la colonne avec le bon type pour les NaN
+
+        # 1. Appliquer clean_doi une seule fois (déjà fait lors de la création des df sources)
+        #    Si ce n'est pas le cas, ou pour s'en assurer, on peut le remettre ici, mais
+        #    il est préférable de le faire en amont.
+        #    Pour l'instant, on suppose que clean_doi a été appliqué.
+
+        # 2. Normaliser la colonne DOI pour la détection des valeurs manquantes
+        #    Convertir en string, mettre en minuscule, enlever les espaces superflus.
+        s_doi = combined_df['doi'].astype(str).str.lower().str.strip()
+
+        # 3. Remplacer toutes les représentations textuelles courantes de "valeur manquante" 
+        #    par pd.NA (la vraie valeur "Not Available" de Pandas).
+        #    '<na>' peut être produit par astype(str) sur des pd.NA existants.
+        #    'none' (minuscule) pour str(None).lower().
+        #    'nan' (minuscule) pour str(np.nan).lower().
+        valeurs_a_remplacer_par_na = ['none', 'nan', '', '<na>', 'na'] # Ajout de 'na'
+        combined_df['doi'] = s_doi.replace(valeurs_a_remplacer_par_na, pd.NA)
+
+        # --- Maintenant, séparer les lignes ---
+        with_doi_df = combined_df[combined_df['doi'].notna()].copy()
+        without_doi_df = combined_df[combined_df['doi'].isna()].copy()
+
         
-        merged_data_doi_nantes = pd.DataFrame()
-        if not with_doi_df_nantes.empty:
-            merged_data_doi_nantes = with_doi_df_nantes.groupby('doi', as_index=False).apply(merge_rows_with_sources)
-            if 'doi' not in merged_data_doi_nantes.columns and merged_data_doi_nantes.index.name == 'doi': # Assurer que doi est une colonne
-                merged_data_doi_nantes.reset_index(inplace=True)
-
-
-        merged_data_no_doi_nantes = pd.DataFrame()
-        if not without_doi_df_nantes.empty:
-            if 'Title' in without_doi_df_nantes.columns:
-                without_doi_df_nantes['norm_title_temp'] = without_doi_df_nantes['Title'].astype(str).apply(normalise)
-                valid_titles_df_nantes = without_doi_df_nantes[without_doi_df_nantes['norm_title_temp'] != '']
-                merged_data_no_doi_nantes = valid_titles_df_nantes.groupby('norm_title_temp', as_index=False).apply(merge_rows_with_sources)
-                if 'norm_title_temp' in merged_data_no_doi_nantes.columns:
-                    merged_data_no_doi_nantes.drop(columns=['norm_title_temp'], inplace=True)
-                # Concaténer les lignes qui avaient un titre normalisé vide
-                merged_data_no_doi_nantes = pd.concat([merged_data_no_doi_nantes, without_doi_df_nantes[without_doi_df_nantes['norm_title_temp'] == '']], ignore_index=True)
-            else:
-                merged_data_no_doi_nantes = without_doi_df_nantes
+        merged_data_doi = pd.DataFrame()
+        if not with_doi_df.empty:
+            merged_data_doi = with_doi_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+            if 'doi' not in merged_data_doi.columns and merged_data_doi.index.name == 'doi':
+                merged_data_doi.reset_index(inplace=True)
+            if isinstance(merged_data_doi.columns, pd.MultiIndex):
+                 merged_data_doi.columns = merged_data_doi.columns.droplevel(0)
         
-        final_merged_data_nantes = pd.concat([merged_data_doi_nantes, merged_data_no_doi_nantes], ignore_index=True)
+        
+        merged_data_no_doi = pd.DataFrame()
+        if not without_doi_df.empty:
+            merged_data_no_doi = without_doi_df.copy() 
+        
+      
+        merged_data = pd.concat([merged_data_doi, merged_data_no_doi], ignore_index=True)
 
-        if final_merged_data_nantes.empty:
-            st.error(f"Aucune donnée après fusion pour {collection_a_chercher_nantes}.")
-            st.stop()
-        st.success(f"{len(final_merged_data_nantes)} publications uniques après fusion pour {collection_a_chercher_nantes}.")
-        progress_bar_nantes.progress(50)
+        st.success(f"{len(merged_data)} publications uniques après fusion.")
+        progress_bar.progress(50)
 
         # --- Comparaison HAL ---
         coll_df_hal_nantes = pd.DataFrame()

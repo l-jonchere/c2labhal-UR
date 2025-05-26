@@ -172,36 +172,49 @@ def main():
             combined_df['doi'] = combined_df['doi'].replace(['nan', ''], pd.NA)
 
 
-        # --- Étape 5 : Fusion des lignes en double ---
+       # --- Étape 5 : Fusion des lignes en double ---
         progress_text_area.info("Étape 5/9 : Fusion des doublons...")
         progress_bar.progress(40)
         
+        # Séparer les lignes avec et sans DOI valide
+        # S'assurer que la colonne 'doi' existe et gérer les types mixtes potentiels avant .notna()
+        if 'doi' not in combined_df.columns:
+            combined_df['doi'] = pd.NA # Ajouter une colonne DOI vide si elle n'existe pas
+
+        # Convertir en string pour .str.strip() puis remplacer les vides par NA pour .notna() et .isna()
+        # Cela évite les erreurs avec des types mixtes ou des nombres flottants (NaN)
+        combined_df['doi'] = combined_df['doi'].astype(str).str.strip().replace(['nan', 'None', ''], pd.NA)
+
         with_doi_df = combined_df[combined_df['doi'].notna()].copy()
         without_doi_df = combined_df[combined_df['doi'].isna()].copy()
 
         merged_data_doi = pd.DataFrame()
         if not with_doi_df.empty:
+            # Grouper par DOI et appliquer la fusion personnalisée
+            # as_index=False maintient 'doi' comme une colonne après le groupby si possible,
+            # sinon reset_index() est nécessaire.
             merged_data_doi = with_doi_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
-            # S'assurer que 'doi' est une colonne après groupby().apply().reset_index() ou équivalent
+            # S'assurer que 'doi' est une colonne si groupby l'a mis en index
             if 'doi' not in merged_data_doi.columns and merged_data_doi.index.name == 'doi':
                 merged_data_doi.reset_index(inplace=True)
+            # S'assurer que la fonction apply n'a pas créé de MultiIndex inattendu
+            if isinstance(merged_data_doi.columns, pd.MultiIndex):
+                 merged_data_doi.columns = merged_data_doi.columns.droplevel(0)
 
 
+        # Pour les lignes sans DOI : NE PAS FUSIONNER PAR TITRE, les garder distinctes.
         merged_data_no_doi = pd.DataFrame()
         if not without_doi_df.empty:
-            if 'Title' in without_doi_df.columns:
-                without_doi_df['norm_title_temp'] = without_doi_df['Title'].astype(str).apply(normalise)
-                # Filtrer les titres normalisés vides pour éviter de grouper dessus
-                without_doi_df_valid_titles = without_doi_df[without_doi_df['norm_title_temp'] != '']
-                merged_data_no_doi = without_doi_df_valid_titles.groupby('norm_title_temp', as_index=False).apply(merge_rows_with_sources)
-                if 'norm_title_temp' in merged_data_no_doi.columns:
-                     merged_data_no_doi.drop(columns=['norm_title_temp'], inplace=True)
-                # Ajouter les lignes avec titre normalisé vide ou manquantes
-                merged_data_no_doi = pd.concat([merged_data_no_doi, without_doi_df[without_doi_df['norm_title_temp'] == '']], ignore_index=True)
-
-            else: 
-                merged_data_no_doi = without_doi_df
+            # Chaque ligne sans DOI est considérée comme unique.
+            merged_data_no_doi = without_doi_df.copy() 
+            # Si une colonne 'norm_title_temp' avait été ajoutée précédemment (ancienne logique),
+            # elle n'est plus nécessaire ici. La logique ci-dessus pour without_doi_df ne l'ajoute pas.
+            # Si vous remplacez un ancien code qui ajoutait 'norm_title_temp' à without_doi_df,
+            # cette ligne de nettoyage pourrait être utile, mais avec la structure actuelle, elle ne devrait pas être nécessaire.
+            # if 'norm_title_temp' in merged_data_no_doi.columns:
+            #     merged_data_no_doi.drop(columns=['norm_title_temp'], inplace=True, errors='ignore')
         
+        # Combiner les données fusionnées par DOI et celles sans DOI (qui n'ont pas été fusionnées entre elles)
         merged_data = pd.concat([merged_data_doi, merged_data_no_doi], ignore_index=True)
 
         if merged_data.empty:

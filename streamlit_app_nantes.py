@@ -359,8 +359,8 @@ def main():
 
         # --- Comparaison HAL ---
         coll_df_hal_nantes = pd.DataFrame()
-        with st.spinner(f"Importation de la collection HAL '{collection_a_chercher_nantes}'..."):
-            progress_text_area_nantes.info(f"Étape 6a/9 : Importation de la collection HAL '{collection_a_chercher_nantes}'...")
+        with st.spinner(f"Import de la collection HAL '{collection_a_chercher_nantes}'..."):
+            progress_text_area_nantes.info(f"Étape 6a/9 : Import de la collection HAL '{collection_a_chercher_nantes}'...")
             coll_importer_nantes_obj = HalCollImporter(collection_a_chercher_nantes, start_year_nantes, end_year_nantes)
             coll_df_hal_nantes = coll_importer_nantes_obj.import_data()
             if coll_df_hal_nantes.empty:

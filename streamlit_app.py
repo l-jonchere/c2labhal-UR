@@ -224,8 +224,8 @@ def main():
         # --- Étape 6 : Comparaison avec HAL ---
         coll_df = pd.DataFrame() 
         if collection_a_chercher: 
-            with st.spinner(f"Importation de la collection HAL '{collection_a_chercher}'..."):
-                progress_text_area.info(f"Étape 6a/9 : Importation de la collection HAL '{collection_a_chercher}'...")
+            with st.spinner(f"Import de la collection HAL '{collection_a_chercher}'..."):
+                progress_text_area.info(f"Étape 6a/9 : Import de la collection HAL '{collection_a_chercher}'...")
                 coll_importer = HalCollImporter(collection_a_chercher, start_year, end_year)
                 coll_df = coll_importer.import_data() 
                 if coll_df.empty:

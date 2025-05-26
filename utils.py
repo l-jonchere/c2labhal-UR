@@ -98,7 +98,7 @@ def get_scopus_data(api_key, query, max_items=2000):
 
 def get_openalex_data(query, max_items=2000):
     url = 'https://api.openalex.org/works'
-    email = "bu-science-ouverte@univ-nantes.fr" 
+    email = "hal.dbm@listes.u-paris.fr" 
     params = {'filter': query, 'per-page': 200, 'mailto': email} 
     results_json = []
     next_cursor = "*" 
@@ -220,8 +220,9 @@ def compare_inex(norm_title1, norm_title2, threshold_strict=0.9, threshold_short
 
 
 def ex_in_coll(original_title_to_check, collection_df):
+    # Default return structure: [status, title, docid, submit_type, external_link, external_id, hal_uri]
     if 'Titres' not in collection_df.columns or collection_df.empty:
-        return False
+        return False # Return structure should match expected length if returning False is not an option
     
     match_df = collection_df[collection_df['Titres'] == original_title_to_check]
     if not match_df.empty:
@@ -231,9 +232,9 @@ def ex_in_coll(original_title_to_check, collection_df):
             original_title_to_check, 
             row.get('Hal_ids', ''),
             row.get('Types de dépôts', ''),
-            row.get('HAL Link', ''), # External link
+            row.get('HAL Link', ''), 
             row.get('HAL Ext ID', ''),
-            row.get('HAL_URI', '') # HAL URI
+            row.get('HAL_URI', '') 
         ]
     return False
 
@@ -249,15 +250,14 @@ def inex_in_coll(normalised_title_to_check, original_title, collection_df):
                 row.get('Titres', ''), 
                 row.get('Hal_ids', ''),
                 row.get('Types de dépôts', ''),
-                row.get('HAL Link', ''), # External link
+                row.get('HAL Link', ''), 
                 row.get('HAL Ext ID', ''),
-                row.get('HAL_URI', '') # HAL URI
+                row.get('HAL_URI', '') 
             ]
     return False
 
 
 def in_hal(title_solr_escaped_exact, original_title_to_check):
-    # Default return structure: [status, title, docid, submit_type, external_link, external_id, hal_uri]
     default_return = ["Hors HAL", original_title_to_check, "", "", "", "", ""]
     try:
         query_exact = f'title_t:({title_solr_escaped_exact})' 
@@ -274,9 +274,9 @@ def in_hal(title_solr_escaped_exact, original_title_to_check):
                     doc_exact.get('title_s', [""])[0],
                     doc_exact.get('docid', ''),
                     doc_exact.get('submitType_s', ''),
-                    doc_exact.get('linkExtUrl_s', ''), # External link
+                    doc_exact.get('linkExtUrl_s', ''), 
                     doc_exact.get('linkExtId_s', ''),
-                    doc_exact.get('uri_s', '') # HAL URI
+                    doc_exact.get('uri_s', '') 
                 ]
 
         query_approx = f'title_t:({escapeSolrArg(original_title_to_check)})'
@@ -294,9 +294,9 @@ def in_hal(title_solr_escaped_exact, original_title_to_check):
                     doc_approx.get('title_s', [""])[0],
                     doc_approx.get('docid', ''),
                     doc_approx.get('submitType_s', ''),
-                    doc_approx.get('linkExtUrl_s', ''), # External link
+                    doc_approx.get('linkExtUrl_s', ''), 
                     doc_approx.get('linkExtId_s', ''),
-                    doc_approx.get('uri_s', '') # HAL URI
+                    doc_approx.get('uri_s', '') 
                 ]
     except requests.exceptions.RequestException as e:
         _display_long_warning("Erreur de requête à l'API HAL", "titre", original_title_to_check, e)
@@ -324,18 +324,15 @@ def statut_titre(title_to_check, collection_df):
         processed_title_for_norm = original_title 
 
     title_normalised = normalise(processed_title_for_norm) 
-    # title_solr_exact_query_str = '\"' + escapeSolrArg(original_title) + '\"' # Not directly used if in_hal handles it
 
     res_ex_coll = ex_in_coll(original_title, collection_df)
-    if res_ex_coll:
+    if res_ex_coll: # ex_in_coll now returns 7 items or False
         return res_ex_coll
 
     res_inex_coll = inex_in_coll(title_normalised, original_title, collection_df)
-    if res_inex_coll:
+    if res_inex_coll: # inex_in_coll now returns 7 items or False
         return res_inex_coll
         
-    # For global HAL search, pass the original title (Solr handles some fuzziness)
-    # and an escaped version for more exact matching attempts within in_hal.
     res_hal_global = in_hal(escapeSolrArg(original_title), original_title) 
     return res_hal_global
 
@@ -348,6 +345,7 @@ def statut_doi(doi_to_check, collection_df):
     doi_cleaned_lower = str(doi_to_check).lower().strip()
     
     if 'DOIs' in collection_df.columns and not collection_df.empty:
+        # Ensure HAL_URI is present in collection_df if we want to return it from here
         dois_coll_set = set(collection_df['DOIs'].dropna().astype(str).str.lower().str.strip())
         if doi_cleaned_lower in dois_coll_set:
             match_series = collection_df[collection_df['DOIs'].astype(str).str.lower().str.strip() == doi_cleaned_lower].iloc[0]
@@ -356,9 +354,9 @@ def statut_doi(doi_to_check, collection_df):
                 match_series.get('Titres', ''), 
                 match_series.get('Hal_ids', ''),
                 match_series.get('Types de dépôts', ''),
-                match_series.get('HAL Link', ''), # External link
+                match_series.get('HAL Link', ''), 
                 match_series.get('HAL Ext ID', ''),
-                match_series.get('HAL_URI', '') # HAL URI
+                match_series.get('HAL_URI', '') # Get HAL_URI from collection_df
             ]
 
     solr_doi_query_val = escapeSolrArg(doi_cleaned_lower.replace("https://doi.org/", ""))
@@ -375,16 +373,16 @@ def statut_doi(doi_to_check, collection_df):
                 doc.get('title_s', [""])[0], 
                 doc.get('docid', ''),
                 doc.get('submitType_s', ''),
-                doc.get('linkExtUrl_s', ''), # External link
+                doc.get('linkExtUrl_s', ''), 
                 doc.get('linkExtId_s', ''),
-                doc.get('uri_s', '') # HAL URI
+                doc.get('uri_s', '') 
             ]
     except requests.exceptions.RequestException as e:
         _display_long_warning("Erreur de requête à l'API HAL", "DOI", doi_to_check, e)
     except (KeyError, IndexError, json.JSONDecodeError) as e_json:
         _display_long_warning("Structure de réponse HAL inattendue ou erreur JSON", "DOI", doi_to_check, e_json)
         
-    return ["Hors HAL", "", "", "", "", "", ""] # Ensure 7 elements are returned
+    return default_return_doi 
 
 
 def query_upw(doi_value):
@@ -494,7 +492,7 @@ def add_permissions(row_series_data):
         status_code = e.response.status_code if hasattr(e, 'response') and e.response is not None else 'N/A'
         if status_code == 404:
             return f"Permissions non trouvées (404 oa.works) pour DOI {doi_cleaned_for_api}"
-        elif status_code == 501: # Not Implemented
+        elif status_code == 501: 
             return f"Permissions API non applicable pour ce type de document (501 oa.works) pour DOI {doi_cleaned_for_api}"
         else:
             return f"Erreur HTTP {status_code} permissions (oa.works) pour DOI {doi_cleaned_for_api}: {str(e)}"
@@ -560,7 +558,6 @@ def deduce_todo(row_data):
     statut_hal_val = str(row_data.get("Statut_HAL", "")).strip()
     type_depot_hal_val = str(row_data.get("type_dépôt_si_trouvé", "")).strip().lower()
     id_hal_val = str(row_data.get("identifiant_hal_si_trouvé", "")).strip()
-    # hal_link_val = str(row_data.get("HAL Link", "")).strip() # External HAL link, if any
     hal_uri_val = str(row_data.get("HAL_URI", "")).strip() # Direct HAL URI for the notice
 
     statut_upw_val = str(row_data.get("Statut Unpaywall", "")).strip().lower()
@@ -575,7 +572,13 @@ def deduce_todo(row_data):
     needs_hal_creation = (statut_hal_val in ["Hors HAL", "Titre incorrect, probablement absent de HAL"] and not id_hal_val) or \
                          (statut_hal_val == "Pas de DOI valide" and not id_hal_val)
 
-    hal_notice_needs_file_flag = (statut_hal_val == "Dans la collection" and type_depot_hal_val != "file" and id_hal_val)
+    # Broader condition for a notice in collection (exact or "probablement déjà présent" from title match) that needs a file
+    is_in_collection_as_notice = (
+        (statut_hal_val == "Dans la collection" or \
+         statut_hal_val == "Titre trouvé dans la collection : probablement déjà présent") and \
+        type_depot_hal_val == "notice" and \
+        id_hal_val
+    )
     
     needs_affiliation_check = statut_hal_val in [
         "Dans HAL mais hors de la collection",
@@ -588,34 +591,33 @@ def deduce_todo(row_data):
 
     # --- Build action string step-by-step ---
     action_parts = []
-    primary_action_taken = False 
+    primary_hal_action_taken = False # To track if a core HAL status action is set
 
-    # Priority 1: HAL is already OK
+    # Determine link for HAL notice (used in multiple places)
+    notice_link_text = hal_uri_val if hal_uri_val else (f"https://hal.science/{id_hal_val}" if id_hal_val else id_hal_val)
+
+
+    # Priority 1: HAL is already OK with file
     if is_hal_ok_with_file:
         base_message = "✅ Dépôt HAL OK (avec fichier)."
-        if "probablement déjà déposé" in statut_hal_val:
+        if "probablement déjà déposé" in statut_hal_val: # More specific if title match led to this
             base_message = "✅ Titre probablement déjà déposé dans la collection (avec fichier)."
         action_parts.append(base_message)
+        # Affiliation check can still be relevant even if file is present (e.g. wrong lab in an existing record)
         if needs_affiliation_check: 
             affiliation_text = "🏷️ Affiliation à vérifier dans HAL"
-            if hal_uri_val:
-                affiliation_text += f" : {hal_uri_val}"
-            elif id_hal_val: # Fallback to docid if uri_s was missing
-                affiliation_text += f" : https://hal.science/{id_hal_val}"
+            if hal_uri_val: affiliation_text += f" : {hal_uri_val}"
+            elif id_hal_val: affiliation_text += f" : https://hal.science/{id_hal_val}"
             action_parts.append(affiliation_text)
-        
-        # If HAL is OK with file, usually no further Unpaywall/OA.works actions are needed for the "Action" column
-        final_actions_ok = []
-        seen_ok = set()
-        for part in action_parts:
-            if part and part not in seen_ok:
-                final_actions_ok.append(part)
-                seen_ok.add(part)
-        return " | ".join(final_actions_ok)
+        # If HAL is OK with file, no further Unpaywall/OA.works actions are needed for the "Action" column
+        # because the primary goal (file in HAL) is met.
+        # (Informational columns for Unpaywall/OA.works will still exist in the DataFrame)
+        return " | ".join(action_parts)
 
-    # Priority 2: Needs HAL creation
+
+    # Priority 2: Needs HAL creation (if not already found in HAL in any form)
     if needs_hal_creation:
-        primary_action_taken = True
+        primary_hal_action_taken = True
         if can_deposit_published_oaw:
             action_parts.append("📥 Créer la notice et déposer la version éditeur dans HAL" + (f" (source: {oa_publisher_link_val})" if oa_publisher_link_val else "."))
         elif can_deposit_accepted_oaw:
@@ -625,66 +627,86 @@ def deduce_todo(row_data):
             # If generic creation, add Unpaywall info if it provides an OA link not already covered
             if oa_repo_link_val:
                 action_parts.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}.")
-            elif oa_publisher_link_val and not (can_deposit_published_oaw or can_deposit_accepted_oaw) : # only if not already used for a specific version
+            elif oa_publisher_link_val and not (can_deposit_published_oaw or can_deposit_accepted_oaw) : 
                  action_parts.append(f"🔗 Lien éditeur (Unpaywall): {oa_publisher_link_val}. Vérifier droits avant dépôt.")
 
-    # Priority 3: HAL notice exists, needs file
-    elif hal_notice_needs_file_flag:
-        primary_action_taken = True
-        notice_link_text = hal_uri_val if hal_uri_val else (f"https://hal.science/{id_hal_val}" if id_hal_val else id_hal_val)
+    # Priority 3: HAL notice (exact match) exists in collection, needs file
+    elif is_in_collection_as_notice:
+        primary_hal_action_taken = True
         base_text = f"📄 Notice HAL ({notice_link_text}) sans fichier."
+        deposit_suggestion = ""
         if can_deposit_published_oaw:
-            action_parts.append(f"{base_text} Déposer la version éditeur" + (f" (source: {oa_publisher_link_val})" if oa_publisher_link_val else "."))
+            deposit_suggestion = "Déposer la version éditeur" + (f" (source: {oa_publisher_link_val})" if oa_publisher_link_val else ".")
         elif can_deposit_accepted_oaw:
-            action_parts.append(f"{base_text} Déposer la version postprint.")
+            deposit_suggestion = "Déposer la version postprint."
         else:
-            action_parts.append(f"{base_text} Vérifier possibilité d'ajout de fichier.")
-            if oa_repo_link_val:
-                action_parts.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}.")
-            elif oa_publisher_link_val and not (can_deposit_published_oaw or can_deposit_accepted_oaw):
-                 action_parts.append(f"🔗 Lien éditeur (Unpaywall): {oa_publisher_link_val}. Vérifier droits avant dépôt.")
+            deposit_suggestion = "Vérifier possibilité d'ajout de fichier."
+        action_parts.append(f"{base_text} {deposit_suggestion}")
 
-    # Priority 4: Affiliation check (if not already covered or if it's the main issue)
+    # Priority 4: Title APPROCHANT in collection, and it's a NOTICE
+    elif statut_hal_val == "Titre approchant trouvé dans la collection : à vérifier" and \
+         type_depot_hal_val == "notice" and id_hal_val:
+        primary_hal_action_taken = True
+        action_parts.append(f"🧐 Titre approchant dans la collection ({notice_link_text}). Vérifier si c'est une variante déjà déposée.")
+        
+        base_text_for_approaching = f"Si c'est le bon document, la notice HAL est sans fichier."
+        deposit_suggestion_for_approaching = ""
+        if can_deposit_published_oaw:
+            deposit_suggestion_for_approaching = "Option pour ce HAL ID: Déposer la version éditeur" + (f" (source: {oa_publisher_link_val})" if oa_publisher_link_val else ".")
+        elif can_deposit_accepted_oaw:
+            deposit_suggestion_for_approaching = "Option pour ce HAL ID: Déposer la version postprint."
+        else:
+            deposit_suggestion_for_approaching = "Option pour ce HAL ID: Vérifier possibilité d'ajout de fichier."
+        action_parts.append(f"{base_text_for_approaching} {deposit_suggestion_for_approaching}")
+
+    # Priority 5: Affiliation check (if not covered by HAL OK, and is a primary finding)
     if needs_affiliation_check:
         affiliation_text = "🏷️ Affiliation à vérifier dans HAL"
-        if hal_uri_val:
-            affiliation_text += f" : {hal_uri_val}"
-        elif id_hal_val: 
-            affiliation_text += f" : https://hal.science/{id_hal_val}"
-        else:
-            affiliation_text += "." 
-        
-        if affiliation_text not in " | ".join(action_parts): # Avoid duplicate if already added with HAL OK
+        if hal_uri_val: affiliation_text += f" : {hal_uri_val}"
+        elif id_hal_val: affiliation_text += f" : https://hal.science/{id_hal_val}"
+        # else: affiliation_text += "." # Should have id_hal_val or hal_uri_val if needs_affiliation_check is true from global search
+
+        # Add only if not already part of a more specific message, or if it's the main action
+        # Check if a similar message isn't already present to avoid redundancy
+        is_affiliation_msg_present = any(affiliation_text_part in " | ".join(action_parts) for affiliation_text_part in ["Affiliation à vérifier", notice_link_text if notice_link_text != id_hal_val else ""])
+
+        if not is_affiliation_msg_present:
             action_parts.append(affiliation_text)
-            if not primary_action_taken: primary_action_taken = True
+        if not primary_hal_action_taken and not is_hal_ok_with_file : primary_hal_action_taken = True
             
-    # Priority 5: Other specific HAL statuses (if no major action yet)
-    if not primary_action_taken: 
+    # Priority 6: Other specific HAL statuses if no major action yet from above
+    if not primary_hal_action_taken and not is_hal_ok_with_file:
         if statut_hal_val == "Titre invalide":
             action_parts.append("❌ Titre considéré invalide par le script. Vérifier/corriger le titre source.")
-        elif statut_hal_val == "Titre approchant trouvé dans la collection : à vérifier":
-            action_parts.append("🧐 Titre approchant dans la collection. Vérifier si c'est une variante déjà déposée.")
+        elif statut_hal_val == "Titre approchant trouvé dans la collection : à vérifier": 
+            # This covers "approchant" if it wasn't a notice (already handled)
+            action_parts.append(f"🧐 Titre approchant dans la collection ({notice_link_text}). Vérifier si c'est une variante déjà déposée.")
+
 
     # --- Add complementary informational messages (Unpaywall, OA.works errors/infos) ---
-    # Only if HAL is not already OK with file
+    # These are added if HAL is NOT OK with file AND they provide non-redundant info.
     if not is_hal_ok_with_file:
         is_specific_deposit_action_formed_using_oaw = can_deposit_published_oaw or can_deposit_accepted_oaw
         
-        # Unpaywall info (if not used in a primary deposit action)
+        # Unpaywall info (if no specific deposit action was formed using these links)
         if oa_repo_link_val and oa_repo_link_val not in " | ".join(action_parts):
             action_parts.append(f"🔗 OA via archive (Unpaywall): {oa_repo_link_val}.")
         
-        if oa_publisher_link_val and not (primary_action_taken and (can_deposit_published_oaw or can_deposit_accepted_oaw) and oa_publisher_link_val in " | ".join(action_parts)):
+        # Add Unpaywall publisher link if not used in a primary "deposit editor version" action
+        # and link itself is not already somewhere in action_parts
+        if oa_publisher_link_val and not (primary_hal_action_taken and can_deposit_published_oaw and oa_publisher_link_val in " | ".join(action_parts)):
              if not any(oa_publisher_link_val in act for act in action_parts):
                  action_parts.append(f"🔗 Lien éditeur (Unpaywall): {oa_publisher_link_val}.")
 
-        # OA.works informational messages (errors, non-applicable, etc.)
+        # OA.works informational messages
         if "permissions api non applicable pour ce type de document (501 oa.works)" in deposit_condition_val:
-            action_parts.append(f"ℹ️ Permissions API oa.works non applicable pour ce DOI.")
+            action_parts.append(f"ℹ️ Permissions API oa.works non applicable pour ce DOI (ex: chapitre).")
         elif "permissions non trouvées (404 oa.works)" in deposit_condition_val:
             action_parts.append(f"ℹ️ Permissions non trouvées sur oa.works pour ce DOI.")
         elif ("erreur" in deposit_condition_val or "timeout" in deposit_condition_val or "doi manquant pour permissions" in deposit_condition_val) and \
              not any(err_type in deposit_condition_val for err_type in ["501 oa.works", "404 oa.works"]):
+            # Add generic OA.works problem only if no specific deposit action was formed from it by OA.works
+            # and this exact error message isn't already there from a more specific handling
             if not is_specific_deposit_action_formed_using_oaw: 
                 action_parts.append(f"⚠️ Problème avec l'API permissions (oa.works): {deposit_condition_val}.")
         
@@ -692,7 +714,8 @@ def deduce_todo(row_data):
         is_oa_path_identified_for_contact = is_specific_deposit_action_formed_using_oaw or \
                                 oa_repo_link_val or \
                                 oa_publisher_link_val or \
-                                any(info_type in deposit_condition_val for info_type in ["501 oa.works", "404 oa.works"])
+                                any(info_type in deposit_condition_val for info_type in ["501 oa.works", "404 oa.works"]) or \
+                                any("déposer la version" in act for act in action_parts) # If any deposit action suggested
 
         if statut_upw_val == "closed" and not is_oa_path_identified_for_contact :
             action_parts.append("📧 Article fermé (Unpaywall) et pas de permission claire. Contacter auteur pour LRN/dépôt.")
@@ -729,7 +752,6 @@ def addCaclLinkFormula(pre_url_str, post_url_str, text_for_link):
 def check_df(input_df_to_check, hal_collection_df, progress_bar_st=None, progress_text_st=None):
     if input_df_to_check.empty:
         st.info("Le DataFrame d'entrée pour check_df est vide. Aucune vérification HAL à effectuer.")
-        # Ensure output columns exist to prevent downstream errors
         hal_output_cols = ['Statut_HAL', 'titre_HAL_si_trouvé', 'identifiant_hal_si_trouvé', 
                            'type_dépôt_si_trouvé', 'HAL Link', 'HAL Ext ID', 'HAL_URI']
         for col_name in hal_output_cols:
@@ -739,14 +761,13 @@ def check_df(input_df_to_check, hal_collection_df, progress_bar_st=None, progres
 
     df_to_process = input_df_to_check.copy() 
 
-    # Initialize lists for storing HAL comparison results
     statuts_hal_list = []
     titres_hal_list = []
     ids_hal_list = []
     types_depot_hal_list = []
-    links_hal_list = [] # External links from HAL (linkExtUrl_s)
+    links_hal_list = [] 
     ext_ids_hal_list = []
-    hal_uris_list = [] # Direct HAL URIs (uri_s)
+    hal_uris_list = [] 
 
 
     total_rows_to_process = len(df_to_process)
@@ -754,41 +775,36 @@ def check_df(input_df_to_check, hal_collection_df, progress_bar_st=None, progres
         doi_value_from_row = row_to_check.get('doi') 
         title_value_from_row = row_to_check.get('Title') 
 
-        # Default result structure: [status, title, docid, submit_type, external_link, external_id, hal_uri]
         hal_status_result = ["Pas de DOI valide", "", "", "", "", "", ""] 
         
         if pd.notna(doi_value_from_row) and str(doi_value_from_row).strip():
             hal_status_result = statut_doi(str(doi_value_from_row), hal_collection_df)
         
-        # If DOI search was not conclusive or DOI was invalid, try by title
         if hal_status_result[0] not in ("Dans la collection", "Dans HAL mais hors de la collection"):
             if pd.notna(title_value_from_row) and str(title_value_from_row).strip():
                 hal_status_result = statut_titre(str(title_value_from_row), hal_collection_df)
             elif not (pd.notna(doi_value_from_row) and str(doi_value_from_row).strip()): 
-                # If neither DOI nor Title are valid
                 hal_status_result = ["Données d'entrée insuffisantes (ni DOI ni Titre)", "", "", "", "", "", ""]
         
-        # Append results to lists
         statuts_hal_list.append(hal_status_result[0])
         titres_hal_list.append(hal_status_result[1]) 
         ids_hal_list.append(hal_status_result[2])
         types_depot_hal_list.append(hal_status_result[3])
-        links_hal_list.append(hal_status_result[4]) # External link
+        links_hal_list.append(hal_status_result[4]) 
         ext_ids_hal_list.append(hal_status_result[5])
-        hal_uris_list.append(hal_status_result[6]) # HAL URI
+        hal_uris_list.append(hal_status_result[6]) 
         
         if progress_bar_st is not None and progress_text_st is not None:
             current_progress_val = (index + 1) / total_rows_to_process
             progress_bar_st.progress(int(current_progress_val * 100))
 
-    # Add new columns to the DataFrame
     df_to_process['Statut_HAL'] = statuts_hal_list
     df_to_process['titre_HAL_si_trouvé'] = titres_hal_list
     df_to_process['identifiant_hal_si_trouvé'] = ids_hal_list
     df_to_process['type_dépôt_si_trouvé'] = types_depot_hal_list
-    df_to_process['HAL Link'] = links_hal_list # This was linkExtUrl_s
+    df_to_process['HAL Link'] = links_hal_list 
     df_to_process['HAL Ext ID'] = ext_ids_hal_list
-    df_to_process['HAL_URI'] = hal_uris_list # This is uri_s
+    df_to_process['HAL_URI'] = hal_uris_list 
     
     if progress_bar_st: progress_bar_st.progress(100) 
     return df_to_process
@@ -823,7 +839,6 @@ class HalCollImporter:
             return 0
 
     def import_data(self):
-        # Define expected columns including HAL_URI
         expected_cols = ['Hal_ids', 'DOIs', 'Titres', 'Types de dépôts', 
                          'HAL Link', 'HAL Ext ID', 'HAL_URI', 'nti']
         if self.num_docs_in_collection == 0:
@@ -841,7 +856,7 @@ class HalCollImporter:
                 query_params_page = {
                     'q': '*:*',
                     'fq': f'publicationDateY_i:[{self.start_year} TO {self.end_year}]',
-                    'fl': HAL_FIELDS_TO_FETCH, # uri_s is now included here
+                    'fl': HAL_FIELDS_TO_FETCH, 
                     'rows': rows_per_api_page,
                     'sort': 'docid asc', 
                     'cursorMark': current_api_cursor,
@@ -872,9 +887,9 @@ class HalCollImporter:
                             'DOIs': str(doc_data.get('doiId_s', '')).lower() if doc_data.get('doiId_s') else '', 
                             'Titres': str(title_item), 
                             'Types de dépôts': doc_data.get('submitType_s', ''),
-                            'HAL Link': doc_data.get('linkExtUrl_s', ''), # External link
+                            'HAL Link': doc_data.get('linkExtUrl_s', ''), 
                             'HAL Ext ID': doc_data.get('linkExtId_s', ''),
-                            'HAL_URI': doc_data.get('uri_s', '') # HAL direct URI
+                            'HAL_URI': doc_data.get('uri_s', '') 
                         })
                 pbar_hal.update(len(docs_on_current_page)) 
 

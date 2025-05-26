@@ -172,54 +172,48 @@ def main():
             combined_df['doi'] = combined_df['doi'].replace(['nan', ''], pd.NA)
 
 
-       # --- Étape 5 : Fusion des lignes en double ---
+      # --- Étape 5 : Fusion des lignes en double ---
         progress_text_area.info("Étape 5/9 : Fusion des doublons...")
         progress_bar.progress(40)
         
-        # Séparer les lignes avec et sans DOI valide
-        # S'assurer que la colonne 'doi' existe et gérer les types mixtes potentiels avant .notna()
+        # S'assurer que la colonne 'doi' existe et gérer les types mixtes potentiels
         if 'doi' not in combined_df.columns:
-            combined_df['doi'] = pd.NA # Ajouter une colonne DOI vide si elle n'existe pas
+            combined_df['doi'] = pd.NA 
 
-        # Convertir en string pour .str.strip() puis remplacer les vides par NA pour .notna() et .isna()
-        # Cela évite les erreurs avec des types mixtes ou des nombres flottants (NaN)
-        combined_df['doi'] = combined_df['doi'].astype(str).str.strip().replace(['nan', 'None', ''], pd.NA)
+        # Nettoyer la colonne DOI: convertir en string, strip, et remplacer les vides/NaN textuels par pd.NA
+        # Ceci est crucial pour la séparation correcte entre with_doi_df et without_doi_df
+        combined_df['doi'] = combined_df['doi'].astype(str).str.strip().replace(['nan', 'None', 'NaN', ''], pd.NA, regex=False)
 
         with_doi_df = combined_df[combined_df['doi'].notna()].copy()
         without_doi_df = combined_df[combined_df['doi'].isna()].copy()
 
+        # Débogage : afficher la taille des dataframes après la séparation
+        st.write(f"DEBUG: Taille de with_doi_df (avec DOI): {with_doi_df.shape}")
+        st.write(f"DEBUG: Taille de without_doi_df (sans DOI): {without_doi_df.shape}")
+
         merged_data_doi = pd.DataFrame()
         if not with_doi_df.empty:
-            # Grouper par DOI et appliquer la fusion personnalisée
-            # as_index=False maintient 'doi' comme une colonne après le groupby si possible,
-            # sinon reset_index() est nécessaire.
             merged_data_doi = with_doi_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
-            # S'assurer que 'doi' est une colonne si groupby l'a mis en index
             if 'doi' not in merged_data_doi.columns and merged_data_doi.index.name == 'doi':
                 merged_data_doi.reset_index(inplace=True)
-            # S'assurer que la fonction apply n'a pas créé de MultiIndex inattendu
-            if isinstance(merged_data_doi.columns, pd.MultiIndex):
+            if isinstance(merged_data_doi.columns, pd.MultiIndex): # Au cas où apply créerait un MultiIndex
                  merged_data_doi.columns = merged_data_doi.columns.droplevel(0)
-
+        
+        # Débogage : afficher la taille après fusion des DOI
+        st.write(f"DEBUG: Taille de merged_data_doi (DOI fusionnés): {merged_data_doi.shape}")
 
         # Pour les lignes sans DOI : NE PAS FUSIONNER PAR TITRE, les garder distinctes.
         merged_data_no_doi = pd.DataFrame()
         if not without_doi_df.empty:
-            # Chaque ligne sans DOI est considérée comme unique.
-            merged_data_no_doi = without_doi_df.copy() 
-            # Si une colonne 'norm_title_temp' avait été ajoutée précédemment (ancienne logique),
-            # elle n'est plus nécessaire ici. La logique ci-dessus pour without_doi_df ne l'ajoute pas.
-            # Si vous remplacez un ancien code qui ajoutait 'norm_title_temp' à without_doi_df,
-            # cette ligne de nettoyage pourrait être utile, mais avec la structure actuelle, elle ne devrait pas être nécessaire.
-            # if 'norm_title_temp' in merged_data_no_doi.columns:
-            #     merged_data_no_doi.drop(columns=['norm_title_temp'], inplace=True, errors='ignore')
+            merged_data_no_doi = without_doi_df.copy() # Conserver toutes les lignes sans DOI telles quelles
         
-        # Combiner les données fusionnées par DOI et celles sans DOI (qui n'ont pas été fusionnées entre elles)
+        # Débogage : afficher la taille des données sans DOI (devrait être la même que without_doi_df)
+        st.write(f"DEBUG: Taille de merged_data_no_doi (non fusionnés): {merged_data_no_doi.shape}")
+        
+        # Combiner les données fusionnées par DOI et celles sans DOI
         merged_data = pd.concat([merged_data_doi, merged_data_no_doi], ignore_index=True)
 
-        if merged_data.empty:
-            st.error("Aucune donnée après la fusion. Vérifiez les sources.")
-            st.stop()
+        # Le message de succès utilise len(merged_data) qui est le point de vérification
         st.success(f"{len(merged_data)} publications uniques après fusion.")
         progress_bar.progress(50)
 

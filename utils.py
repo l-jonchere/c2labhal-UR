@@ -677,16 +677,6 @@ def deduce_todo(row_data):
              if not any(oa_publisher_link_val in act for act in action_parts): # Avoid repeating if already part of a deposit suggestion
                  action_parts.append(f"🔗 Lien éditeur (Unpaywall): {oa_publisher_link_val}.")
 
-        # OA.works informational messages
-        if "permissions api non applicable pour ce type de document (501 oa.works)" in deposit_condition_val:
-            action_parts.append(f"ℹ️ Permissions API oa.works non applicable pour ce DOI (ex: chapitre).")
-        elif "permissions non trouvées (404 oa.works)" in deposit_condition_val:
-            action_parts.append(f"ℹ️ Permissions non trouvées sur oa.works pour ce DOI.")
-        # "doi manquant pour permissions" should not appear here if has_doi is true for this block
-        elif ("erreur" in deposit_condition_val or "timeout" in deposit_condition_val) and \
-             not any(err_type in deposit_condition_val for err_type in ["501 oa.works", "404 oa.works"]):
-            if not is_specific_deposit_action_formed_using_oaw: 
-                action_parts.append(f"⚠️ Problème avec l'API permissions (oa.works): {deposit_condition_val}.")
         
         is_oa_path_identified_for_contact = is_specific_deposit_action_formed_using_oaw or \
                                 oa_repo_link_val or \

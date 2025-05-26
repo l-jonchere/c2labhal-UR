@@ -201,10 +201,7 @@ def main():
         with_doi_df = combined_df[combined_df['doi'].notna()].copy()
         without_doi_df = combined_df[combined_df['doi'].isna()].copy()
 
-        # --- Débogage : afficher la taille des dataframes après la nouvelle séparation ---
-        st.write(f"DEBUG (après nettoyage amélioré): Taille de with_doi_df (avec DOI): {with_doi_df.shape}")
-        st.write(f"DEBUG (après nettoyage amélioré): Taille de without_doi_df (sans DOI): {without_doi_df.shape}")
-
+        
         merged_data_doi = pd.DataFrame()
         if not with_doi_df.empty:
             merged_data_doi = with_doi_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
@@ -213,14 +210,12 @@ def main():
             if isinstance(merged_data_doi.columns, pd.MultiIndex):
                  merged_data_doi.columns = merged_data_doi.columns.droplevel(0)
         
-        st.write(f"DEBUG (après nettoyage amélioré): Taille de merged_data_doi (DOI fusionnés): {merged_data_doi.shape}")
-
+        
         merged_data_no_doi = pd.DataFrame()
         if not without_doi_df.empty:
             merged_data_no_doi = without_doi_df.copy() 
         
-        st.write(f"DEBUG (après nettoyage amélioré): Taille de merged_data_no_doi (non fusionnés): {merged_data_no_doi.shape}")
-        
+      
         merged_data = pd.concat([merged_data_doi, merged_data_no_doi], ignore_index=True)
 
         st.success(f"{len(merged_data)} publications uniques après fusion.")

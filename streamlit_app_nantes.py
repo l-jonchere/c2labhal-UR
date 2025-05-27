@@ -309,8 +309,8 @@ def main():
             combined_df_nantes['doi'] = combined_df_nantes['doi'].astype(str).apply(clean_doi).str.lower().str.strip()
             combined_df_nantes['doi'] = combined_df_nantes['doi'].replace(['nan', ''], pd.NA)
 
-        progress_text_area.info("Étape 5/9 : Fusion des doublons...")
-        progress_bar.progress(40)
+        progress_text_area_nantes.info("Étape 5/9 : Fusion des doublons...")
+        progress_bar_nantes.progress(40)
         
         # S'assurer que la colonne 'doi' existe
         if 'doi' not in combined_df.columns:
@@ -355,7 +355,7 @@ def main():
         merged_data = pd.concat([merged_data_doi, merged_data_no_doi], ignore_index=True)
 
         st.success(f"{len(merged_data)} publications uniques après fusion.")
-        progress_bar.progress(50)
+        progress_bar_nantes.progress(50)
 
         # --- Comparaison HAL ---
         coll_df_hal_nantes = pd.DataFrame()

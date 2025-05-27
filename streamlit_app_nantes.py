@@ -229,7 +229,7 @@ def main():
                 )
     
     progress_bar_nantes = st.progress(0)
-    progress_text_area_nantes = st.empty()
+    progress_text_area_nantes = st.empty() # Correction: Suffixe _nantes ajouté
 
     if st.button(f"🚀 Lancer la recherche pour {collection_a_chercher_nantes}"):
         if pubmed_api_key_secret_nantes and pubmed_query_labo_nantes:
@@ -242,8 +242,8 @@ def main():
         # --- Étape 1 : Récupération OpenAlex ---
         if openalex_institution_id_nantes:
             with st.spinner(f"Récupération OpenAlex pour {collection_a_chercher_nantes}..."):
-                progress_text_area_nantes.info("Étape 1/9 : Récupération des données OpenAlex...")
-                progress_bar_nantes.progress(5)
+                progress_text_area_nantes.info("Étape 1/9 : Récupération des données OpenAlex...") # Corrigé
+                progress_bar_nantes.progress(5) # Corrigé
                 openalex_query_complet_nantes = f"authorships.institutions.id:{openalex_institution_id_nantes},publication_year:{start_year_nantes}-{end_year_nantes}"
                 openalex_data_nantes = get_openalex_data(openalex_query_complet_nantes, max_items=5000)
                 if openalex_data_nantes:
@@ -260,12 +260,13 @@ def main():
                     if 'doi' in openalex_df_nantes.columns:
                         openalex_df_nantes['doi'] = openalex_df_nantes['doi'].apply(clean_doi)
                 st.success(f"{len(openalex_df_nantes)} publications OpenAlex trouvées pour {collection_a_chercher_nantes}.")
-        progress_bar_nantes.progress(10)
+        progress_bar_nantes.progress(10) # Corrigé
 
         # --- Étape 2 : Récupération PubMed ---
         if pubmed_query_labo_nantes: 
             with st.spinner(f"Récupération PubMed pour {collection_a_chercher_nantes}..."):
-                progress_text_area_nantes.info("Étape 2/9 : Récupération des données PubMed...")
+                progress_text_area_nantes.info("Étape 2/9 : Récupération des données PubMed...") # Corrigé
+                progress_bar_nantes.progress(20) # Corrigé (ajusté pour être après l'info)
                 pubmed_full_query_nantes = f"({pubmed_query_labo_nantes}) AND ({start_year_nantes}/01/01[Date - Publication] : {end_year_nantes}/12/31[Date - Publication])"
                 pubmed_data_nantes = get_pubmed_data(pubmed_full_query_nantes, max_items=5000)
                 if pubmed_data_nantes:
@@ -278,7 +279,8 @@ def main():
         # --- Étape 3 : Récupération Scopus ---
         if scopus_lab_id_nantes and scopus_api_key_secret_nantes:
             with st.spinner(f"Récupération Scopus pour {collection_a_chercher_nantes}..."):
-                progress_text_area_nantes.info("Étape 3/9 : Récupération des données Scopus...")
+                progress_text_area_nantes.info("Étape 3/9 : Récupération des données Scopus...") # Corrigé
+                progress_bar_nantes.progress(25) # Corrigé (ajusté)
                 scopus_query_complet_nantes = f"AF-ID({scopus_lab_id_nantes}) AND PUBYEAR > {start_year_nantes - 1} AND PUBYEAR < {end_year_nantes + 1}"
                 scopus_data_nantes = get_scopus_data(scopus_api_key_secret_nantes, scopus_query_complet_nantes, max_items=5000)
                 if scopus_data_nantes:
@@ -295,72 +297,55 @@ def main():
                 st.success(f"{len(scopus_df_nantes)} publications Scopus trouvées pour {collection_a_chercher_nantes}.")
         elif scopus_lab_id_nantes and not scopus_api_key_secret_nantes:
             st.warning(f"L'ID Scopus est fourni pour {collection_a_chercher_nantes} mais la clé API Scopus n'est pas configurée. Scopus sera ignoré.")
-        progress_bar_nantes.progress(30)
+        progress_bar_nantes.progress(30) # Corrigé
         
-        # --- Étapes 4 à 9 (similaires à streamlit_app.py, adaptées pour _nantes) ---
-        progress_text_area_nantes.info("Étape 4/9 : Combinaison des données sources...")
+        # --- Étape 4 : Combinaison des données ---
+        progress_text_area_nantes.info("Étape 4/9 : Combinaison des données sources...") # Corrigé
         combined_df_nantes = pd.concat([scopus_df_nantes, openalex_df_nantes, pubmed_df_nantes], ignore_index=True)
 
         if combined_df_nantes.empty:
             st.error(f"Aucune publication récupérée pour {collection_a_chercher_nantes}. Vérifiez la configuration du laboratoire.")
             st.stop()
         
-        if 'doi' in combined_df_nantes.columns: # Nettoyage des DOI
-            combined_df_nantes['doi'] = combined_df_nantes['doi'].astype(str).apply(clean_doi).str.lower().str.strip()
-            combined_df_nantes['doi'] = combined_df_nantes['doi'].replace(['nan', ''], pd.NA)
+        if 'doi' not in combined_df_nantes.columns:
+            combined_df_nantes['doi'] = pd.NA
+        combined_df_nantes['doi'] = combined_df_nantes['doi'].astype(str).str.lower().str.strip().replace(['nan', 'none', 'NaN', ''], pd.NA, regex=False)
 
-        progress_text_area_nantes.info("Étape 5/9 : Fusion des doublons...")
-        progress_bar_nantes.progress(40)
+
+        # --- Étape 5 : Fusion des lignes en double ---
+        progress_text_area_nantes.info("Étape 5/9 : Fusion des doublons...") # Corrigé
+        progress_bar_nantes.progress(40) # Corrigé
         
-        # S'assurer que la colonne 'doi' existe
-        if 'doi' not in combined_df.columns:
-            combined_df['doi'] = pd.NA # Assigner pd.NA pour créer la colonne avec le bon type pour les NaN
-
-        # 1. Appliquer clean_doi une seule fois (déjà fait lors de la création des df sources)
-        #    Si ce n'est pas le cas, ou pour s'en assurer, on peut le remettre ici, mais
-        #    il est préférable de le faire en amont.
-        #    Pour l'instant, on suppose que clean_doi a été appliqué.
-
-        # 2. Normaliser la colonne DOI pour la détection des valeurs manquantes
-        #    Convertir en string, mettre en minuscule, enlever les espaces superflus.
-        s_doi = combined_df['doi'].astype(str).str.lower().str.strip()
-
-        # 3. Remplacer toutes les représentations textuelles courantes de "valeur manquante" 
-        #    par pd.NA (la vraie valeur "Not Available" de Pandas).
-        #    '<na>' peut être produit par astype(str) sur des pd.NA existants.
-        #    'none' (minuscule) pour str(None).lower().
-        #    'nan' (minuscule) pour str(np.nan).lower().
-        valeurs_a_remplacer_par_na = ['none', 'nan', '', '<na>', 'na'] # Ajout de 'na'
-        combined_df['doi'] = s_doi.replace(valeurs_a_remplacer_par_na, pd.NA)
-
-        # --- Maintenant, séparer les lignes ---
-        with_doi_df = combined_df[combined_df['doi'].notna()].copy()
-        without_doi_df = combined_df[combined_df['doi'].isna()].copy()
-
-        
-        merged_data_doi = pd.DataFrame()
-        if not with_doi_df.empty:
-            merged_data_doi = with_doi_df.groupby('doi', as_index=False).apply(merge_rows_with_sources)
-            if 'doi' not in merged_data_doi.columns and merged_data_doi.index.name == 'doi':
-                merged_data_doi.reset_index(inplace=True)
-            if isinstance(merged_data_doi.columns, pd.MultiIndex):
-                 merged_data_doi.columns = merged_data_doi.columns.droplevel(0)
+        with_doi_df_nantes = combined_df_nantes[combined_df_nantes['doi'].notna()].copy()
+        without_doi_df_nantes = combined_df_nantes[combined_df_nantes['doi'].isna()].copy()
         
         
-        merged_data_no_doi = pd.DataFrame()
-        if not without_doi_df.empty:
-            merged_data_no_doi = without_doi_df.copy() 
+        merged_data_doi_nantes = pd.DataFrame()
+        if not with_doi_df_nantes.empty:
+            merged_data_doi_nantes = with_doi_df_nantes.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+            if 'doi' not in merged_data_doi_nantes.columns and merged_data_doi_nantes.index.name == 'doi':
+                merged_data_doi_nantes.reset_index(inplace=True)
+            if isinstance(merged_data_doi_nantes.columns, pd.MultiIndex):
+                 merged_data_doi_nantes.columns = merged_data_doi_nantes.columns.droplevel(0)
         
-      
-        merged_data = pd.concat([merged_data_doi, merged_data_no_doi], ignore_index=True)
+       
+        merged_data_no_doi_nantes = pd.DataFrame()
+        if not without_doi_df_nantes.empty:
+            merged_data_no_doi_nantes = without_doi_df_nantes.copy() 
+        
+       
+        final_merged_data_nantes = pd.concat([merged_data_doi_nantes, merged_data_no_doi_nantes], ignore_index=True)
 
-        st.success(f"{len(merged_data)} publications uniques après fusion.")
-        progress_bar_nantes.progress(50)
+        if final_merged_data_nantes.empty:
+            st.error(f"Aucune donnée après fusion pour {collection_a_chercher_nantes}.")
+            st.stop()
+        st.success(f"{len(final_merged_data_nantes)} publications uniques après fusion pour {collection_a_chercher_nantes}.")
+        progress_bar_nantes.progress(50) # Corrigé
 
-        # --- Comparaison HAL ---
+        # --- Étape 6 : Comparaison HAL ---
         coll_df_hal_nantes = pd.DataFrame()
-        with st.spinner(f"Import de la collection HAL '{collection_a_chercher_nantes}'..."):
-            progress_text_area_nantes.info(f"Étape 6a/9 : Import de la collection HAL '{collection_a_chercher_nantes}'...")
+        with st.spinner(f"Importation de la collection HAL '{collection_a_chercher_nantes}'..."):
+            progress_text_area_nantes.info(f"Étape 6a/9 : Importation de la collection HAL '{collection_a_chercher_nantes}'...") # Corrigé
             coll_importer_nantes_obj = HalCollImporter(collection_a_chercher_nantes, start_year_nantes, end_year_nantes)
             coll_df_hal_nantes = coll_importer_nantes_obj.import_data()
             if coll_df_hal_nantes.empty:
@@ -368,35 +353,37 @@ def main():
             else:
                 st.success(f"{len(coll_df_hal_nantes)} notices HAL pour {collection_a_chercher_nantes}.")
         
-        progress_text_area_nantes.info("Étape 6b/9 : Comparaison avec les données HAL...")
-        result_df_nantes = check_df(final_merged_data_nantes.copy(), coll_df_hal_nantes, progress_bar_st=progress_bar_nantes, progress_text_st=progress_text_area_nantes)
+        progress_text_area_nantes.info("Étape 6b/9 : Comparaison avec les données HAL...") # Corrigé
+        result_df_nantes = check_df(final_merged_data_nantes.copy(), coll_df_hal_nantes, progress_bar_st=progress_bar_nantes, progress_text_st=progress_text_area_nantes) # Passé les bons objets
         st.success(f"Comparaison HAL pour {collection_a_chercher_nantes} terminée.")
         # progress_bar_nantes est géré par check_df
 
-        # --- Enrichissement Unpaywall ---
+        # --- Étape 7 : Enrichissement Unpaywall ---
         with st.spinner(f"Enrichissement Unpaywall pour {collection_a_chercher_nantes}..."):
-            progress_text_area_nantes.info("Étape 7/9 : Enrichissement Unpaywall...")
+            progress_text_area_nantes.info("Étape 7/9 : Enrichissement Unpaywall...") # Corrigé
+            progress_bar_nantes.progress(70) # Corrigé (ajouté avant l'appel)
             result_df_nantes = enrich_w_upw_parallel(result_df_nantes.copy())
             st.success(f"Enrichissement Unpaywall pour {collection_a_chercher_nantes} terminé.")
-        progress_bar_nantes.progress(70)
+        # progress_bar_nantes.progress(70) # Déplacé avant l'appel
 
-        # --- Permissions de dépôt ---
+        # --- Étape 8 : Permissions de dépôt ---
         with st.spinner(f"Récupération des permissions pour {collection_a_chercher_nantes}..."):
-            progress_text_area_nantes.info("Étape 8/9 : Récupération des permissions de dépôt...")
+            progress_text_area_nantes.info("Étape 8/9 : Récupération des permissions de dépôt...") # Corrigé
+            progress_bar_nantes.progress(80) # Corrigé (ajouté avant l'appel)
             result_df_nantes = add_permissions_parallel(result_df_nantes.copy())
             st.success(f"Permissions pour {collection_a_chercher_nantes} récupérées.")
-        progress_bar_nantes.progress(80)
+        # progress_bar_nantes.progress(80) # Déplacé avant l'appel
 
-        # --- Déduction des actions et auteurs ---
-        progress_text_area_nantes.info("Étape 9/9 : Déduction des actions et traitement des auteurs...")
+        # --- Étape 9 : Déduction des actions et auteurs ---
+        progress_text_area_nantes.info("Étape 9/9 : Déduction des actions et traitement des auteurs...") # Corrigé
         if 'Action' not in result_df_nantes.columns: result_df_nantes['Action'] = pd.NA
         result_df_nantes['Action'] = result_df_nantes.apply(deduce_todo, axis=1)
 
         if fetch_authors_nantes: 
             with st.spinner(f"Récupération des auteurs Crossref pour {collection_a_chercher_nantes}..."):
                 if 'doi' in result_df_nantes.columns:
-                    from concurrent.futures import ThreadPoolExecutor # S'assurer de l'import local si besoin
-                    from tqdm import tqdm # S'assurer de l'import local si besoin
+                    from concurrent.futures import ThreadPoolExecutor 
+                    from tqdm import tqdm 
 
                     dois_for_authors_nantes = result_df_nantes['doi'].fillna("").tolist()
                     authors_results_nantes = []
@@ -423,7 +410,7 @@ def main():
                             else:
                                 chercheur_map_nantes_file = {normalize_name(n): n for n in noms_ref_nantes_list}
                                 initial_map_nantes_file = {get_initial_form(normalize_name(n)): n for n in noms_ref_nantes_list}
-                                from difflib import get_close_matches # Assurer import
+                                from difflib import get_close_matches 
 
                                 def detect_known_authors_nantes_file(authors_str_nantes):
                                     if pd.isna(authors_str_nantes) or not str(authors_str_nantes).strip() or "Erreur" in authors_str_nantes or "Timeout" in authors_str_nantes: return ""
@@ -447,7 +434,7 @@ def main():
             elif compare_authors_nantes and not uploaded_authors_file_nantes:
                  st.warning("Veuillez téléverser un fichier CSV de chercheurs pour la comparaison des auteurs (Nantes).")
 
-        progress_bar_nantes.progress(90)
+        progress_bar_nantes.progress(90) # Corrigé
         st.success(f"Déduction des actions et traitement des auteurs pour {collection_a_chercher_nantes} terminés.")
         
         st.dataframe(result_df_nantes)
@@ -462,8 +449,8 @@ def main():
                 mime="text/csv",
                 key=f"download_nantes_{collection_a_chercher_nantes}"
             )
-        progress_bar_nantes.progress(100)
-        progress_text_area_nantes.success(f"🎉 Traitement pour {collection_a_chercher_nantes} terminé avec succès !")
+        progress_bar_nantes.progress(100) # Corrigé
+        progress_text_area_nantes.success(f"🎉 Traitement pour {collection_a_chercher_nantes} terminé avec succès !") # Corrigé
 
 if __name__ == "__main__":
     main()

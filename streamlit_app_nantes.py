@@ -274,7 +274,7 @@ def main():
                 st.success(f"{len(pubmed_df_nantes)} publications PubMed trouvées pour {collection_a_chercher_nantes}.")
         else:
             st.info(f"Aucune requête PubMed configurée pour {collection_a_chercher_nantes}.")
-        progress_bar_nantes.progress(20)
+        progress_bar_nantes.progress(20) # Corrigé (ou 25 si on veut marquer la fin de l'étape)
 
         # --- Étape 3 : Récupération Scopus ---
         if scopus_lab_id_nantes and scopus_api_key_secret_nantes:

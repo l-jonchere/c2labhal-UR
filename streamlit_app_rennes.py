@@ -166,8 +166,8 @@ def add_sidebar_menu():
     st.sidebar.header("À Propos")
     st.sidebar.info(
     """
-    **c2LabHAL - Version Nantes Université** :
-    Cette version est préconfigurée pour les laboratoires de Nantes Université.
+    **c2LabHAL - Version Université de Rennes** :
+    Cette version est préconfigurée pour les laboratoires de l'Université de Rennes.
     Sélectionnez un laboratoire dans la liste pour lancer la comparaison de ses publications
     (Scopus, OpenAlex, PubMed) avec sa collection HAL.
     """
@@ -188,11 +188,11 @@ def add_sidebar_menu():
 
 
 def main():
-    st.set_page_config(page_title="c2LabHAL - Nantes", layout="wide")
+    st.set_page_config(page_title="c2LabHAL - Rennes", layout="wide")
     add_sidebar_menu() 
 
-    st.title("🥎 c2LabHAL - Version Nantes Université")
-    st.subheader("Comparez les publications d’un laboratoire de Nantes Université avec sa collection HAL.")
+    st.title("🥎 c2LabHAL - Version Rennes Université")
+    st.subheader("Comparez les publications d’un laboratoire de Rennes Université avec sa collection HAL.")
 
     labo_choisi_nom_nantes = st.selectbox(
         "Choisissez une collection HAL de laboratoire (Nantes Université) :", 

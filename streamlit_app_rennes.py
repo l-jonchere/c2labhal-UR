@@ -15,150 +15,106 @@ from utils import (
 # Les constantes comme HAL_API_ENDPOINT sont utilisées par les fonctions dans utils.py
 
 # --- Définition de la liste des laboratoires (spécifique à cette application) ---
-labos_list_nantes = [
+labos_list_rennes = [
     {
         "collection": "CAPHI", "scopus_id": "60105490", "openalex_id": "I4387152714",
         "pubmed_query": "(CAPHI[Affiliation]) OR (\"CENTRE ATLANTIQUE DE PHILOSOPHIE\"[Affiliation]) OR (\"EA 7463\" [Affiliation]) OR (EA7463[Affiliation]) OR (UR7463[Affiliation]) OR (\"UR 7463\"[Affiliation])"
     },
     {
-        "collection": "CFV", "scopus_id": "60105524", "openalex_id": "I4387153064",
-        "pubmed_query": "(CFV[Affiliation]) OR (\"EA 1161\"[Affiliation]) OR (Viete[Affiliation])"
+        "collection": "ARENES", "scopus_id": "60105601", "openalex_id": "I4387155702",
+        "pubmed_query": "(ARENES[Affiliation]) OR (\"UMR6051\"[Affiliation]) OR (UMR 6051[Affiliation] OR OR (UMR CNRS 6051[Affiliation])"
     },
     {"collection": "CREAAH", "scopus_id": "60105602", "openalex_id": "I4387153012", "pubmed_query": ""},
     {
-        "collection": "CREN", "scopus_id": "60105539", "openalex_id": "I4387152322",
-        "pubmed_query": "(CREN[Affiliation]) OR (2661[Affiliation]) OR (\"Ctr Rech Educ\"[Affiliation])"
-    },
-    {"collection": "CRHIA", "scopus_id": "60105526", "openalex_id": "I4399598365", "pubmed_query": ""},
-    {"collection": "CRINI", "scopus_id": "60105525", "openalex_id": "I4387153799", "pubmed_query": ""},
-    {
-        "collection": "ESO", "scopus_id": "60105581", "openalex_id": "I4387153532",
-        "pubmed_query": "(\"UMR 6590\"[Affiliation]) OR (\"Espaces et Sociétés\"[Affiliation]) OR (ESO Nantes[Affiliation]) OR (ESO-Angers[Affiliation]) NOT (\"UFR Sciences Espaces et Sociétés\"[Affiliation])"
-    },
-    {"collection": "LAMO", "scopus_id": "60105566", "openalex_id": "I4387152722", "pubmed_query": ""},
-    {
-        "collection": "LETG", "scopus_id": "60105608", "openalex_id": "I4387153176",
-        "pubmed_query": "(LETG[Affiliation]) OR (UMR6554[Affiliation]) OR (UMR 6554[Affiliation]) OR (UMR CNRS 6554[Affiliation]) OR (Geolittomer[Affiliation])"
+        "collection": "BIOSIT", "scopus_id": "60105514", "openalex_id": "I4210159878",
+        "pubmed_query": "(3480[affiliation]) OR (biosit[affiliation]) OR (\"Biology Health Innovation and Technology\"[affiliation]) OR (\"Structure Fédérative de Recherche en Biologie Santé\"[affiliation]) OR (us018[affiliation]) OR (ImPACcell[affiliation])"
     },
     {
-        "collection": "LLING", "scopus_id": "60105540", "openalex_id": "I4387152679",
-        "pubmed_query": "(\"Laboratoire de linguistique de Nantes\"[Affiliation])"
+        "collection": "BRM", "scopus_id": "60206583", "openalex_id": "I4387155446", 
+        "pubmed_query": "(U835[affiliation]) OR (UMR_S1230[affiliation]) OR (UMR1230[affiliation]) OR (U1230[affiliation]) OR (\"ARN régulateurs bactériens et médecine\"[affiliation]) OR (\"Bacterial regulatory RNAs and Medicine\"[affiliation]) OR (Tattevin[Author])"
     },
     {
-        "collection": "LPPL", "scopus_id": "60105621", "openalex_id": "I4210089331",
-        "pubmed_query": "(LPPL[Affiliation]) OR (Laboratoire de Psychologie des Pays de la Loire[Affiliation]) OR (EA 4638[Affiliation]) OR (EA4638[Affiliation]) OR (EA 3259[Affiliation]) OR (EA3259[Affiliation]) OR (EA 2646[Affiliation])"
+        "collection": "CIC", "scopus_id": "60105521", "openalex_id": "I4210116274", 
+        "pubmed_query": "((INSERM 1414[Affiliation]) OR (INSERM-CIC-1414[Affiliation]) OR (CIC-1414[Affiliation]) OR (0203[Affiliation]) OR (1414[Affiliation]) OR (INSERM 0203[Affiliation]) OR (Unité dʼInvestigation Clinique Rennes[Affiliation]) OR (Centre dʼInvestigation Clinique* Rennes[Affiliation]) OR (Clinical Investigation Center Rennes[Affiliation]) OR (Rennes Clinical Investigation Center[Affiliation]) NOT (U 804[Affiliation]) NOT (U804[Affiliation]) NOT (CIC-IT[Affiliation]) AND (rennes[Affiliation])) NOT (Inria[Affiliation]) NOT (FORTH/ICE-HT[Affiliation])"
     },
     {
-        "collection": "CEISAM", "scopus_id": "60105571", "openalex_id": "I4210138474",
-        "pubmed_query": "(CEISAM[Affiliation]) OR (UMR6230[Affiliation]) OR (UMR 6230[Affiliation]) OR (LAIEM[Affiliation]) OR (Laboratory of Isotopic and Electrochemical Analysis of Metabolism[Affiliation]) OR (Laboratoire d'Analyse Isotopique et Electrochimique des Métabolismes[Affiliation]) OR (Chimie et Interdisciplinarite Synthese Analyse Modelisation[Affiliation]) OR (CNRS 6230[Affiliation]) OR (CNRS6230[Affiliation]) OR (Interdisciplinary Chemistry Synthesis Analysis Modelling[Affiliation]) OR (CNRS 6513[Affiliation]) OR ((Laboratoire de Synthèse Organique[Affiliation]) AND (nantes[Affiliation])) OR (EA 1149[Affiliation]) OR ((Laboratoire de Spectrochimie[Affiliation]) AND (nantes[Affiliation]) NOT (villeneuve[Affiliation])) OR (UMR 6513[Affiliation]) OR (UMR6006[Affiliation]) OR (UMR 6006[Affiliation])"
+        "collection": "OSS", "scopus_id": "60138518", "openalex_id": "I4210090689",
+        "pubmed_query": "((u1242[Affiliation]) OR (u 1242[Affiliation]) OR (Oncogenesis, Stress and Signaling[Affiliation]) OR (COSS[Affiliation]) OR (ERL440[Affiliation]) OR (ER440[Affiliation]) AND (Rennes[Affiliation]))"
     },
     {
-        "collection": "GEM", "scopus_id": "60105606", "openalex_id": "I4210137520",
-        "pubmed_query": "((GEM[Affiliation]) AND ((nazaire[Affiliation]) OR (nantes[Affiliation])) NOT (chicago[Affiliation])) OR (UMR 6183[Affiliation]) OR (UMR6183[Affiliation]) OR (CNRS 6183[Affiliation]) OR ((Laboratoire de Mécanique et Matériaux [Affiliation]) AND (nantes[Affiliation])) OR (Institute for Research in Civil and Mechanical Engineering[Affiliation]) OR (Research Institute in Civil Engineering and Mechanics[Affiliation]) OR (Institut de Recherche en Génie Civil[Affiliation]) OR (Research Institute in Civil and Mechanical Engineering[Affiliation])"
+        "collection": "ECOBIO", "scopus_id": "60105587", "openalex_id": "I4210087209", 
+        "pubmed_query": "((ecobio[Affiliation]) OR (6553[Affiliation]) OR (Écosystèmes, biodiversité, évolution[Affiliation]) OR (Ecosystems, Biodiversity, Evolution[Affiliation]) AND (rennes[Affiliation])) OR (paimpont[Affiliation])"
+    },
+    {
+        "collection": "ETHOS", "scopus_id": "60105604", "openalex_id": "I4387154707",
+        "pubmed_query": "((ethos[Affiliation]) OR (6552[Affiliation]) OR (Ethologie animale et humaine[Affiliation]) OR (animal and human ethology[Affiliation]) AND (rennes[Affiliation]) OR (caen[Affiliation]))"
+    },
+    {
+        "collection": "FOTON", "scopus_id": "60105599", "openalex_id": "I4210138837",
+        "pubmed_query": "(\"Fonctions Optiques pour les Technologies de l’information\"[Affiliation]) OR (UMR6082[Affiliation]) OR (UMR 6082[Affiliation])"
+    },
+    {
+        "collection": "IETR", "scopus_id": "60105585", "openalex_id": "I4210100151",
+        "pubmed_query": "(IETR[Affiliation]) OR (Institut d'Électronique et des Technologies du numéRique[Affiliation]) OR (UMR6164[Affiliation]) OR (UMR 6164[Affiliation])"
+    },
+    {
+        "collection": "IGDR", "scopus_id": "60105597", "openalex_id": "I4210127029",
+        "pubmed_query": "(IGDR[Affiliation]) OR (6290[Affiliation]) OR (Institut de génétique et développement de Rennes[Affiliation]) OR (Institute of Genetics and Development of Rennes[Affiliation]) NOT (Nikon[Affiliation])"
+    },
+    {
+        "collection": "IPR", "scopus_id": "60105586", "openalex_id": "I4210109443",
+        "pubmed_query": "((IPR[Affiliation]) AND (rennes[Affiliation])) OR (Institut de Physique de Rennes[Affiliation]) OR (UMR6251[Affiliation]) OR (UMR 6251[Affiliation]) NOT (Institut Pierre Richet[Affiliation]) NOT (Intelligent Process Automation and Robotics[Affiliation]) NOT (Sant Joan de Déu[Affiliation])"
     },
     {
         "collection": "GEPEA", "scopus_id": "60105518", "openalex_id": "I4210148006",
-        "pubmed_query": "((GEPEA[Affiliation]) AND ((nantes[Affiliation]) OR (nazaire[Affiliation]) OR (angers[ad) OR (Nntes Université[Affiliation]))) OR (UMR6144[Affiliation]) OR (UMR 6144[Affiliation]) OR (CNRS 6144[Affiliation]) OR (Génie des Procédés Environnement[Affiliation]) AND ((nantes[Affiliation]) OR (nazaire[Affiliation]))"
+        "pubmed_query": "((GEPEA[Affiliation]) AND ((rennes[Affiliation]) OR (nazaire[Affiliation]) OR (angers[ad) OR (Nntes Université[Affiliation]))) OR (UMR6144[Affiliation]) OR (UMR 6144[Affiliation]) OR (CNRS 6144[Affiliation]) OR (Génie des Procédés Environnement[Affiliation]) AND ((rennes[Affiliation]) OR (nazaire[Affiliation]))"
     },
     {
         "collection": "IETR", "scopus_id": "60105585", "openalex_id": "I4210100151",
         "pubmed_query": "(IETR[Affiliation]) OR (CNRS 6164[Affiliation]) OR (UMR 6164[Affiliation]) OR (UMR6164[Affiliation]) OR (IETR Polytech[Affiliation]) OR (Institut d'Electronique et des Technologies du numéRique[Affiliation]) OR (Institut d'Électronique et de Télécommunications[Affiliation])"
     },
     {
-        "collection": "IMN", "scopus_id": "60020658", "openalex_id": "I4210091049",
-        "pubmed_query": "((IMN[Affiliation]) AND (nantes[Affiliation])) OR (CNRS 6502[Affiliation]) OR ((UMR 6502[Affiliation]) AND (nantes[Affiliation])) OR (UMR6502[Affiliation]) OR (Inst. des Mat. Jean Rouxel[Affiliation]) OR (Institut des Matériaux de Nantes Jean Rouxel[Affiliation]) OR (Institut des Matériaux Jean Rouxel[Affiliation])"
+        "collection": "IRSET", "scopus_id": "60105594", "openalex_id": "4210108239",
+        "pubmed_query": "((irset[Affiliation]) OR (1085[Affiliation]) OR (Institut de recherche en santé, environnement et travail[Affiliation]) OR (Research Institute for Environmental and Occupational Health[Affiliation]) OR (Institute for Research in Health, Environment and Work[Affiliation]) AND (rennes[Affiliation]) OR (angers[Affiliation])) NOT (IRSET-Center[Affiliation]) NOT (Kristensen[Author])"
     },
     {
-        "collection": "IREENA", "scopus_id": "60105577", "openalex_id": "I4392021119",
-        "pubmed_query": "(IREENA[Affiliation]) OR (EA 4642[Affiliation]) OR (Institut de Recherche en Energie Electrique de Nantes Atlantique[Affiliation]) OR (Institute of Research in Electric Power of Nantes Atlantique[Affiliation]) OR (Institut de Recherche en Electrotechnique et Electronique de Nantes Atlantique[Affiliation]) OR (Institut de Recherche en Electronique et Electrotechnique de Nantes Atlantique[Affiliation])"
+        "collection": "ISCR", "scopus_id": "60072944", "openalex_id": "I4210090783",
+        "pubmed_query": "((institut des sciences chimiques de rennes[Affiliation]) OR (6226[Affiliation]) OR (ISCR[Affiliation]) OR (ISCR-UMR[Affiliation]) OR (National Higher School of Chemistry[Affiliation]) OR (MACSE[Affiliation]) OR (CORINT[Affiliation]) OR (Glasses and Ceramics[Affiliation]) OR (Institute of Chemical Science[Affiliation]) OR (Institute for Chemical Science[Affiliation]) OR (Ecole nationale supérieure de chimie de Rennes[Affiliation]) OR (ENSCR[Affiliation]) AND (rennes[Affiliation]))"
     },
     {
-        "collection": "LMJL", "scopus_id": "60105520", "openalex_id": "I4210153365",
-        "pubmed_query": "(LMJL[Affiliation]) OR ((Leray[Affiliation]) AND (nantes[Affiliation]) NOT ((Leray[au]) OR (Le Ray[au]))) OR (CNRS 6629[Affiliation]) OR (UMR 6629[Affiliation]) OR (Laboratoire de mathématiques Jean Leray[Affiliation]) OR (Department of Mathematics Jean Leray[Affiliation]) OR (Laboratoire Jean Leray[Affiliation]) OR (Laboratory of Mathematics Jean Leray[Affiliation])"
+        "collection": "LGCGM", "scopus_id": "60105557", "openalex_id": "I4387155956",
+        "pubmed_query": "(LGCGM[Affiliation]) OR (UR 3913[Affiliation]) OR (UR3913[Affiliation]) OR (EA 3913[Affiliation]) OR (EA3913[Affiliation]) OR (\"Laboratoire de génie civil et génie mécanique\"[Affiliation] OR ((Quang Huy Nguyen[Author]) OR (Maël Couchaux[Author]) OR (Fabrice Bernard[Author]) OR (Paul Byrne[Author]) OR (Amina Meslem[Author]) OR (Florence Collet[Author]) OR (Mohammed Hjiaj[Author]) OR (Piseth Heng[Author]) OR (Hugues Somja[Author]) OR (Siham Kamali-Bernard[Author]) OR (Balaji Raghavan[Author]) AND (rennes[Affiliation]))"
     },
     {
-        "collection": "LPG", "scopus_id": "60105669", "openalex_id": "I4210146808",
-        "pubmed_query": "((LPG[Affiliation]) AND (france[Affiliation])) OR (CNRS 6112[Affiliation]) OR (UMR 6112[Affiliation]) OR (UMR6112[Affiliation]) OR (LPGN[Affiliation]) OR (Laboratoire de Planétologie et Géodynamique[Affiliation]) OR (Laboratoire de Planétologie et Géosciences[Affiliation]) OR (Laboratorie du Planétologie et Géosciences[Affiliation])"
+        "collection": "LTSI", "scopus_id": "60105589", "openalex_id": "I4210105651",
+        "pubmed_query": "((LTSI[Affiliation]) OR (1099[Affiliation]) OR (CRIBS[Affiliation]) OR (CIC-IT[Affiliation]) OR (804[Affiliation]) OR (medicis[Affiliation]) OR (Signal and Image Processing Laboratory[Affiliation] OR (\"Laboratoire traitement du signal et de l'image\"[Affiliation]) OR (\"Centre de Recherche en Information Biomédicale Sino-Français\"[Affiliation]) AND (Rennes[Affiliation]))"
     },
     {
-        "collection": "LS2N", "scopus_id": "60110511", "openalex_id": "I4210117005",
-        "pubmed_query": "(LS2N[Affiliation]) OR (UMR 6004[Affiliation]) OR (UMR6004[Affiliation]) OR ((Cnrs 6004[Affiliation]) AND (nantes[Affiliation])) OR (Laboratoire des Sciences du Numérique[Affiliation]) OR ((Laboratory of Digital Sciences[Affiliation]) NOT (orsay[Affiliation])) OR (IRCCYN[Affiliation]) OR (Cnrs 6597[Affiliation]) OR (Umr 6597[Affiliation]) OR (UMR_C 6597[Affiliation]) OR (Institut de Recherche en Communications et Cybernétique de Nantes[Affiliation]) OR (Research Institute in Communications and Cybernetics of Nantes[Affiliation]) OR (UMR 6241[Affiliation]) OR (UMR6241[Affiliation]) OR (CNRS 6241[Affiliation]) OR (Computer Science Institute of Nantes-Atlantic[Affiliation]) OR (Computer Science Laboratory of Nantes Atlantique[Affiliation]) OR (Laboratoire d'Informatique de Nantes-Atlantique[Affiliation])"
+        "collection": "M2S", "scopus_id": "60105531", "openalex_id": "I4210160484",
+        "pubmed_query": "((UR 7470[Affiliation]) OR (UR7470[Affiliation]) OR (UR 1274[Affiliation]) OR (EA 7470[Affiliation]) OR (EA7470[Affiliation]) OR (EA 1274[Affiliation]) OR (EA1274[Affiliation]) OR (Laboratoire mouvement, sport et santé[Affiliation]) OR (Movement, Sport, Health[Affiliation]) OR (M2S[Affiliation]) AND (Rennes[Affiliation]))"
     },
     {
-        "collection": "LTEN", "scopus_id": "60105570", "openalex_id": "I4210109587",
-        "pubmed_query": "((LTEN[Affiliation]) NOT (Louisville[Affiliation])) OR ((LTN[Affiliation]) AND (nantes[Affiliation])) OR (UMR 6607[Affiliation]) OR (CNRS 6607[Affiliation]) OR (Laboratoire de Thermocinétique[Affiliation]) OR (Laboratoire de Thermique et Energie de Nantes[Affiliation]) OR (Laboratoire Thermique et Energie[Affiliation])"
+        "collection": "MOBIDIC", "scopus_id": "60105591", "openalex_id": "I4387154398",
+        "pubmed_query": "(MOBIDIC[Affiliation]) OR (Microenvironment and B-cells: Immunopathology, Cell Differentiation, and Cancer[Affiliation]) OR (Microenvironment and B-cells and Cancer[Affiliation]) OR (micmac[Affiliation]) OR (Microenvironment, Cell Differentiation, Immunology and Cancer[Affiliation]) OR (UMR_S 1236[Affiliation]) OR (U1236[Affiliation]) OR (U 1236[Affiliation]) OR (UMR_S1236[Affiliation]) OR (u917[Affiliation]) OR (U 917[Affiliation]) OR (UMR_S917[Affiliation]) OR (UMR_S 917[Affiliation]) NOT (Educell Ltd[Affiliation]) NOT (MicMac Road[Affiliation]) NOT (Montpellier BioInformatics for Clinical Diagnosis[Affiliation]))"
     },
     {
-        "collection": "SUBATECH", "scopus_id": "60008689", "openalex_id": "I4210109007",
-        "pubmed_query": "(SUBATECH[Affiliation]) OR (UMR 6457[Affiliation]) OR (UMR6457[Affiliation]) OR (CNRS 6457[Affiliation]) OR (laboratoire de physique subatomique et des technologies associées[Affiliation])"
+        "collection": "NUMECAN", "scopus_id": "60112105", "openalex_id": "I4387156410",
+        "pubmed_query": "(UMR991[affiliation]) OR (UMR 991[affiliation]) OR (U991[affiliation]) OR (U 991[affiliation]) OR (foie, métabolismes et cancer[affiliation]) OR (foie, metabolismes et cancer[affiliation]) OR (liver, metabolisms and cancer[affiliation]) OR (EA 1254[affiliation]) OR (EA1254[affiliation]) OR (microbiologie: risques infectieux[affiliation]) OR (U1317[Affiliation]) OR (U 1317[Affiliation]) OR (U-1317[Affiliation]) OR (UMR_S 1317[Affiliation]) OR (UMR 1317[Affiliation]) OR (U1241[Affiliation]) OR (U 1241[Affiliation]) OR (U-1241[Affiliation]) OR (UMR_S 1241[Affiliation]) OR (UMR 1241[Affiliation]) OR (UMR 1341[Affiliation]) OR (UMR INRA 1341[Affiliation]) OR (numecan[Affiliation]) OR (nutrition, métabolismes et cancer[Affiliation]) OR (nutrition, metabolismes et cancer[Affiliation]) OR (nutrition, metabolisms and cancer[Affiliation]) OR ((ARNAUD Alexis OR BELLANGER Amandine OR BUFFET-BATAILLON Sylvie OR MOIRAND Romain OR THIBAULT Ronan OR ARTRU Florent OR BENDAVID Claude OR BOUGUEN Guillaume OR CABILLIC Florian OR GICQUEL Thomas OR LE DARE Brendan OR LEBOUVIER Thomas OR MOREL Isabelle OR NESSELER Nicolas  OR PELLETIER Romain OR PEYRONNET Benoit OR RAYAR Michel OR  SIPROUDHIS Laurent OR GUGGENBUHL Pascal OR  BARDOU-JACQUET Edouard OR BONNET Fabrice OR DESCLOS-THEVENIAU Marie OR GARIN Etienne OR HAMDI-ROZE Houda OR LAINE Fabrice OR MEURIC Vincent OR RANGE Hélène OR ROBIN François OR ROPARS Mickael OR ROPERT Martine OR TURLIN Bruno) AND (Rennes[Affiliation]))"
     },
     {
-        "collection": "US2B", "scopus_id": "60276652", "openalex_id": "I4387154840",
-        "pubmed_query": "((US2B[Affiliation]) NOT (bordeaux[Affiliation])) OR (UMR6286[Affiliation]) OR (UMR 6286[Affiliation]) OR (CNRS 6286[Affiliation]) OR ((UFIP[Affiliation]) NOT ((spain[Affiliation]) OR (España[Affiliation]))) OR (Biological Sciences and Biotechnologies unit[Affiliation]) OR (Unité en Sciences Biologiques et Biotechnologies[Affiliation]) OR (Fonctionnalité et Ingénierie des Protéines[Affiliation]) OR (Unit Function & Protein Engineering[Affiliation]) OR (Protein Engineering and Functionality Unit[Affiliation]) OR (Laboratoire de Biologie et Pathologie Végétales[Affiliation]) OR ((LBPV[Affiliation]) AND (nantes[Affiliation])) OR (Laboratory of Plant Biology and Pathology[Affiliation]) OR (EA 1157[Affiliation]) OR (EA1157[Affiliation])"
+        "collection": "SCANMAT", "scopus_id": "60138457", "openalex_id": "I4387156459",
+        "pubmed_query": "((SCANMAT[affiliation]) OR (UMS2001[affiliation]) AND (rennes[Affiliation]))"
     },
     {
-        "collection": "CR2TI", "scopus_id": "60105579", "openalex_id": "I4392021198",
-        "pubmed_query": "((CRTI[Affiliation]) AND (Nantes[Affiliation])) OR (CRT2I[Affiliation]) OR (CR2TI[Affiliation]) OR ((UMR 1064[Affiliation]) AND (nantes[Affiliation])) OR ((UMR1064[Affiliation]) NOT (Sophia Antipolis[Affiliation])) OR (Unité Mixte de Recherche 1064[Affiliation]) OR ((ITUN[Affiliation]) AND (nantes[Affiliation])) OR (Institut de Transplantation Urologie Néphrologie[Affiliation]) OR (U 643[Affiliation]) OR (U643[Affiliation]) OR ((Department of Nephrology and Immunology[Affiliation]) AND (nantes[Affiliation])) OR (Centre de Recherche en Transplantation et Immunologie[Affiliation]) OR (Center for Research in Transplantation and Immunology[Affiliation]) OR (Center for Research in Transplantation and Translational Immunology[Affiliation]) OR (Institut de Transplantation et de Recherche en Transplantation Urologie Néphrologie[Affiliation]) OR (U1064[Affiliation]) AND (nantes[Affiliation]) OR (Centre de recherche translationnelle en transplantation et immunologie[Affiliation]) OR (INSERM CR1064[Affiliation]) OR (Institut National de la Santé et de la Recherche Médicale 1064[Affiliation]) OR (INSERM Unité Mixte de Recherche 1064[Affiliation]) OR (Inserm 1064[Affiliation])"
+        "collection": "CREM", "scopus_id": "60105603", "openalex_id": "I4210088544",
+        "pubmed_query": ""
     },
     {
-        "collection": "CRCI2NA", "scopus_id": "60117278", "openalex_id": "I4210092509",
-        "pubmed_query": "(CRCI2NA[Affiliation]) OR (CRC2INA[Affiliation]) OR ((CRCINA[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR (UMR 1307[Affiliation]) OR (UMR1307[Affiliation]) OR (U1307[Affiliation]) OR (UMR 6075[Affiliation]) OR (UMR6075[Affiliation]) OR (ERL6075[Affiliation]) OR ((ERL6001[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((ERL 6001[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((UMR 1232[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((UMR1232[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((Inserm 1232[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((Nantes-Angers Cancer Research Center[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((CRCNA[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR (Centre de Recherche en Cancérologie et Immunologie Intégrée[Affiliation]) OR ((Centre de Recherche en Cancérologie et Immunologie[Affiliation]) AND ((2022[dp]) OR (2023[dp]))) OR ((Center for Research in Cancerology and Immunology[Affiliation]) AND ((2022[dp]) OR (2023[dp])))"
+        "collection": "VIPS2", "scopus_id": "60105580", "openalex_id": "I4387155754",
+        "pubmed_query": "(VIPS2[Affiliation]) OR (Valeurs, Innovations, Politiques, Socialisations et Sports[Affiliation]) OR (UR 4636[Affiliation]) OR (UR4636[Affiliation])"
     },
-    {
-        "collection": "IICIMED", "scopus_id": "60105522", "openalex_id": "I4387930219",
-        "pubmed_query": "((IICIMED[Affiliation]) AND (nantes[Affiliation])) OR (UR 1155[Affiliation]) OR (UR1155[Affiliation]) OR (EA 1155[Affiliation]) OR (EA1155[Affiliation]) OR (Cibles et Médicaments des Infections et du Cancer[Affiliation]) OR (Cibles et médicaments des infections et de l'immunité[Affiliation]) OR (Cibles et Médicaments des Infections de l'Immunité et du Cancer[Affiliation]) OR (cibles et medicaments des infections et du l immunite[Affiliation])"
-    },
-    {
-        "collection": "INCIT", "scopus_id": "60276656", "openalex_id": "I4392021193",
-        "pubmed_query": "((INCIT[Affiliation]) AND ((nantes[Affiliation]) OR (angers[Affiliation]))) OR ((UMR 1302[Affiliation]) AND (nantes[Affiliation])) OR ((UMR1302[Affiliation]) AND (nantes[Affiliation])) OR (EMR6001[Affiliation]) OR (Immunology and New Concepts in ImmunoTherapy[Affiliation])"
-    },
-    {
-        "collection": "ISOMER", "scopus_id": "60105535", "openalex_id": "I4392021232",
-        "pubmed_query": "((ISOMER[Affiliation]) AND (nantes[Affiliation])) OR ((MMS[Affiliation]) AND ((nantes[Affiliation]) OR (st nazaire[Affiliation]) OR (angers[Affiliation]) OR (le mans[Affiliation]))) OR (UR 2160[Affiliation]) OR (UR2160[Affiliation]) OR (EA 2160[Affiliation]) OR (EA2160[Affiliation]) OR (MMS EA 2160[Affiliation]) OR ((MicroMar[Affiliation]) AND (france[Affiliation])) OR (Institut des Substances et Organismes de la Mer[Affiliation]) OR (Mer Molécules Santé[Affiliation]) OR (Sea Molecules Health[Affiliation])"
-    },
-    {
-        "collection": "MIP", "scopus_id": "60105638", "openalex_id": "I4392021216",
-        "pubmed_query": "((MIP[Affiliation]) AND ((mans[Affiliation]) OR (nantes[Affiliation]))) OR (EA 4334[Affiliation]) OR (EA4334[Affiliation]) OR (UR 4334[Affiliation]) OR (UR4334[Affiliation]) OR (Movement Interactions Performance[Affiliation]) OR (Motricité Interactions Performance[Affiliation]) OR (mouvement interactions performance[Affiliation])"
-    },
-    {
-        "collection": "PHAN", "scopus_id": "60105574", "openalex_id": "I4210162532",
-        "pubmed_query": "((PHAN[Affiliation]) AND (nantes[Affiliation]) AND (1280[Affiliation])) OR (UMR 1280[Affiliation]) OR (UMR1280[Affiliation]) OR (Physiologie des Adaptations Nutritionnelles[Affiliation]) OR (Unité Mixte de Recherche 1280[Affiliation]) OR (Physiology of Nutritional Adaptations[Affiliation]) OR (Physiopathologie des Adaptations Nutritionnelles[Affiliation]) OR (Physiopathology of Nutritional Adaptations[Affiliation])"
-    },
-    {
-        "collection": "RMES", "scopus_id": "60117279", "openalex_id": "I4387152865",
-        "pubmed_query": "((RMES[Affiliation]) AND (nantes[Affiliation])) OR (UMRS 1229[Affiliation]) OR (UMR S 1229[Affiliation]) OR ((UMR 1229[Affiliation]) AND (nantes[Affiliation])) OR ((UMR1229[Affiliation]) AND (nantes[Affiliation])) OR (U 1229[Affiliation]) OR ((U1229[Affiliation]) AND (nantes[Affiliation])) OR (LIOAD[Affiliation]) OR (UMRS791[Affiliation]) OR (UMRS 791[Affiliation]) OR (UMR S 791[Affiliation]) OR (U 791[Affiliation]) OR (U791[Affiliation]) OR ((UMR 791[Affiliation]) AND (nantes[Affiliation])) OR ((UMR791[Affiliation]) AND (nantes[Affiliation])) OR (Regenerative Medicine and Skeleton[Affiliation]) OR (Osteoarticular and Dental Tissue Engineering[Affiliation]) OR (Laboratoire d'Ingénierie Ostéo-Articulaire et Dentaire[Affiliation]) OR (Ingénierie des Tissus Ostéo-Articulaires et Dentaires[Affiliation]) OR (osteo-articular and dental tissue engineering[Affiliation])"
-    },
-    {
-        "collection": "SPHERE", "scopus_id": "60117638", "openalex_id": "I4392021239",
-        "pubmed_query": "((SPHERE[Affiliation]) AND (1246[Affiliation])) OR (U 1246[Affiliation]) OR (U1246[Affiliation]) OR (UMR 1246[Affiliation]) OR (UMR1246[Affiliation]) OR (UMR S 1246[Affiliation]) OR (INSERM 1246[Affiliation]) OR (MethodS in Patients-centered outcomes and HEalth Research[Affiliation])"
-    },
-    {
-        "collection": "TARGET", "scopus_id": "60105668", "openalex_id": "I4392021141",
-        "pubmed_query": "((TARGET[Affiliation]) AND ((nantes université[Affiliation]) OR (nantes university[Affiliation]))) OR ((U1089[Affiliation]) AND (nantes[Affiliation])) OR (UMR S 1089[Affiliation]) OR ((UMR 1089[Affiliation]) AND (nantes[Affiliation])) OR ((UMR1089[Affiliation]) AND (nantes[Affiliation])) OR ((Laboratoire de Thérapie Génique[Affiliation]) AND (nantes[Affiliation])) OR (thérapie génique translationnelle des maladies génétiques[Affiliation]) OR (Translational Gene Therapy for Genetic Diseases[Affiliation]) OR (Gene Therapy Laboratory[Affiliation])"
-    },
-    {
-        "collection": "TENS", "scopus_id": "60105652", "openalex_id": "I4210108033",
-        "pubmed_query": "((TENS[Affiliation]) AND (nantes[Affiliation])) OR ((UMR 1235[Affiliation]) AND (nantes[Affiliation])) OR ((UMR1235[Affiliation]) AND (nantes[Affiliation])) OR ((U 1235[Affiliation]) AND (nantes[Affiliation])) OR ((U1235[Affiliation]) AND (nantes[Affiliation])) OR (U 913[Affiliation]) OR (U913[Affiliation]) OR (UMR 913[Affiliation]) OR (UMR913[Affiliation]) OR (UMR S 913[Affiliation]) OR (The Enteric Nervous System in Gut and Brain Diseases[Affiliation]) OR (neuropathies du système nerveux entérique[Affiliation])"
-    },
-    {
-        "collection": "THORAX-UMR", "scopus_id": "60105651", "openalex_id": "I4210144168",
-        "pubmed_query": "(Umr1087[Affiliation]) OR (Umr 1087[Affiliation]) OR (UMR S 1087[Affiliation]) OR (UMR 6291[Affiliation]) OR (UMRS1087[Affiliation]) OR (UMR6291[Affiliation]) OR ((Inst Thorax[Affiliation])) AND (nantes[Affiliation]) OR (l'institut du thorax[Affiliation]) OR (Institut du Thorax[Affiliation])"
-    },
-    {"collection": "CDMO", "scopus_id": "60105527", "openalex_id": "I4392021194", "pubmed_query": ""},
-    {"collection": "CENS", "scopus_id": "60105489", "openalex_id": "I4210153136", "pubmed_query": ""},
-    {"collection": "DCS", "scopus_id": "60105572", "openalex_id": "I4210100746", "pubmed_query": ""},
-    {"collection": "IRDP", "scopus_id": "60105528", "openalex_id": "I4392021099", "pubmed_query": ""},
-    {
-        "collection": "LEMNA", "scopus_id": "60105575", "openalex_id": "I4390039323",
-        "pubmed_query": "(LEMNA[Affiliation]) and (nantes[Affiliation])"
-    },
-    {
-        "collection": "LHEEA", "scopus_id": "60105605", "openalex_id": "I4210153154",
-        "pubmed_query": "(LHEEA[Affiliation]) OR (UMR 6598[Affiliation]) OR (UMR6598[Affiliation]) OR (CNRS 6598[Affiliation]) OR (Research Laboratory in Hydrodynamics, Energetics & Atmospheric Environment [Affiliation]) OR (Laboratoire de recherche en hydrodynamique[Affiliation])"
-    },
-    {"collection": "AAU", "scopus_id": "60110513", "openalex_id": "I4210162214", "pubmed_query": ""}
 ]
-labos_df_nantes_global = pd.DataFrame(labos_list_nantes)
+labos_df_rennes_global = pd.DataFrame(labos_list_rennes)
 
 
 # Fonction pour ajouter le menu de navigation (spécifique à cette app)
@@ -192,265 +148,265 @@ def main():
     add_sidebar_menu() 
 
     st.title("🥎 c2LabHAL - Version Rennes Université")
-    st.subheader("Comparez les publications d’un laboratoire de Rennes Université avec sa collection HAL.")
+    st.subheader("Comparez les publications d’un laboratoire de l'Université de Rennes avec sa collection HAL.")
 
-    labo_choisi_nom_nantes = st.selectbox(
-        "Choisissez une collection HAL de laboratoire (Nantes Université) :", 
-        sorted(labos_df_nantes_global['collection'].unique())
+    labo_choisi_nom_rennes = st.selectbox(
+        "Choisissez une collection HAL de laboratoire (Université de Rennes) :", 
+        sorted(labos_df_rennes_global['collection'].unique())
     )
 
-    labo_selectionne_details_nantes = labos_df_nantes_global[labos_df_nantes_global['collection'] == labo_choisi_nom_nantes].iloc[0]
-    collection_a_chercher_nantes = labo_selectionne_details_nantes['collection']
-    scopus_lab_id_nantes = labo_selectionne_details_nantes.get('scopus_id', '') 
-    openalex_institution_id_nantes = labo_selectionne_details_nantes.get('openalex_id', '')
-    pubmed_query_labo_nantes = labo_selectionne_details_nantes.get('pubmed_query', '')
+    labo_selectionne_details_rennes = labos_df_rennes_global[labos_df_rennes_global['collection'] == labo_choisi_nom_rennes].iloc[0]
+    collection_a_chercher_rennes = labo_selectionne_details_rennes['collection']
+    scopus_lab_id_rennes = labo_selectionne_details_rennes.get('scopus_id', '') 
+    openalex_institution_id_rennes = labo_selectionne_details_rennes.get('openalex_id', '')
+    pubmed_query_labo_rennes = labo_selectionne_details_rennes.get('pubmed_query', '')
 
-    scopus_api_key_secret_nantes = st.secrets.get("SCOPUS_API_KEY")
-    pubmed_api_key_secret_nantes = st.secrets.get("PUBMED_API_KEY")
+    scopus_api_key_secret_rennes = st.secrets.get("SCOPUS_API_KEY")
+    pubmed_api_key_secret_rennes = st.secrets.get("PUBMED_API_KEY")
 
-    col1_dates_nantes, col2_dates_nantes = st.columns(2)
-    with col1_dates_nantes:
-        start_year_nantes = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020, key="nantes_start_year")
-    with col2_dates_nantes:
-        end_year_nantes = st.number_input("Année de fin", min_value=1900, max_value=2100, value=pd.Timestamp.now().year, key="nantes_end_year")
+    col1_dates_rennes, col2_dates_rennes = st.columns(2)
+    with col1_dates_rennes:
+        start_year_rennes = st.number_input("Année de début", min_value=1900, max_value=2100, value=2020, key="rennes_start_year")
+    with col2_dates_rennes:
+        end_year_rennes = st.number_input("Année de fin", min_value=1900, max_value=2100, value=pd.Timestamp.now().year, key="rennes_end_year")
 
     with st.expander("🔧 Options avancées pour les auteurs"):
-        fetch_authors_nantes = st.checkbox("🧑‍🔬 Récupérer les auteurs via Crossref (peut ralentir)", value=False, key="nantes_fetch_authors_cb")
-        compare_authors_nantes = False
-        uploaded_authors_file_nantes = None
-        if fetch_authors_nantes:
-            compare_authors_nantes = st.checkbox("🔍 Comparer les auteurs avec une liste de chercheurs", value=False, key="nantes_compare_authors_cb")
-            if compare_authors_nantes:
-                uploaded_authors_file_nantes = st.file_uploader(
+        fetch_authors_rennes = st.checkbox("🧑‍🔬 Récupérer les auteurs via Crossref (peut ralentir)", value=False, key="rennes_fetch_authors_cb")
+        compare_authors_rennes = False
+        uploaded_authors_file_rennes = None
+        if fetch_authors_rennes:
+            compare_authors_rennes = st.checkbox("🔍 Comparer les auteurs avec une liste de chercheurs", value=False, key="rennes_compare_authors_cb")
+            if compare_authors_rennes:
+                uploaded_authors_file_rennes = st.file_uploader(
                     "📤 Téléversez un fichier CSV de chercheurs (colonnes: 'collection', 'prénom nom')", 
                     type=["csv"], 
-                    key="nantes_upload_authors_fu",
+                    key="rennes_upload_authors_fu",
                     help="Le fichier CSV doit avoir une colonne 'collection' (code de la collection HAL) et une colonne avec les noms des chercheurs."
                 )
     
-    progress_bar_nantes = st.progress(0)
-    progress_text_area_nantes = st.empty() # Correction: Suffixe _nantes ajouté
+    progress_bar_rennes = st.progress(0)
+    progress_text_area_rennes = st.empty() # Correction: Suffixe _rennes ajouté
 
-    if st.button(f"🚀 Lancer la recherche pour {collection_a_chercher_nantes}"):
-        if pubmed_api_key_secret_nantes and pubmed_query_labo_nantes:
-            os.environ['NCBI_API_KEY'] = pubmed_api_key_secret_nantes
+    if st.button(f"🚀 Lancer la recherche pour {collection_a_chercher_rennes}"):
+        if pubmed_api_key_secret_rennes and pubmed_query_labo_rennes:
+            os.environ['NCBI_API_KEY'] = pubmed_api_key_secret_rennes
 
-        scopus_df_nantes = pd.DataFrame()
-        openalex_df_nantes = pd.DataFrame()
-        pubmed_df_nantes = pd.DataFrame()
+        scopus_df_rennes = pd.DataFrame()
+        openalex_df_rennes = pd.DataFrame()
+        pubmed_df_rennes = pd.DataFrame()
 
         # --- Étape 1 : Récupération OpenAlex ---
-        if openalex_institution_id_nantes:
-            with st.spinner(f"Récupération OpenAlex pour {collection_a_chercher_nantes}..."):
-                progress_text_area_nantes.info("Étape 1/9 : Récupération des données OpenAlex...") # Corrigé
-                progress_bar_nantes.progress(5) # Corrigé
-                openalex_query_complet_nantes = f"authorships.institutions.id:{openalex_institution_id_nantes},publication_year:{start_year_nantes}-{end_year_nantes}"
-                openalex_data_nantes = get_openalex_data(openalex_query_complet_nantes, max_items=5000)
-                if openalex_data_nantes:
-                    openalex_df_nantes = convert_to_dataframe(openalex_data_nantes, 'openalex')
-                    openalex_df_nantes['Source title'] = openalex_df_nantes.apply(
+        if openalex_institution_id_rennes:
+            with st.spinner(f"Récupération OpenAlex pour {collection_a_chercher_rennes}..."):
+                progress_text_area_rennes.info("Étape 1/9 : Récupération des données OpenAlex...") # Corrigé
+                progress_bar_rennes.progress(5) # Corrigé
+                openalex_query_complet_rennes = f"authorships.institutions.id:{openalex_institution_id_rennes},publication_year:{start_year_rennes}-{end_year_rennes}"
+                openalex_data_rennes = get_openalex_data(openalex_query_complet_rennes, max_items=5000)
+                if openalex_data_rennes:
+                    openalex_df_rennes = convert_to_dataframe(openalex_data_rennes, 'openalex')
+                    openalex_df_rennes['Source title'] = openalex_df_rennes.apply(
                         lambda row: row.get('primary_location', {}).get('source', {}).get('display_name') if isinstance(row.get('primary_location'), dict) and row['primary_location'].get('source') else None, axis=1
                     )
-                    openalex_df_nantes['Date'] = openalex_df_nantes.get('publication_date', pd.Series(index=openalex_df_nantes.index, dtype='object'))
-                    openalex_df_nantes['doi'] = openalex_df_nantes.get('doi', pd.Series(index=openalex_df_nantes.index, dtype='object'))
-                    openalex_df_nantes['id'] = openalex_df_nantes.get('id', pd.Series(index=openalex_df_nantes.index, dtype='object'))
-                    openalex_df_nantes['Title'] = openalex_df_nantes.get('title', pd.Series(index=openalex_df_nantes.index, dtype='object'))
-                    cols_to_keep_nantes = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
-                    openalex_df_nantes = openalex_df_nantes[[col for col in cols_to_keep_nantes if col in openalex_df_nantes.columns]]
-                    if 'doi' in openalex_df_nantes.columns:
-                        openalex_df_nantes['doi'] = openalex_df_nantes['doi'].apply(clean_doi)
-                st.success(f"{len(openalex_df_nantes)} publications OpenAlex trouvées pour {collection_a_chercher_nantes}.")
-        progress_bar_nantes.progress(10) # Corrigé
+                    openalex_df_rennes['Date'] = openalex_df_rennes.get('publication_date', pd.Series(index=openalex_df_rennes.index, dtype='object'))
+                    openalex_df_rennes['doi'] = openalex_df_rennes.get('doi', pd.Series(index=openalex_df_rennes.index, dtype='object'))
+                    openalex_df_rennes['id'] = openalex_df_rennes.get('id', pd.Series(index=openalex_df_rennes.index, dtype='object'))
+                    openalex_df_rennes['Title'] = openalex_df_rennes.get('title', pd.Series(index=openalex_df_rennes.index, dtype='object'))
+                    cols_to_keep_rennes = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+                    openalex_df_rennes = openalex_df_rennes[[col for col in cols_to_keep_rennes if col in openalex_df_rennes.columns]]
+                    if 'doi' in openalex_df_rennes.columns:
+                        openalex_df_rennes['doi'] = openalex_df_rennes['doi'].apply(clean_doi)
+                st.success(f"{len(openalex_df_rennes)} publications OpenAlex trouvées pour {collection_a_chercher_rennes}.")
+        progress_bar_rennes.progress(10) # Corrigé
 
         # --- Étape 2 : Récupération PubMed ---
-        if pubmed_query_labo_nantes: 
-            with st.spinner(f"Récupération PubMed pour {collection_a_chercher_nantes}..."):
-                progress_text_area_nantes.info("Étape 2/9 : Récupération des données PubMed...") # Corrigé
-                progress_bar_nantes.progress(20) # Corrigé (ajusté pour être après l'info)
-                pubmed_full_query_nantes = f"({pubmed_query_labo_nantes}) AND ({start_year_nantes}/01/01[Date - Publication] : {end_year_nantes}/12/31[Date - Publication])"
-                pubmed_data_nantes = get_pubmed_data(pubmed_full_query_nantes, max_items=5000)
-                if pubmed_data_nantes:
-                    pubmed_df_nantes = pd.DataFrame(pubmed_data_nantes)
-                st.success(f"{len(pubmed_df_nantes)} publications PubMed trouvées pour {collection_a_chercher_nantes}.")
+        if pubmed_query_labo_rennes: 
+            with st.spinner(f"Récupération PubMed pour {collection_a_chercher_rennes}..."):
+                progress_text_area_rennes.info("Étape 2/9 : Récupération des données PubMed...") # Corrigé
+                progress_bar_rennes.progress(20) # Corrigé (ajusté pour être après l'info)
+                pubmed_full_query_rennes = f"({pubmed_query_labo_rennes}) AND ({start_year_rennes}/01/01[Date - Publication] : {end_year_rennes}/12/31[Date - Publication])"
+                pubmed_data_rennes = get_pubmed_data(pubmed_full_query_rennes, max_items=5000)
+                if pubmed_data_rennes:
+                    pubmed_df_rennes = pd.DataFrame(pubmed_data_rennes)
+                st.success(f"{len(pubmed_df_rennes)} publications PubMed trouvées pour {collection_a_chercher_rennes}.")
         else:
-            st.info(f"Aucune requête PubMed configurée pour {collection_a_chercher_nantes}.")
-        progress_bar_nantes.progress(20) # Corrigé (ou 25 si on veut marquer la fin de l'étape)
+            st.info(f"Aucune requête PubMed configurée pour {collection_a_chercher_rennes}.")
+        progress_bar_rennes.progress(20) # Corrigé (ou 25 si on veut marquer la fin de l'étape)
 
         # --- Étape 3 : Récupération Scopus ---
-        if scopus_lab_id_nantes and scopus_api_key_secret_nantes:
-            with st.spinner(f"Récupération Scopus pour {collection_a_chercher_nantes}..."):
-                progress_text_area_nantes.info("Étape 3/9 : Récupération des données Scopus...") # Corrigé
-                progress_bar_nantes.progress(25) # Corrigé (ajusté)
-                scopus_query_complet_nantes = f"AF-ID({scopus_lab_id_nantes}) AND PUBYEAR > {start_year_nantes - 1} AND PUBYEAR < {end_year_nantes + 1}"
-                scopus_data_nantes = get_scopus_data(scopus_api_key_secret_nantes, scopus_query_complet_nantes, max_items=5000)
-                if scopus_data_nantes:
-                    scopus_df_raw_nantes = convert_to_dataframe(scopus_data_nantes, 'scopus')
-                    required_scopus_cols_nantes = {'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate'}
-                    if required_scopus_cols_nantes.issubset(scopus_df_raw_nantes.columns):
-                        scopus_df_nantes = scopus_df_raw_nantes[['Data source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']].copy()
-                        scopus_df_nantes.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
-                        if 'doi' in scopus_df_nantes.columns:
-                            scopus_df_nantes['doi'] = scopus_df_nantes['doi'].apply(clean_doi)
+        if scopus_lab_id_rennes and scopus_api_key_secret_rennes:
+            with st.spinner(f"Récupération Scopus pour {collection_a_chercher_rennes}..."):
+                progress_text_area_rennes.info("Étape 3/9 : Récupération des données Scopus...") # Corrigé
+                progress_bar_rennes.progress(25) # Corrigé (ajusté)
+                scopus_query_complet_rennes = f"AF-ID({scopus_lab_id_rennes}) AND PUBYEAR > {start_year_rennes - 1} AND PUBYEAR < {end_year_rennes + 1}"
+                scopus_data_rennes = get_scopus_data(scopus_api_key_secret_rennes, scopus_query_complet_rennes, max_items=5000)
+                if scopus_data_rennes:
+                    scopus_df_raw_rennes = convert_to_dataframe(scopus_data_rennes, 'scopus')
+                    required_scopus_cols_rennes = {'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate'}
+                    if required_scopus_cols_rennes.issubset(scopus_df_raw_rennes.columns):
+                        scopus_df_rennes = scopus_df_raw_rennes[['Data source', 'dc:title', 'prism:doi', 'dc:identifier', 'prism:publicationName', 'prism:coverDate']].copy()
+                        scopus_df_rennes.columns = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+                        if 'doi' in scopus_df_rennes.columns:
+                            scopus_df_rennes['doi'] = scopus_df_rennes['doi'].apply(clean_doi)
                     else:
-                        st.warning(f"Données Scopus incomplètes pour {collection_a_chercher_nantes}. Scopus sera ignoré.")
-                        scopus_df_nantes = pd.DataFrame()
-                st.success(f"{len(scopus_df_nantes)} publications Scopus trouvées pour {collection_a_chercher_nantes}.")
-        elif scopus_lab_id_nantes and not scopus_api_key_secret_nantes:
-            st.warning(f"L'ID Scopus est fourni pour {collection_a_chercher_nantes} mais la clé API Scopus n'est pas configurée. Scopus sera ignoré.")
-        progress_bar_nantes.progress(30) # Corrigé
+                        st.warning(f"Données Scopus incomplètes pour {collection_a_chercher_rennes}. Scopus sera ignoré.")
+                        scopus_df_rennes = pd.DataFrame()
+                st.success(f"{len(scopus_df_rennes)} publications Scopus trouvées pour {collection_a_chercher_rennes}.")
+        elif scopus_lab_id_rennes and not scopus_api_key_secret_rennes:
+            st.warning(f"L'ID Scopus est fourni pour {collection_a_chercher_rennes} mais la clé API Scopus n'est pas configurée. Scopus sera ignoré.")
+        progress_bar_rennes.progress(30) # Corrigé
         
         # --- Étape 4 : Combinaison des données ---
-        progress_text_area_nantes.info("Étape 4/9 : Combinaison des données sources...") # Corrigé
-        combined_df_nantes = pd.concat([scopus_df_nantes, openalex_df_nantes, pubmed_df_nantes], ignore_index=True)
+        progress_text_area_rennes.info("Étape 4/9 : Combinaison des données sources...") # Corrigé
+        combined_df_rennes = pd.concat([scopus_df_rennes, openalex_df_rennes, pubmed_df_rennes], ignore_index=True)
 
-        if combined_df_nantes.empty:
-            st.error(f"Aucune publication récupérée pour {collection_a_chercher_nantes}. Vérifiez la configuration du laboratoire.")
+        if combined_df_rennes.empty:
+            st.error(f"Aucune publication récupérée pour {collection_a_chercher_rennes}. Vérifiez la configuration du laboratoire.")
             st.stop()
         
-        if 'doi' not in combined_df_nantes.columns:
-            combined_df_nantes['doi'] = pd.NA
-        combined_df_nantes['doi'] = combined_df_nantes['doi'].astype(str).str.lower().str.strip().replace(['nan', 'none', 'NaN', ''], pd.NA, regex=False)
+        if 'doi' not in combined_df_rennes.columns:
+            combined_df_rennes['doi'] = pd.NA
+        combined_df_rennes['doi'] = combined_df_rennes['doi'].astype(str).str.lower().str.strip().replace(['nan', 'none', 'NaN', ''], pd.NA, regex=False)
 
 
         # --- Étape 5 : Fusion des lignes en double ---
-        progress_text_area_nantes.info("Étape 5/9 : Fusion des doublons...") # Corrigé
-        progress_bar_nantes.progress(40) # Corrigé
+        progress_text_area_rennes.info("Étape 5/9 : Fusion des doublons...") # Corrigé
+        progress_bar_rennes.progress(40) # Corrigé
         
-        with_doi_df_nantes = combined_df_nantes[combined_df_nantes['doi'].notna()].copy()
-        without_doi_df_nantes = combined_df_nantes[combined_df_nantes['doi'].isna()].copy()
+        with_doi_df_rennes = combined_df_rennes[combined_df_rennes['doi'].notna()].copy()
+        without_doi_df_rennes = combined_df_rennes[combined_df_rennes['doi'].isna()].copy()
         
         
-        merged_data_doi_nantes = pd.DataFrame()
-        if not with_doi_df_nantes.empty:
-            merged_data_doi_nantes = with_doi_df_nantes.groupby('doi', as_index=False).apply(merge_rows_with_sources)
-            if 'doi' not in merged_data_doi_nantes.columns and merged_data_doi_nantes.index.name == 'doi':
-                merged_data_doi_nantes.reset_index(inplace=True)
-            if isinstance(merged_data_doi_nantes.columns, pd.MultiIndex):
-                 merged_data_doi_nantes.columns = merged_data_doi_nantes.columns.droplevel(0)
-        
-       
-        merged_data_no_doi_nantes = pd.DataFrame()
-        if not without_doi_df_nantes.empty:
-            merged_data_no_doi_nantes = without_doi_df_nantes.copy() 
+        merged_data_doi_rennes = pd.DataFrame()
+        if not with_doi_df_rennes.empty:
+            merged_data_doi_rennes = with_doi_df_rennes.groupby('doi', as_index=False).apply(merge_rows_with_sources)
+            if 'doi' not in merged_data_doi_rennes.columns and merged_data_doi_rennes.index.name == 'doi':
+                merged_data_doi_rennes.reset_index(inplace=True)
+            if isinstance(merged_data_doi_rennes.columns, pd.MultiIndex):
+                 merged_data_doi_rennes.columns = merged_data_doi_rennes.columns.droplevel(0)
         
        
-        final_merged_data_nantes = pd.concat([merged_data_doi_nantes, merged_data_no_doi_nantes], ignore_index=True)
+        merged_data_no_doi_rennes = pd.DataFrame()
+        if not without_doi_df_rennes.empty:
+            merged_data_no_doi_rennes = without_doi_df_rennes.copy() 
+        
+       
+        final_merged_data_rennes = pd.concat([merged_data_doi_rennes, merged_data_no_doi_rennes], ignore_index=True)
 
-        if final_merged_data_nantes.empty:
-            st.error(f"Aucune donnée après fusion pour {collection_a_chercher_nantes}.")
+        if final_merged_data_rennes.empty:
+            st.error(f"Aucune donnée après fusion pour {collection_a_chercher_rennes}.")
             st.stop()
-        st.success(f"{len(final_merged_data_nantes)} publications uniques après fusion pour {collection_a_chercher_nantes}.")
-        progress_bar_nantes.progress(50) # Corrigé
+        st.success(f"{len(final_merged_data_rennes)} publications uniques après fusion pour {collection_a_chercher_rennes}.")
+        progress_bar_rennes.progress(50) # Corrigé
 
         # --- Étape 6 : Comparaison HAL ---
-        coll_df_hal_nantes = pd.DataFrame()
-        with st.spinner(f"Importation de la collection HAL '{collection_a_chercher_nantes}'..."):
-            progress_text_area_nantes.info(f"Étape 6a/9 : Importation de la collection HAL '{collection_a_chercher_nantes}'...") # Corrigé
-            coll_importer_nantes_obj = HalCollImporter(collection_a_chercher_nantes, start_year_nantes, end_year_nantes)
-            coll_df_hal_nantes = coll_importer_nantes_obj.import_data()
-            if coll_df_hal_nantes.empty:
-                st.warning(f"Collection HAL '{collection_a_chercher_nantes}' vide ou non chargée.")
+        coll_df_hal_rennes = pd.DataFrame()
+        with st.spinner(f"Importation de la collection HAL '{collection_a_chercher_rennes}'..."):
+            progress_text_area_rennes.info(f"Étape 6a/9 : Importation de la collection HAL '{collection_a_chercher_rennes}'...") # Corrigé
+            coll_importer_rennes_obj = HalCollImporter(collection_a_chercher_rennes, start_year_rennes, end_year_rennes)
+            coll_df_hal_rennes = coll_importer_rennes_obj.import_data()
+            if coll_df_hal_rennes.empty:
+                st.warning(f"Collection HAL '{collection_a_chercher_rennes}' vide ou non chargée.")
             else:
-                st.success(f"{len(coll_df_hal_nantes)} notices HAL pour {collection_a_chercher_nantes}.")
+                st.success(f"{len(coll_df_hal_rennes)} notices HAL pour {collection_a_chercher_rennes}.")
         
-        progress_text_area_nantes.info("Étape 6b/9 : Comparaison avec les données HAL...") # Corrigé
-        result_df_nantes = check_df(final_merged_data_nantes.copy(), coll_df_hal_nantes, progress_bar_st=progress_bar_nantes, progress_text_st=progress_text_area_nantes) # Passé les bons objets
-        st.success(f"Comparaison HAL pour {collection_a_chercher_nantes} terminée.")
-        # progress_bar_nantes est géré par check_df
+        progress_text_area_rennes.info("Étape 6b/9 : Comparaison avec les données HAL...") # Corrigé
+        result_df_rennes = check_df(final_merged_data_rennes.copy(), coll_df_hal_rennes, progress_bar_st=progress_bar_rennes, progress_text_st=progress_text_area_rennes) # Passé les bons objets
+        st.success(f"Comparaison HAL pour {collection_a_chercher_rennes} terminée.")
+        # progress_bar_rennes est géré par check_df
 
         # --- Étape 7 : Enrichissement Unpaywall ---
-        with st.spinner(f"Enrichissement Unpaywall pour {collection_a_chercher_nantes}..."):
-            progress_text_area_nantes.info("Étape 7/9 : Enrichissement Unpaywall...") # Corrigé
-            progress_bar_nantes.progress(70) # Corrigé (ajouté avant l'appel)
-            result_df_nantes = enrich_w_upw_parallel(result_df_nantes.copy())
-            st.success(f"Enrichissement Unpaywall pour {collection_a_chercher_nantes} terminé.")
-        # progress_bar_nantes.progress(70) # Déplacé avant l'appel
+        with st.spinner(f"Enrichissement Unpaywall pour {collection_a_chercher_rennes}..."):
+            progress_text_area_rennes.info("Étape 7/9 : Enrichissement Unpaywall...") # Corrigé
+            progress_bar_rennes.progress(70) # Corrigé (ajouté avant l'appel)
+            result_df_rennes = enrich_w_upw_parallel(result_df_rennes.copy())
+            st.success(f"Enrichissement Unpaywall pour {collection_a_chercher_rennes} terminé.")
+        # progress_bar_rennes.progress(70) # Déplacé avant l'appel
 
         # --- Étape 8 : Permissions de dépôt ---
-        with st.spinner(f"Récupération des permissions pour {collection_a_chercher_nantes}..."):
-            progress_text_area_nantes.info("Étape 8/9 : Récupération des permissions de dépôt...") # Corrigé
-            progress_bar_nantes.progress(80) # Corrigé (ajouté avant l'appel)
-            result_df_nantes = add_permissions_parallel(result_df_nantes.copy())
-            st.success(f"Permissions pour {collection_a_chercher_nantes} récupérées.")
-        # progress_bar_nantes.progress(80) # Déplacé avant l'appel
+        with st.spinner(f"Récupération des permissions pour {collection_a_chercher_rennes}..."):
+            progress_text_area_rennes.info("Étape 8/9 : Récupération des permissions de dépôt...") # Corrigé
+            progress_bar_rennes.progress(80) # Corrigé (ajouté avant l'appel)
+            result_df_rennes = add_permissions_parallel(result_df_rennes.copy())
+            st.success(f"Permissions pour {collection_a_chercher_rennes} récupérées.")
+        # progress_bar_rennes.progress(80) # Déplacé avant l'appel
 
         # --- Étape 9 : Déduction des actions et auteurs ---
-        progress_text_area_nantes.info("Étape 9/9 : Déduction des actions et traitement des auteurs...") # Corrigé
-        if 'Action' not in result_df_nantes.columns: result_df_nantes['Action'] = pd.NA
-        result_df_nantes['Action'] = result_df_nantes.apply(deduce_todo, axis=1)
+        progress_text_area_rennes.info("Étape 9/9 : Déduction des actions et traitement des auteurs...") # Corrigé
+        if 'Action' not in result_df_rennes.columns: result_df_rennes['Action'] = pd.NA
+        result_df_rennes['Action'] = result_df_rennes.apply(deduce_todo, axis=1)
 
-        if fetch_authors_nantes: 
-            with st.spinner(f"Récupération des auteurs Crossref pour {collection_a_chercher_nantes}..."):
-                if 'doi' in result_df_nantes.columns:
+        if fetch_authors_rennes: 
+            with st.spinner(f"Récupération des auteurs Crossref pour {collection_a_chercher_rennes}..."):
+                if 'doi' in result_df_rennes.columns:
                     from concurrent.futures import ThreadPoolExecutor 
                     from tqdm import tqdm 
 
-                    dois_for_authors_nantes = result_df_nantes['doi'].fillna("").tolist()
-                    authors_results_nantes = []
+                    dois_for_authors_rennes = result_df_rennes['doi'].fillna("").tolist()
+                    authors_results_rennes = []
                     with ThreadPoolExecutor(max_workers=10) as executor:
-                        authors_results_nantes = list(tqdm(executor.map(get_authors_from_crossref, dois_for_authors_nantes), total=len(dois_for_authors_nantes), desc="Auteurs Crossref (Nantes)"))
+                        authors_results_rennes = list(tqdm(executor.map(get_authors_from_crossref, dois_for_authors_rennes), total=len(dois_for_authors_rennes), desc="Auteurs Crossref (rennes)"))
                     
-                    result_df_nantes['Auteurs_Crossref'] = ['; '.join(author_l) if isinstance(author_l, list) and not any("Erreur" in str(a) or "Timeout" in str(a) for a in author_l) else (author_l[0] if isinstance(author_l, list) and author_l else '') for author_l in authors_results_nantes]
-                    st.success(f"Auteurs Crossref pour {collection_a_chercher_nantes} récupérés.")
+                    result_df_rennes['Auteurs_Crossref'] = ['; '.join(author_l) if isinstance(author_l, list) and not any("Erreur" in str(a) or "Timeout" in str(a) for a in author_l) else (author_l[0] if isinstance(author_l, list) and author_l else '') for author_l in authors_results_rennes]
+                    st.success(f"Auteurs Crossref pour {collection_a_chercher_rennes} récupérés.")
                 else:
-                    st.warning("Colonne 'doi' non trouvée, impossible de récupérer les auteurs pour la version Nantes.")
-                    result_df_nantes['Auteurs_Crossref'] = ''
+                    st.warning("Colonne 'doi' non trouvée, impossible de récupérer les auteurs pour la version rennes.")
+                    result_df_rennes['Auteurs_Crossref'] = ''
             
-            if compare_authors_nantes and uploaded_authors_file_nantes:
-                with st.spinner(f"Comparaison des auteurs (fichier) pour {collection_a_chercher_nantes}..."):
+            if compare_authors_rennes and uploaded_authors_file_rennes:
+                with st.spinner(f"Comparaison des auteurs (fichier) pour {collection_a_chercher_rennes}..."):
                     try:
-                        user_authors_df_nantes_file = pd.read_csv(uploaded_authors_file_nantes)
-                        if not ({'collection', user_authors_df_nantes_file.columns[1]} <= set(user_authors_df_nantes_file.columns)):
-                            st.error("Fichier CSV auteurs mal formaté pour la version Nantes.")
+                        user_authors_df_rennes_file = pd.read_csv(uploaded_authors_file_rennes)
+                        if not ({'collection', user_authors_df_rennes_file.columns[1]} <= set(user_authors_df_rennes_file.columns)):
+                            st.error("Fichier CSV auteurs mal formaté pour la version rennes.")
                         else:
-                            author_name_col_nantes_file = user_authors_df_nantes_file.columns[1]
-                            noms_ref_nantes_list = user_authors_df_nantes_file[user_authors_df_nantes_file["collection"].astype(str).str.lower() == str(collection_a_chercher_nantes).lower()][author_name_col_nantes_file].dropna().unique().tolist()
-                            if not noms_ref_nantes_list:
-                                st.warning(f"Aucun chercheur pour '{collection_a_chercher_nantes}' dans le fichier fourni (Nantes).")
+                            author_name_col_rennes_file = user_authors_df_rennes_file.columns[1]
+                            noms_ref_rennes_list = user_authors_df_rennes_file[user_authors_df_rennes_file["collection"].astype(str).str.lower() == str(collection_a_chercher_rennes).lower()][author_name_col_rennes_file].dropna().unique().tolist()
+                            if not noms_ref_rennes_list:
+                                st.warning(f"Aucun chercheur pour '{collection_a_chercher_rennes}' dans le fichier fourni (rennes).")
                             else:
-                                chercheur_map_nantes_file = {normalize_name(n): n for n in noms_ref_nantes_list}
-                                initial_map_nantes_file = {get_initial_form(normalize_name(n)): n for n in noms_ref_nantes_list}
+                                chercheur_map_rennes_file = {normalize_name(n): n for n in noms_ref_rennes_list}
+                                initial_map_rennes_file = {get_initial_form(normalize_name(n)): n for n in noms_ref_rennes_list}
                                 from difflib import get_close_matches 
 
-                                def detect_known_authors_nantes_file(authors_str_nantes):
-                                    if pd.isna(authors_str_nantes) or not str(authors_str_nantes).strip() or "Erreur" in authors_str_nantes or "Timeout" in authors_str_nantes: return ""
-                                    authors_pub_nantes = [a.strip() for a in str(authors_str_nantes).split(';') if a.strip()]
-                                    detectes_originaux_nantes = set()
-                                    for author_o_nantes in authors_pub_nantes:
-                                        author_n_nantes = normalize_name(author_o_nantes)
-                                        author_i_n_nantes = get_initial_form(author_n_nantes)
-                                        match_c_nantes = get_close_matches(author_n_nantes, chercheur_map_nantes_file.keys(), n=1, cutoff=0.85)
-                                        if match_c_nantes:
-                                            detectes_originaux_nantes.add(chercheur_map_nantes_file[match_c_nantes[0]])
+                                def detect_known_authors_rennes_file(authors_str_rennes):
+                                    if pd.isna(authors_str_rennes) or not str(authors_str_rennes).strip() or "Erreur" in authors_str_rennes or "Timeout" in authors_str_rennes: return ""
+                                    authors_pub_rennes = [a.strip() for a in str(authors_str_rennes).split(';') if a.strip()]
+                                    detectes_originaux_rennes = set()
+                                    for author_o_rennes in authors_pub_rennes:
+                                        author_n_rennes = normalize_name(author_o_rennes)
+                                        author_i_n_rennes = get_initial_form(author_n_rennes)
+                                        match_c_rennes = get_close_matches(author_n_rennes, chercheur_map_rennes_file.keys(), n=1, cutoff=0.85)
+                                        if match_c_rennes:
+                                            detectes_originaux_rennes.add(chercheur_map_rennes_file[match_c_rennes[0]])
                                             continue
-                                        match_i_nantes = get_close_matches(author_i_n_nantes, initial_map_nantes_file.keys(), n=1, cutoff=0.9)
-                                        if match_i_nantes:
-                                            detectes_originaux_nantes.add(initial_map_nantes_file[match_i_nantes[0]])
-                                    return "; ".join(sorted(list(detectes_originaux_nantes))) if detectes_originaux_nantes else ""
-                                result_df_nantes['Auteurs_Laboratoire_Détectés'] = result_df_nantes['Auteurs_Crossref'].apply(detect_known_authors_nantes_file)
-                                st.success(f"Comparaison auteurs (fichier) pour {collection_a_chercher_nantes} terminée.")
-                    except Exception as e_auth_file_nantes_exc:
-                        st.error(f"Erreur fichier auteurs (Nantes): {e_auth_file_nantes_exc}")
-            elif compare_authors_nantes and not uploaded_authors_file_nantes:
-                 st.warning("Veuillez téléverser un fichier CSV de chercheurs pour la comparaison des auteurs (Nantes).")
+                                        match_i_rennes = get_close_matches(author_i_n_rennes, initial_map_rennes_file.keys(), n=1, cutoff=0.9)
+                                        if match_i_rennes:
+                                            detectes_originaux_rennes.add(initial_map_rennes_file[match_i_rennes[0]])
+                                    return "; ".join(sorted(list(detectes_originaux_rennes))) if detectes_originaux_rennes else ""
+                                result_df_rennes['Auteurs_Laboratoire_Détectés'] = result_df_rennes['Auteurs_Crossref'].apply(detect_known_authors_rennes_file)
+                                st.success(f"Comparaison auteurs (fichier) pour {collection_a_chercher_rennes} terminée.")
+                    except Exception as e_auth_file_rennes_exc:
+                        st.error(f"Erreur fichier auteurs (rennes): {e_auth_file_rennes_exc}")
+            elif compare_authors_rennes and not uploaded_authors_file_rennes:
+                 st.warning("Veuillez téléverser un fichier CSV de chercheurs pour la comparaison des auteurs (rennes).")
 
-        progress_bar_nantes.progress(90) # Corrigé
-        st.success(f"Déduction des actions et traitement des auteurs pour {collection_a_chercher_nantes} terminés.")
+        progress_bar_rennes.progress(90) # Corrigé
+        st.success(f"Déduction des actions et traitement des auteurs pour {collection_a_chercher_rennes} terminés.")
         
-        st.dataframe(result_df_nantes)
+        st.dataframe(result_df_rennes)
 
-        if not result_df_nantes.empty:
-            csv_export_nantes_data = result_df_nantes.to_csv(index=False, encoding='utf-8-sig')
-            output_filename_nantes_final = f"c2LabHAL_resultats_{collection_a_chercher_nantes.replace(' ', '_')}_{start_year_nantes}-{end_year_nantes}.csv"
+        if not result_df_rennes.empty:
+            csv_export_rennes_data = result_df_rennes.to_csv(index=False, encoding='utf-8-sig')
+            output_filename_rennes_final = f"c2LabHAL_resultats_{collection_a_chercher_rennes.replace(' ', '_')}_{start_year_rennes}-{end_year_rennes}.csv"
             st.download_button(
-                label=f"📥 Télécharger les résultats pour {collection_a_chercher_nantes}",
-                data=csv_export_nantes_data,
-                file_name=output_filename_nantes_final,
+                label=f"📥 Télécharger les résultats pour {collection_a_chercher_rennes}",
+                data=csv_export_rennes_data,
+                file_name=output_filename_rennes_final,
                 mime="text/csv",
-                key=f"download_nantes_{collection_a_chercher_nantes}"
+                key=f"download_rennes_{collection_a_chercher_rennes}"
             )
-        progress_bar_nantes.progress(100) # Corrigé
-        progress_text_area_nantes.success(f"🎉 Traitement pour {collection_a_chercher_nantes} terminé avec succès !") # Corrigé
+        progress_bar_rennes.progress(100) # Corrigé
+        progress_text_area_rennes.success(f"🎉 Traitement pour {collection_a_chercher_rennes} terminé avec succès !") # Corrigé
 
 if __name__ == "__main__":
     main()

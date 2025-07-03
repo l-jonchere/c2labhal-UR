@@ -66,10 +66,6 @@ labos_list_rennes = [
         "pubmed_query": "((IPR[Affiliation]) AND (rennes[Affiliation])) OR (Institut de Physique de Rennes[Affiliation]) OR (UMR6251[Affiliation]) OR (UMR 6251[Affiliation]) NOT (Institut Pierre Richet[Affiliation]) NOT (Intelligent Process Automation and Robotics[Affiliation]) NOT (Sant Joan de Déu[Affiliation])"
     },
     {
-        "collection": "GEPEA", "scopus_id": "60105518", "openalex_id": "I4210148006",
-        "pubmed_query": "((GEPEA[Affiliation]) AND ((rennes[Affiliation]) OR (nazaire[Affiliation]) OR (angers[ad) OR (Nntes Université[Affiliation]))) OR (UMR6144[Affiliation]) OR (UMR 6144[Affiliation]) OR (CNRS 6144[Affiliation]) OR (Génie des Procédés Environnement[Affiliation]) AND ((rennes[Affiliation]) OR (nazaire[Affiliation]))"
-    },
-    {
         "collection": "IETR", "scopus_id": "60105585", "openalex_id": "I4210100151",
         "pubmed_query": "(IETR[Affiliation]) OR (CNRS 6164[Affiliation]) OR (UMR 6164[Affiliation]) OR (UMR6164[Affiliation]) OR (IETR Polytech[Affiliation]) OR (Institut d'Electronique et des Technologies du numéRique[Affiliation]) OR (Institut d'Électronique et de Télécommunications[Affiliation])"
     },

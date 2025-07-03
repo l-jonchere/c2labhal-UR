@@ -121,7 +121,7 @@ def add_sidebar_menu():
     **c2LabHAL - Version Université de Rennes** :
     Cette version est préconfigurée pour les laboratoires de l'Université de Rennes.
     Sélectionnez un laboratoire dans la liste pour lancer la comparaison de ses publications
-    (Scopus, OpenAlex, PubMed) avec sa collection HAL.
+    (Scopus, OpenAlex, PubMed) avec sa collection HAL. c2LabHAL est une application créée par Guillaume Godet (Nantes Univ)
     """
 )
     st.sidebar.markdown("---")
@@ -143,8 +143,8 @@ def main():
     st.set_page_config(page_title="c2LabHAL - Rennes", layout="wide")
     add_sidebar_menu() 
 
-    st.title("🥎 c2LabHAL - Version Rennes Université")
-    st.subheader("Comparez les publications d’un laboratoire de l'Université de Rennes avec sa collection HAL.")
+    st.title("🥎 c2LabHAL - Version Université de Rennes")
+    st.subheader("Comparez les publications d’un laboratoire de l'Université de Rennes avec sa collection HAL")
 
     labo_choisi_nom_rennes = st.selectbox(
         "Choisissez une collection HAL de laboratoire (Université de Rennes) :", 

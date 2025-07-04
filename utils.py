@@ -98,7 +98,7 @@ def get_scopus_data(api_key, query, max_items=2000):
 
 def get_openalex_data(query, max_items=2000):
     url = 'https://api.openalex.org/works'
-    email = "hal.dbm@listes.u-paris.fr" 
+    email = "laurent.jonchere@univ-rennes.fr" 
     params = {'filter': query, 'per-page': 200, 'mailto': email} 
     results_json = []
     next_cursor = "*" 

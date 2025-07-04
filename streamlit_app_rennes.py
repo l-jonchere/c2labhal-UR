@@ -70,7 +70,7 @@ labos_list_rennes = [
         "pubmed_query": "(IETR[Affiliation]) OR (CNRS 6164[Affiliation]) OR (UMR 6164[Affiliation]) OR (UMR6164[Affiliation]) OR (IETR Polytech[Affiliation]) OR (Institut d'Electronique et des Technologies du numéRique[Affiliation]) OR (Institut d'Électronique et de Télécommunications[Affiliation])"
     },
     {
-        "collection": "IRSET", "scopus_id": "60105594", "openalex_id": "4210108239",
+        "collection": "IRSET", "scopus_id": "60105594", "openalex_id": "I4210108239",
         "pubmed_query": "((irset[Affiliation]) OR (1085[Affiliation]) OR (Institut de recherche en santé, environnement et travail[Affiliation]) OR (Research Institute for Environmental and Occupational Health[Affiliation]) OR (Institute for Research in Health, Environment and Work[Affiliation]) AND (rennes[Affiliation]) OR (angers[Affiliation])) NOT (IRSET-Center[Affiliation]) NOT (Kristensen[Author])"
     },
     {

@@ -71,7 +71,7 @@ labos_list_rennes = [
     },
     {
         "collection": "IRSET", "scopus_id": "60105594", "openalex_id": "I4210108239",
-        "pubmed_query": "(((irset[Affiliation]) OR (1085[Affiliation]) OR (Institut de recherche en santé, environnement et travail[Affiliation]) OR (Research Institute for Environmental and Occupational Health[Affiliation]) OR (Institute for Research in Health Environment and Work[Affiliation])) AND ((rennes[Affiliation]) OR (angers[Affiliation]))) NOT 40110549[pmid] NOT (IRSET-Center[Affiliation]) NOT (Kristensen[Author]"
+        "pubmed_query": "(((irset[Affiliation]) OR (1085[Affiliation]) OR (Institut de recherche en santé, environnement et travail[Affiliation]) OR (Research Institute for Environmental and Occupational Health[Affiliation]) OR (Institute for Research in Health Environment and Work[Affiliation])) AND ((rennes[Affiliation]) OR (angers[Affiliation]))) NOT 40110549[pmid] NOT 39912476[pmid] NOT 39811079[pmid] NOT (IRSET-Center[Affiliation]) NOT (Kristensen[Author]"
     },
     {
         "collection": "ISCR", "scopus_id": "60072944", "openalex_id": "I4210090783",

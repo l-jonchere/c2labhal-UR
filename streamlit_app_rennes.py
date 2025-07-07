@@ -47,7 +47,7 @@ labos_list_rennes = [
     },
     {
         "collection": "ETHOS", "scopus_id": "60105604", "openalex_id": "I4387154707",
-        "pubmed_query": "((ethos[Affiliation]) OR (UMR6552[Affiliation]) OR (UMR 6552[Affiliation]) OR (Ethologie animale et humaine[Affiliation]) OR (animal and human ethology[Affiliation]) AND (rennes[Affiliation]) OR (caen[Affiliation]))"
+        "pubmed_query": "((ethos[Affiliation] AND (rennes[Affiliation])) OR ((ethos[Affiliation] AND (caen[Affiliation])) OR (UMR6552[Affiliation]) OR (UMR 6552[Affiliation]) OR (Ethologie animale et humaine[Affiliation]) OR (animal and human ethology[Affiliation])"
     },
     {
         "collection": "FOTON", "scopus_id": "60105599", "openalex_id": "I4210138837",

@@ -87,7 +87,7 @@ labos_list_rennes = [
     },
     {
         "collection": "M2S", "scopus_id": "60105531", "openalex_id": "I4210160484",
-        "pubmed_query": "((UR 7470[Affiliation]) OR (UR7470[Affiliation]) OR (UR 1274[Affiliation]) OR (EA 7470[Affiliation]) OR (EA7470[Affiliation]) OR (EA 1274[Affiliation]) OR (EA1274[Affiliation]) OR (Laboratoire mouvement, sport et santé[Affiliation]) OR (Movement, Sport, Health[Affiliation]) OR (M2S[Affiliation]) AND (Rennes[Affiliation]))"
+        "pubmed_query": "(UR* 7470[Affiliation]) OR (UR7470[Affiliation]) OR (UR* 1274[Affiliation]) OR (EA* 7470[Affiliation]) OR (EA7470[Affiliation]) OR (EA* 1274[Affiliation]) OR (EA1274[Affiliation]) OR (\"Laboratoire mouvement, sport et santé\"[Affiliation]) OR (\"Movement, Sport, Health\"[Affiliation]) OR (M2S[Affiliation])"
     },
     {
         "collection": "MOBIDIC", "scopus_id": "60105591", "openalex_id": "I4387154398",
@@ -99,7 +99,7 @@ labos_list_rennes = [
     },
     {
         "collection": "SCANMAT", "scopus_id": "60138457", "openalex_id": "I4387156459",
-        "pubmed_query": "((SCANMAT[affiliation]) OR (UMS2001[affiliation]) AND (rennes[Affiliation]))"
+        "pubmed_query": "(SCANMAT[affiliation]) OR (UMS2001[affiliation])"
     },
     {
         "collection": "CREM", "scopus_id": "60105603", "openalex_id": "I4210088544",

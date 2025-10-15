@@ -17,7 +17,7 @@ from utils import (
 # --- Définition de la liste des laboratoires (spécifique à cette application) ---
 labos_list_rennes = [
     {
-        "collection": "CAPHI", "scopus_id": "60105490", "openalex_id": "I4387152714",
+        "collection": "CAPHI", "scopus_id": "60105490", "openalex_raw":"(\"Centre Atlantique de Philosophie\") OR CAPHI OR UR7463 OR (\"UR 7463\") OR (\"UR 1270\") OR UR1270  OR (\"EA 1270\") OR EA1270"
         "pubmed_query": "(CAPHI[Affiliation]) OR (\"CENTRE ATLANTIQUE DE PHILOSOPHIE\"[Affiliation]) OR (\"EA 7463\" [Affiliation]) OR (EA7463[Affiliation]) OR (UR7463[Affiliation]) OR (\"UR 7463\"[Affiliation])"
     },
     {
@@ -155,6 +155,7 @@ def main():
     collection_a_chercher_rennes = labo_selectionne_details_rennes['collection']
     scopus_lab_id_rennes = labo_selectionne_details_rennes.get('scopus_id', '') 
     openalex_institution_id_rennes = labo_selectionne_details_rennes.get('openalex_id', '')
+    openalex_institution_raw_rennes = labo_selectionne_details_rennes.get('openalex_raw', '') # ajout Laurent
     pubmed_query_labo_rennes = labo_selectionne_details_rennes.get('pubmed_query', '')
 
     scopus_api_key_secret_rennes = st.secrets.get("SCOPUS_API_KEY")
@@ -197,6 +198,28 @@ def main():
                 progress_text_area_rennes.info("Étape 1/9 : Récupération des données OpenAlex...") # Corrigé
                 progress_bar_rennes.progress(5) # Corrigé
                 openalex_query_complet_rennes = f"authorships.institutions.id:{openalex_institution_id_rennes},publication_year:{start_year_rennes}-{end_year_rennes}"
+                openalex_data_rennes = get_openalex_data(openalex_query_complet_rennes, max_items=5000)
+                if openalex_data_rennes:
+                    openalex_df_rennes = convert_to_dataframe(openalex_data_rennes, 'openalex')
+                    openalex_df_rennes['Source title'] = openalex_df_rennes.apply(
+                        lambda row: row.get('primary_location', {}).get('source', {}).get('display_name') if isinstance(row.get('primary_location'), dict) and row['primary_location'].get('source') else None, axis=1
+                    )
+                    openalex_df_rennes['Date'] = openalex_df_rennes.get('publication_date', pd.Series(index=openalex_df_rennes.index, dtype='object'))
+                    openalex_df_rennes['doi'] = openalex_df_rennes.get('doi', pd.Series(index=openalex_df_rennes.index, dtype='object'))
+                    openalex_df_rennes['id'] = openalex_df_rennes.get('id', pd.Series(index=openalex_df_rennes.index, dtype='object'))
+                    openalex_df_rennes['Title'] = openalex_df_rennes.get('title', pd.Series(index=openalex_df_rennes.index, dtype='object'))
+                    cols_to_keep_rennes = ['Data source', 'Title', 'doi', 'id', 'Source title', 'Date']
+                    openalex_df_rennes = openalex_df_rennes[[col for col in cols_to_keep_rennes if col in openalex_df_rennes.columns]]
+                    if 'doi' in openalex_df_rennes.columns:
+                        openalex_df_rennes['doi'] = openalex_df_rennes['doi'].apply(clean_doi)
+                st.success(f"{len(openalex_df_rennes)} publications OpenAlex trouvées pour {collection_a_chercher_rennes}.")
+        progress_bar_rennes.progress(10) # Corrigé
+
+        if openalex_institution_raw_rennes:
+            with st.spinner(f"Récupération OpenAlex pour {collection_a_chercher_rennes}..."):
+                progress_text_area_rennes.info("Étape 1/9 : Récupération des données OpenAlex...") # Corrigé
+                progress_bar_rennes.progress(5) # Corrigé
+                openalex_query_complet_rennes = f"raw_affiliation_strings.search:{openalex_institution_raw_rennes},publication_year:{start_year_rennes}-{end_year_rennes}"
                 openalex_data_rennes = get_openalex_data(openalex_query_complet_rennes, max_items=5000)
                 if openalex_data_rennes:
                     openalex_df_rennes = convert_to_dataframe(openalex_data_rennes, 'openalex')

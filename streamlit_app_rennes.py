@@ -55,22 +55,18 @@ labos_list_rennes = [
     },
     {
         "collection": "IETR", "scopus_id": "60105585", "openalex_id": "I4210100151", "openalex_raw":"(UMR6164 OR \"UMR 6164\" OR \"Institut d’Électronique et de Télécommunication de Rennes\" OR \"Institut d electronique et de Telecommunication de Rennes\" OR \"Institute of Electronics and Telecommunications of Rennes\" OR IETR OR \"Institut d'Électronique et des Technologies du numéRique\" OR \"IETR–UMR\") NOT (Nantes) NOT (\"Innovative Research Unit of Epithelial Transport and Regulation\"),display_name:!Batard|Bourlier|Charge|Chousseaud|Descamps|Diouris|El Assad|El Gibari|Feuvrie|Froppier|Ginot|Guiffard|Gundel|Le Bastard|Le Nours|Li Hong|Mahe|Motta Cruz|Pasquier|Pillement|Poulain|Razban|Wang",
-        "pubmed_query": "(IETR[Affiliation]) OR (Institut d'Électronique et des Technologies du numéRique[Affiliation]) OR (UMR6164[Affiliation]) OR (UMR 6164[Affiliation])"
+        "pubmed_query": "(IETR[Affiliation]) OR (Institut d'Électronique et des Technologies du numéRique[Affiliation]) OR (UMR6164[Affiliation]) OR (UMR 6164[Affiliation]) OR (IETR Polytech[Affiliation]) OR (Institut d'Electronique et des Technologies du numéRique[Affiliation]) OR (Institut d'Électronique et de Télécommunications[Affiliation])"
     },
     {
-        "collection": "IGDR", "scopus_id": "60105597", "openalex_id": "I4210127029", "openalex_raw":"",
+        "collection": "IGDR", "scopus_id": "60105597", "openalex_id": "I4210127029", "openalex_raw":"ERL1305 OR \"ERL 1305\" OR UMR6290 OR \"UMR 6290\" OR IGDR OR \"Institut de génétique et développement de Rennes\" OR \"Institut de genetique et developpement de Rennes\" NOT \"Instituto de Geografía y Desarrollo Regional\"",
         "pubmed_query": "(IGDR[Affiliation]) OR (6290[Affiliation]) OR (Institut de génétique et développement de Rennes[Affiliation]) OR (Institute of Genetics and Development of Rennes[Affiliation]) NOT (Nikon[Affiliation])"
     },
     {
-        "collection": "IPR", "scopus_id": "60105586", "openalex_id": "I4210109443", "openalex_raw":"",
+        "collection": "IPR", "scopus_id": "60105586", "openalex_id": "I4210109443", "openalex_raw":"UMR6251 OR \"UMR 6251\" OR \"Institut de physique de Rennes\" OR \"Institute of Physics of Rennes\" OR \"Rennes Institute of Physics\" OR LARMAUR OR \"Mécanique et Verres\" OR (IPR AND France) NOT (\"Institut Pierre Richet\" OR \"Intelligent Process Automation and Robotics\" OR \"Sant Joan de Deu\" OR \"Institut Polytechnique Rural de Formation et de Recherche Appliquee\" OR \"Institut Paris Région\")",
         "pubmed_query": "((IPR[Affiliation]) AND (rennes[Affiliation])) OR (Institut de Physique de Rennes[Affiliation]) OR (UMR6251[Affiliation]) OR (UMR 6251[Affiliation]) NOT (Institut Pierre Richet[Affiliation]) NOT (Intelligent Process Automation and Robotics[Affiliation]) NOT (Sant Joan de Déu[Affiliation])"
     },
     {
-        "collection": "IETR", "scopus_id": "60105585", "openalex_id": "I4210100151", "openalex_raw":"",
-        "pubmed_query": "(IETR[Affiliation]) OR (CNRS 6164[Affiliation]) OR (UMR 6164[Affiliation]) OR (UMR6164[Affiliation]) OR (IETR Polytech[Affiliation]) OR (Institut d'Electronique et des Technologies du numéRique[Affiliation]) OR (Institut d'Électronique et de Télécommunications[Affiliation])"
-    },
-    {
-        "collection": "IRSET", "scopus_id": "60105594", "openalex_id": "I4210108239", "openalex_raw":"",
+        "collection": "IRSET", "scopus_id": "60105594", "openalex_id": "I4210108239", "openalex_raw":"UMR1085 OR U1085 OR \"U 1085\" OR IRSET OR \"Research Institute for Environmental and Occupational Health\" OR \"Institut de Recherche en Santé Environnement et Travail\" OR \"Institut de Recherche en Sante Environnement et Travail\" OR \"IRSET-INSERM-1085\" OR \"Irset-UMR_S 1085\" OR \"UMR_S 1085\" OR \"Institute for Research in Health Environment and Work\" OR \"UMRS 1085\"  OR \"UMR 1085\" NOT (ISORG OR \"Julia Ester Gonzales Delgado de Loja\" OR \"Department of Speech Language and Hearing Sciences\"),institutions.id:!I157943965|I43526919|I4210159825| I101202996,display_name:!Kristensen David Møbjerg|!Kristensen David M,author.id:!A5042113315|A5034669762",
         "pubmed_query": "(irset[Affiliation]) OR (U1085[Affiliation]) OR (UMR1085[Affiliation]) OR (UMR-S 1085[Affiliation]) OR (Institut de recherche en santé, environnement et travail[Affiliation]) OR (Research Institute for Environmental and Occupational Health[Affiliation]) OR (Institute for Research in Health Environment and Work[Affiliation]) NOT (IRSET-Center[Affiliation]) NOT (Kristensen[Author]"
     },
     {

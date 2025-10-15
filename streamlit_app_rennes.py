@@ -17,7 +17,7 @@ from utils import (
 # --- Définition de la liste des laboratoires (spécifique à cette application) ---
 labos_list_rennes = [
     {
-        "collection": "CAPHI", "scopus_id": "60105490", "openalex_raw":"(\"Centre Atlantique de Philosophie\") OR CAPHI OR UR7463 OR (\"UR 7463\") OR (\"UR 1270\") OR UR1270  OR (\"EA 1270\") OR EA1270",
+        "collection": "CAPHI", "scopus_id": "60105490", "openalex_id": "I4387152714", "openalex_raw":"(\"Centre Atlantique de Philosophie\") OR CAPHI OR UR7463 OR (\"UR 7463\") OR (\"UR 1270\") OR UR1270  OR (\"EA 1270\") OR EA1270",
         "pubmed_query": "(CAPHI[Affiliation]) OR (\"CENTRE ATLANTIQUE DE PHILOSOPHIE\"[Affiliation]) OR (\"EA 7463\" [Affiliation]) OR (EA7463[Affiliation]) OR (UR7463[Affiliation]) OR (\"UR 7463\"[Affiliation])"
     },
     {

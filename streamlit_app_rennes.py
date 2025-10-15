@@ -59,7 +59,7 @@ labos_list_rennes = [
     },
     {
         "collection": "IGDR", "scopus_id": "60105597", "openalex_id": "I4210127029", "openalex_raw":"ERL1305 OR \"ERL 1305\" OR UMR6290 OR \"UMR 6290\" OR IGDR OR \"Institut de génétique et développement de Rennes\" OR \"Institut de genetique et developpement de Rennes\" NOT \"Instituto de Geografía y Desarrollo Regional\"",
-        "pubmed_query": "(IGDR[Affiliation]) OR (6290[Affiliation]) OR (Institut de génétique et développement de Rennes[Affiliation]) OR (Institute of Genetics and Development of Rennes[Affiliation]) NOT (Nikon[Affiliation])"
+        "pubmed_query": "(IGDR[Affiliation]) OR (6290[Affiliation]) OR (Institut de génétique et développement de Rennes[Affiliation]) OR (Institute of Genetics and Development of Rennes[Affiliation]) OR (Lise BOUSSEMART[Author]) OR (Véronique DAVID[Author]) OR (Marie DE TAYRAC[Author]) OR (Virginie DELIGNIERE-GANDEMER[Author]) OR (Virginie GANDEMER[Author]) OR (Christèle DUBOURG[Author]) OR (Marie-Domininique GALIBERT[Author]) OR (Jean MOSSER[Author]) OR (Sylvie ODENT[Author]) NOT (Nikon[Affiliation])"
     },
     {
         "collection": "IPR", "scopus_id": "60105586", "openalex_id": "I4210109443", "openalex_raw":"UMR6251 OR \"UMR 6251\" OR \"Institut de physique de Rennes\" OR \"Institute of Physics of Rennes\" OR \"Rennes Institute of Physics\" OR LARMAUR OR \"Mécanique et Verres\" OR (IPR AND France) NOT (\"Institut Pierre Richet\" OR \"Intelligent Process Automation and Robotics\" OR \"Sant Joan de Deu\" OR \"Institut Polytechnique Rural de Formation et de Recherche Appliquee\" OR \"Institut Paris Région\")",

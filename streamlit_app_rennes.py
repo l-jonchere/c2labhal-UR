@@ -54,7 +54,7 @@ labos_list_rennes = [
         "pubmed_query": "(\"Fonctions Optiques pour les Technologies de l’information\"[Affiliation]) OR (UMR6082[Affiliation]) OR (UMR 6082[Affiliation])"
     },
     {
-        "collection": "IETR", "scopus_id": "60105585", "openalex_id": "I4210100151", "openalex_raw":"(UMR6164 OR "UMR 6164" OR "Institut d’Électronique et de Télécommunication de Rennes" OR "Institute of Electronics and Telecommunications of Rennes" OR IETR OR "Institut d'Électronique et des Technologies du numéRique" OR "IETR–UMR") NOT (Nantes) NOT ("Innovative Research Unit of Epithelial Transport and Regulation"),display_name:!Batard|Bourlier|Charge|Chousseaud|Descamps|Diouris|El Assad|El Gibari|Feuvrie|Froppier|Ginot|Guiffard|Gundel|Le Bastard|Le Nours|Li Hong|Mahe|Motta Cruz|Pasquier|Pillement|Poulain|Razban|Wang",
+        "collection": "IETR", "scopus_id": "60105585", "openalex_id": "I4210100151", "openalex_raw":"(UMR6164 OR \"UMR 6164\" OR \"Institut d’Électronique et de Télécommunication de Rennes\" OR \"Institut d electronique et de Telecommunication de Rennes\" OR \"Institute of Electronics and Telecommunications of Rennes\" OR IETR OR \"Institut d'Électronique et des Technologies du numéRique\" OR \"IETR–UMR\") NOT (Nantes) NOT (\"Innovative Research Unit of Epithelial Transport and Regulation\"),display_name:!Batard|Bourlier|Charge|Chousseaud|Descamps|Diouris|El Assad|El Gibari|Feuvrie|Froppier|Ginot|Guiffard|Gundel|Le Bastard|Le Nours|Li Hong|Mahe|Motta Cruz|Pasquier|Pillement|Poulain|Razban|Wang",
         "pubmed_query": "(IETR[Affiliation]) OR (Institut d'Électronique et des Technologies du numéRique[Affiliation]) OR (UMR6164[Affiliation]) OR (UMR 6164[Affiliation])"
     },
     {

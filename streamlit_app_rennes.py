@@ -42,19 +42,19 @@ labos_list_rennes = [
         "pubmed_query": "((u1242[Affiliation]) OR (u 1242[Affiliation]) OR (Oncogenesis, Stress and Signaling[Affiliation]) OR (COSS[Affiliation]) OR (ERL440[Affiliation]) OR (ER440[Affiliation]) AND (Rennes[Affiliation]))"
     },
     {
-        "collection": "ECOBIO", "scopus_id": "60105587", "openalex_id": "I4210087209", "openalex_raw":"",
+        "collection": "ECOBIO", "scopus_id": "60105587", "openalex_id": "I4210087209", "openalex_raw":"UMR6553 OR \"UMR 6553\" OR \"Écosystèmes biodiversité évolution\" OR (ECOBIO AND France) OR \"Ecosystem Biodiversity Evolution\" NOT \"Laboratoire de Géographie Physique et Environnementale\"",
         "pubmed_query": "((ecobio[Affiliation]) OR (6553[Affiliation]) OR (Écosystèmes, biodiversité, évolution[Affiliation]) OR (Ecosystems, Biodiversity, Evolution[Affiliation]) AND (rennes[Affiliation])) OR (paimpont[Affiliation])"
     },
     {
-        "collection": "ETHOS", "scopus_id": "60105604", "openalex_id": "I4387154707", "openalex_raw":"",
+        "collection": "ETHOS", "scopus_id": "60105604", "openalex_id": "I4387154707", "openalex_raw":"((UMR6552 OR \"UMR 6552\" OR \"Ethologie animale et humaine\" OR \"animal and human ethology\" OR \"Éthologie animale et humaine—UMR 6552\" OR ETHOS) AND (France))",
         "pubmed_query": "(UMR6552[Affiliation]) OR (UMR 6552[Affiliation]) OR (UMR* 6552[Affiliation]) OR (Ethologie animale et humaine[Affiliation]) OR (animal and human ethology[Affiliation])"
     },
     {
-        "collection": "FOTON", "scopus_id": "60105599", "openalex_id": "I4210138837", "openalex_raw":"",
+        "collection": "FOTON", "scopus_id": "60105599", "openalex_id": "I4210138837", "openalex_raw":"UMR6082 OR \"UMR 6082\" OR \"Fonctions Optiques pour les Technologies\" OR \"Optical Functions for Information Technology\" OR ENSSAT OR (FOTON AND France) NOT \"DEOS - Département Electronique Optronique et Signal\"",
         "pubmed_query": "(\"Fonctions Optiques pour les Technologies de l’information\"[Affiliation]) OR (UMR6082[Affiliation]) OR (UMR 6082[Affiliation])"
     },
     {
-        "collection": "IETR", "scopus_id": "60105585", "openalex_id": "I4210100151", "openalex_raw":"",
+        "collection": "IETR", "scopus_id": "60105585", "openalex_id": "I4210100151", "openalex_raw":"(UMR6164 OR "UMR 6164" OR "Institut d’Électronique et de Télécommunication de Rennes" OR "Institute of Electronics and Telecommunications of Rennes" OR IETR OR "Institut d'Électronique et des Technologies du numéRique" OR "IETR–UMR") NOT (Nantes) NOT ("Innovative Research Unit of Epithelial Transport and Regulation"),display_name:!Batard|Bourlier|Charge|Chousseaud|Descamps|Diouris|El Assad|El Gibari|Feuvrie|Froppier|Ginot|Guiffard|Gundel|Le Bastard|Le Nours|Li Hong|Mahe|Motta Cruz|Pasquier|Pillement|Poulain|Razban|Wang",
         "pubmed_query": "(IETR[Affiliation]) OR (Institut d'Électronique et des Technologies du numéRique[Affiliation]) OR (UMR6164[Affiliation]) OR (UMR 6164[Affiliation])"
     },
     {

@@ -70,39 +70,39 @@ labos_list_rennes = [
         "pubmed_query": "(irset[Affiliation]) OR (U1085[Affiliation]) OR (UMR1085[Affiliation]) OR (UMR-S 1085[Affiliation]) OR (Institut de recherche en santé, environnement et travail[Affiliation]) OR (Research Institute for Environmental and Occupational Health[Affiliation]) OR (Institute for Research in Health Environment and Work[Affiliation]) NOT (IRSET-Center[Affiliation]) NOT (Kristensen[Author]"
     },
     {
-        "collection": "ISCR", "scopus_id": "60072944", "openalex_id": "I4210090783", "openalex_raw":"",
+        "collection": "ISCR", "scopus_id": "60072944", "openalex_id": "I4210090783", "openalex_raw":"UMR6226 OR \"UMR 6226\" OR \"ISCR – UMR 6226\" OR ISCR OR \"ISCR-UMR\" OR \"ISCR-UMR6226\" OR \"Institut des sciences chimiques de Rennes\" OR \"Sciences chimiques de Rennes\" OR MACSE OR \"Chemical Institute of Rennes\" OR \"Glasses and Ceramics\" OR PNSCM OR \"Rennes National Higher School of Chemistry\" OR \"Laboratory of Glasses and Ceramics\" OR \"Rennes Institute of Chemical Science\" OR \"Rennes Institute for Chemical Science\" OR \"Rennes Institute for Chemical Sciences\" OR \"École nationale supérieure de chimie de Rennes\" OR ENSCR OR \"Institute of Chemical Sciences of Rennes\"",
         "pubmed_query": "((institut des sciences chimiques de rennes[Affiliation]) OR (6226[Affiliation]) OR (ISCR[Affiliation]) OR (ISCR-UMR[Affiliation]) OR (National Higher School of Chemistry[Affiliation]) OR (MACSE[Affiliation]) OR (CORINT[Affiliation]) OR (Glasses and Ceramics[Affiliation]) OR (Institute of Chemical Science[Affiliation]) OR (Institute for Chemical Science[Affiliation]) OR (Ecole nationale supérieure de chimie de Rennes[Affiliation]) OR (ENSCR[Affiliation]) AND (rennes[Affiliation]))"
     },
     {
-        "collection": "LGCGM", "scopus_id": "60105557", "openalex_id": "I4387155956", "openalex_raw":"",
+        "collection": "LGCGM", "scopus_id": "60105557", "openalex_id": "I4387155956", "openalex_raw":"(\"Laboratory of Civil Engineering and Mechanical Engineering\" OR UR3913 OR \"Laboratoire de génie civil et génie mécanique\" OR \"Laboratoire de génie civil et génie mécanique\" OR LGCGM OR \"UR 3913\" OR EA3913 OR \"EA 3913\" OR \"Laboratoire de génie civil et de génie mécanique\" OR \"Structural Engineering Research Group Lab\") AND (France)",
         "pubmed_query": "(LGCGM[Affiliation]) OR (UR 3913[Affiliation]) OR (UR3913[Affiliation]) OR (EA 3913[Affiliation]) OR (EA3913[Affiliation]) OR (\"Laboratoire de génie civil et génie mécanique\"[Affiliation] OR ((Quang Huy Nguyen[Author]) OR (Maël Couchaux[Author]) OR (Fabrice Bernard[Author]) OR (Paul Byrne[Author]) OR (Amina Meslem[Author]) OR (Florence Collet[Author]) OR (Mohammed Hjiaj[Author]) OR (Piseth Heng[Author]) OR (Hugues Somja[Author]) OR (Siham Kamali-Bernard[Author]) OR (Balaji Raghavan[Author]) AND (rennes[Affiliation]))"
     },
     {
-        "collection": "LTSI", "scopus_id": "60105589", "openalex_id": "I4210105651", "openalex_raw":"",
+        "collection": "LTSI", "scopus_id": "60105589", "openalex_id": "I4210105651", "openalex_raw":"\"UMR-1099\" OR UMR1099 OR U1099 OR \"U 1099\" OR \"UMR 1099\" OR \"UMR_S 1099\" OR LTSI OR CRIBS OR \"CIC-IT 804\" OR \"CIC-IT804\" OR \"CIC-IT Rennes\" OR \"Laboratoire traitement du signal et de l'image\" OR \"Laboratoire traitement du signal et de l image\" OR \"Signal and Image Processing Laboratory\" OR \"Centre de Recherche en Information Biomédicale Sino-Français\" OR \"Centre de Recherche en Information Biomedicale Sino-Francais\" OR (medicis AND Rennes) NOT (BiSIPL OR SIPL OR \"Remote Sensing Signal and Image Processing Laboratory\" OR \"Biomedical Signal and Image Processing Laboratory\" OR \"Industrial Technologies and Services Laboratory\" OR \"Laboratoire de Recherches Technologies et Services Industriels\" OR \"KSIP lab\" OR \"Center for Research for Infant Birth and Survival\")",
         "pubmed_query": "(LTSI[Affiliation]) OR (U1099[Affiliation]) OR (UMR1099[Affiliation]) OR (UMR* 1099[Affiliation]) OR (CRIBS[Affiliation]) OR (Centre de recherche en information biomédicale sino-français[Affiliation]) OR (CIC-IT[Affiliation]) OR (U* 804[Affiliation]) OR (medicis[Affiliation]) OR (Signal and Image Processing Laboratory[Affiliation] OR (\"Laboratoire traitement du signal et de l'image\"[Affiliation]) OR (\"Centre de Recherche en Information Biomédicale Sino-Français\"[Affiliation])"
     },
     {
-        "collection": "M2S", "scopus_id": "60105531", "openalex_id": "I4210160484", "openalex_raw":"",
+        "collection": "M2S", "scopus_id": "60105531", "openalex_id": "I4210160484", "openalex_raw":"\"UR 7470\" OR UR7470 OR UR1274 OR \"UR 1274\" OR \"EA 7470\" OR EA7470 OR EA1274 OR \"EA 1274\" OR M2S OR \"Laboratoire mouvement sport et santé\" OR (Movement Sport Health AND Rennes) ",
         "pubmed_query": "(UR* 7470[Affiliation]) OR (UR7470[Affiliation]) OR (UR* 1274[Affiliation]) OR (EA* 7470[Affiliation]) OR (EA7470[Affiliation]) OR (EA* 1274[Affiliation]) OR (EA1274[Affiliation]) OR (\"Laboratoire mouvement, sport et santé\"[Affiliation]) OR (\"Movement, Sport, Health\"[Affiliation]) OR (M2S[Affiliation])"
     },
     {
-        "collection": "MOBIDIC", "scopus_id": "60105591", "openalex_id": "I4387154398", "openalex_raw":"",
+        "collection": "MOBIDIC", "scopus_id": "60105591", "openalex_id": "I4387154398", "openalex_raw":"mobidic OR u1236 OR micmac OR \"Microenvironment and B-cells\" OR UMR1236 OR u917 OR \"UMR_ S 1236\"",
         "pubmed_query": "(MOBIDIC[Affiliation]) OR (Microenvironment and B-cells: Immunopathology, Cell Differentiation, and Cancer[Affiliation]) OR (Microenvironment and B-cells and Cancer[Affiliation]) OR (micmac[Affiliation]) OR (Microenvironment, Cell Differentiation, Immunology and Cancer[Affiliation]) OR (UMR_S 1236[Affiliation]) OR (U1236[Affiliation]) OR (U* 1236[Affiliation]) OR (UMR_S1236[Affiliation]) OR (u917[Affiliation]) OR (U 917[Affiliation]) OR (UMR_S917[Affiliation]) OR (UMR_S 917[Affiliation]) NOT (Educell Ltd[Affiliation]) NOT (MicMac Road[Affiliation]) NOT (Montpellier BioInformatics for Clinical Diagnosis[Affiliation]))"
     },
     {
-        "collection": "NUMECAN", "scopus_id": "60112105", "openalex_id": "I4387156410", "openalex_raw":"",
+        "collection": "NUMECAN", "scopus_id": "60112105", "openalex_id": "I4387156410", "openalex_raw":"UMR1317 OR (NUMECAN AND Rennes) OR (NUMECAN AND \"Saint-Gilles\") OR U1317 OR \"U 1317\" OR \"U-1317\" OR UMR1241 OR \"U 1241\" OR \"U-1241\" OR EA1254 OR \"EA 1254\" OR U991 OR \"U 991\" OR (\"Nutrition Métabolismes et Cancer\" AND Rennes)",
         "pubmed_query": "(UMR991[affiliation]) OR (UMR 991[affiliation]) OR (U991[affiliation]) OR (U* 991[affiliation]) OR (foie, métabolismes et cancer[affiliation]) OR (foie, metabolismes et cancer[affiliation]) OR (liver, metabolisms and cancer[affiliation]) OR (EA 1254[affiliation]) OR (EA1254[affiliation]) OR (microbiologie: risques infectieux[affiliation]) OR (U1317[Affiliation]) OR (U 1317[Affiliation]) OR (U-1317[Affiliation]) OR (UMR_S 1317[Affiliation]) OR (UMR 1317[Affiliation]) OR (U1241[Affiliation]) OR (U 1241[Affiliation]) OR (U-1241[Affiliation]) OR (UMR_S 1241[Affiliation]) OR (UMR 1241[Affiliation]) OR (UMR 1341[Affiliation]) OR (UMR INRA 1341[Affiliation]) OR (numecan[Affiliation]) OR (nutrition, métabolismes et cancer[Affiliation]) OR (nutrition, metabolismes et cancer[Affiliation]) OR (nutrition, metabolisms and cancer[Affiliation]) OR ((ARNAUD Alexis OR BELLANGER Amandine OR BUFFET-BATAILLON Sylvie OR MOIRAND Romain OR THIBAULT Ronan OR ARTRU Florent OR BENDAVID Claude OR BOUGUEN Guillaume OR CABILLIC Florian OR GICQUEL Thomas OR LE DARE Brendan OR LEBOUVIER Thomas OR MOREL Isabelle OR NESSELER Nicolas  OR PELLETIER Romain OR PEYRONNET Benoit OR RAYAR Michel OR  SIPROUDHIS Laurent OR GUGGENBUHL Pascal OR  BARDOU-JACQUET Edouard OR BONNET Fabrice OR DESCLOS-THEVENIAU Marie OR GARIN Etienne OR HAMDI-ROZE Houda OR LAINE Fabrice OR MEURIC Vincent OR RANGE Hélène OR ROBIN François OR ROPARS Mickael OR ROPERT Martine OR TURLIN Bruno) AND (Rennes[Affiliation]))"
     },
     {
-        "collection": "SCANMAT", "scopus_id": "60138457", "openalex_id": "I4387156459", "openalex_raw":"",
+        "collection": "SCANMAT", "scopus_id": "60138457", "openalex_id": "I4387156459", "openalex_raw":"SCANMAT OR UMS2001 OR \"UMS 2001\" OR \"Synthèse Caractérisations Analyses de la MATière\" OR UAR2025 OR \"UAR 2025\"",
         "pubmed_query": "(SCANMAT[affiliation]) OR (UMS2001[affiliation])"
     },
     {
-        "collection": "CREM", "scopus_id": "60105603", "openalex_id": "I4210088544", "openalex_raw":"",
+        "collection": "CREM", "scopus_id": "60105603", "openalex_id": "I4210088544", "openalex_raw":"(UMR6211 OR \"UMR 6211\" OR CREM OR \"Centre de recherche en économie et management\" OR \"Centre de recherche en economie et management\" OR \"Center for Research in Economics and Management\" OR \"IGR-IAE\" OR IGR OR \"Institut de gestion de Rennes\") AND (Rennes OR Caen) NOT Villejuif NOT \"Centre de Recherche sur les Médiations\"",
         "pubmed_query": ""
     },
     {
-        "collection": "VIPS2", "scopus_id": "60105580", "openalex_id": "I4387155754", "openalex_raw":"",
+        "collection": "VIPS2", "scopus_id": "60105580", "openalex_id": "I4387155754", "openalex_raw":"\"Valeurs Innovations Politiques Socialisations Sports\" OR VIPS2 OR VIPS OR \"UR 4636\" OR UR4636",
         "pubmed_query": "(VIPS2[Affiliation]) OR (Valeurs, Innovations, Politiques, Socialisations et Sports[Affiliation]) OR (UR 4636[Affiliation]) OR (UR4636[Affiliation])"
     },
 ]

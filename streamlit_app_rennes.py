@@ -106,7 +106,7 @@ labos_list_rennes = [
         "pubmed_query": "(VIPS2[Affiliation]) OR (Valeurs, Innovations, Politiques, Socialisations et Sports[Affiliation]) OR (UR 4636[Affiliation]) OR (UR4636[Affiliation])"
     },
     {
-        "collection": "GR", "scopus_id": "60070475", "openalex_id": "i4210096833", "openalex_raw":"\"Géosciences Rennes\" OR "\"Geosciences Rennes\" OR UMR6118 OR VIPS OR \"UMR 6118\" OR \"CNRS 6118\" OR UMR-6118",
+        "collection": "GR", "scopus_id": "60070475", "openalex_id": "i4210096833", "openalex_raw":"\"Géosciences Rennes\" OR \"Geosciences Rennes\" OR UMR6118 OR VIPS OR \"UMR 6118\" OR \"CNRS 6118\" OR UMR-6118",
         "pubmed_query": "(Geosciences Rennes[Affiliation]) OR (6118[Affiliation]) OR (UMR 6118[Affiliation]) OR (UMR-6118[Affiliation]) OR (UMR6118[Affiliation])"
     },
 ]

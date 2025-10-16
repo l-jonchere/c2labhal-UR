@@ -105,6 +105,10 @@ labos_list_rennes = [
         "collection": "VIPS2", "scopus_id": "60105580", "openalex_id": "I4387155754", "openalex_raw":"\"Valeurs Innovations Politiques Socialisations Sports\" OR VIPS2 OR VIPS OR \"UR 4636\" OR UR4636",
         "pubmed_query": "(VIPS2[Affiliation]) OR (Valeurs, Innovations, Politiques, Socialisations et Sports[Affiliation]) OR (UR 4636[Affiliation]) OR (UR4636[Affiliation])"
     },
+    {
+        "collection": "GR", "scopus_id": "60070475", "openalex_id": "i4210096833", "openalex_raw":"\"Géosciences Rennes\" OR "\"Geosciences Rennes\" OR UMR6118 OR VIPS OR \"UMR 6118\" OR \"CNRS 6118\" OR UMR-6118",
+        "pubmed_query": "(Geosciences Rennes[Affiliation]) OR (6118[Affiliation]) OR (UMR 6118[Affiliation]) OR (UMR-6118[Affiliation]) OR (UMR6118[Affiliation])"
+    },
 ]
 labos_df_rennes_global = pd.DataFrame(labos_list_rennes)
 

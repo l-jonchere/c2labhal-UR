@@ -26,8 +26,8 @@ labos_list_rennes = [
     },
     {"collection": "CREAAH", "scopus_id": "60105602", "openalex_id": "I4387153012", "openalex_raw":"UMR6566 OR \"UMR 6566\" OR \"CNRS 6566\" OR \"Centre de recherche en archéologie archéosciences histoire\" OR CReAAH OR \"Archaeology Archaeoscience and History\"", "pubmed_query": ""},
     {
-        "collection": "BIOSIT", "scopus_id": "60105514", "openalex_id": "I4210159878", "openalex_raw":"BIOSIT OR UMS3480 OR UMS3480 OR \"Structure Fédérative de Recherche en Biologie Santé\" OR \"Structure Fédérative de Recherche en Biologie-Santé\" OR \"UMS CNRS 3480\" OR \"Biology Health Innovation and Technology\" OR \"IFR 140\" OR ImPACcell OR H2P2 OR mric OR Protim",
-        "pubmed_query": "(3480[affiliation]) OR (biosit[affiliation]) OR (\"Biology Health Innovation and Technology\"[affiliation]) OR (\"Structure Fédérative de Recherche en Biologie Santé\"[affiliation]) OR (us018[affiliation]) OR (ImPACcell[affiliation])"
+        "collection": "BIOSIT", "scopus_id": "", "openalex_id": "", "openalex_raw":"ImPACcell OR H2P2 OR mric OR Protim OR FAIIA OR Prism",
+        "pubmed_query": "(FAIIA[affiliation]) OR (mric[affiliation]) OR (prism[affiliation]) OR (H2P2[affiliation]) OR (Protim[affiliation]) OR (ImPACcell[affiliation])"
     },
     {
         "collection": "BRM", "scopus_id": "60206583", "openalex_id": "I4387155446", "openalex_raw":"\"ARN bactériens et médecine\" OR \"Bacterial RNAs and Medicine\" OR \"ARN régulateurs bactériens et médecine\" OR \"Bacterial regulatory RNAs and Medicine\" OR U1230 OR UMR1230 OR U835 OR \"U 1230\" OR \"U 835\" OR \"UMR_S 1230\" OR \"UMR_S1230\" OR \"Bacterial RNAs Function Structure\" OR \"Fonction structure et inactivation\"",
@@ -107,7 +107,35 @@ labos_list_rennes = [
     },
     {
         "collection": "GR", "scopus_id": "60070475", "openalex_id": "i4210096833", "openalex_raw":"\"Géosciences Rennes\" OR \"Geosciences Rennes\" OR UMR6118 OR VIPS OR \"UMR 6118\" OR \"CNRS 6118\" OR UMR-6118",
-        "pubmed_query": "(Geosciences Rennes[Affiliation]) OR (6118[Affiliation]) OR (UMR 6118[Affiliation]) OR (UMR-6118[Affiliation]) OR (UMR6118[Affiliation])"
+        "pubmed_query": "(Geosciences Rennes[Affiliation]) OR (CNRS 6118[Affiliation]) OR (UMR 6118[Affiliation]) OR (UMR-6118[Affiliation]) OR (UMR6118[Affiliation])"
+    },
+    {
+        "collection": "IRISA", "scopus_id": "60027031", "openalex_id": "i2802519937", "openalex_raw":"\"Institut de Recherche en Informatique et Systèmes Aléatoires\" OR \"Institut de Recherche en Informatique et Systemes Aleatoires\" OR UMR6074 OR UMR-6074 OR \"UMR 6074\" OR \"CNRS 6074\" OR \" Institute for Research in IT and Random Systems\" OR IRISA",
+        "pubmed_query": "(Institut de Recherche en Informatique et Systèmes Aléatoires[Affiliation]) OR (Institute for Research in IT and Random Systems[Affiliation]) OR (IRISA[Affiliation]) OR (UMR6074[Affiliation]) OR (UMR 6074[Affiliation]) OR (UMR-6074[Affiliation]) OR (CNRS 6074[Affiliation])"
+    },
+    {
+        "collection": "CDA-PR", "scopus_id": "60105488", "openalex_id": "i4387152641", "openalex_raw":"\"Centre de droit des affaires\" OR \"UR 3195\" OR UR 3195 OR UR-3195 OR \"EA 3195\" OR \"EA-3195\" OR EA3195",
+        "pubmed_query": "(Centre de droit des affaires[Affiliation]) OR (UR 3195[Affiliation]) OR (UR3195[Affiliation]) OR (EA 3195[Affiliation]) OR (EA3195[Affiliation])"
+    },
+    {
+        "collection": "IGEPP", "scopus_id": "60105596", "openalex_id": "i4210141755", "openalex_raw":"\"Institut de Génétique Environnement et Protection des Plantes\" OR \"Institut de Genetique Environnement et Protection des Plantes\" OR IGEPP OR UMR1349 OR \"UMR 1349\" OR \"INRAE 1349\" OR UMR-1349",
+        "pubmed_query": "(IGEPP[Affiliation]) OR (Institut de Genetique Environnement et Protection des Plantes[Affiliation]) OR (UMR 1349[Affiliation]) OR (UMR1349[Affiliation]) OR (UMR-1349[Affiliation])"
+    },
+    {
+        "collection": "IDPSP", "scopus_id": "60105593", "openalex_id": "i4387154572", "openalex_raw":"\"Institut du droit public et de la science politique\" OR IDPSP OR UR4640 OR \"UR 4640\" OR \"EA 4640\" OR UR-4640 OR EA4640",
+        "pubmed_query": "(IDPSP[Affiliation]) OR (Institut du droit public et de la science politique[Affiliation]) OR (UR 4640[Affiliation]) OR (UR4640[Affiliation]) OR (UR-4640[Affiliation])"
+    },
+    {
+        "collection": "IODE", "scopus_id": "60105639", "openalex_id": "i4210128017", "openalex_raw":"\"Institut de l'Ouest : Droit et Europe\" OR \"Institut de l Ouest Droit et Europe\" OR (IODE AND Rennes) OR UMR6262 OR \"Western Institute of Law and Europe\" OR \"UMR 6262\" OR \"CNRS 6262\" OR UMR-6262",
+        "pubmed_query": "(Institut de l'Ouest : Droit et Europe[Affiliation]) OR (Western Institute of Law and Europe[Affiliation]) OR (UMR6262[Affiliation]) OR (UMR 6262[Affiliation]) OR (UMR-6262[Affiliation]) OR (UMR-6262[Affiliation] AND Rennes)"
+    },
+    {
+        "collection": "EMPENN-R", "scopus_id": "60206629", "openalex_id": "i4387152452", "openalex_raw":"Empenn OR \"U 1228\" OR (VISAGES AND Rennes) OR UMRS1228 OR \"UMRS 1228\" OR \"UMR_S 1228\" OR \"UMR 1228\" OR UMR1228 OR UMR-1228",
+        "pubmed_query": "(EMPENN[Affiliation]) OR (VISAGES[Affiliation] AND Rennes) OR (UMRS1228[Affiliation]) OR (UMRS 1228[Affiliation]) OR (UMR_S 1228[Affiliation]) OR (UMR1228[Affiliation]) OR (UMR 1228[Affiliation]) OR (UMR-1228[Affiliation])"
+    },
+    {
+        "collection": "IRMAR", "scopus_id": "60105640", "openalex_id": "i4210161663", "openalex_raw":"IRMAR OR \"Institut de recherche mathématique de Rennes\" OR UMR6625 OR \"Institut de recherche mathematique de Rennes\" OR \"Mathematics Research Institute of Rennes\" OR \"UMR 6625\" OR UMR-6625 OR \"CNRS 6625\"",
+        "pubmed_query": "(IRMAR[Affiliation]) OR (Institut de recherche mathématique de Rennes[Affiliation] AND Rennes) OR (Mathematics Research Institute of Rennes[Affiliation]) OR (UMR 6625[Affiliation]) OR (UMR6625[Affiliation]) OR (UMR-6625[Affiliation]) OR (CNRS 6625[Affiliation])"
     },
 ]
 labos_df_rennes_global = pd.DataFrame(labos_list_rennes)

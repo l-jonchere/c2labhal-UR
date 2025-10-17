@@ -31,7 +31,7 @@ labos_list_rennes = [
     },
     {
         "collection": "BRM", "scopus_id": "60206583", "openalex_id": "I4387155446", "openalex_raw":"\"ARN bactériens et médecine\" OR \"Bacterial RNAs and Medicine\" OR \"ARN régulateurs bactériens et médecine\" OR \"Bacterial regulatory RNAs and Medicine\" OR U1230 OR UMR1230 OR U835 OR \"U 1230\" OR \"U 835\" OR \"UMR_S 1230\" OR \"UMR_S1230\" OR \"Bacterial RNAs Function Structure\" OR \"Fonction structure et inactivation\"",
-        "pubmed_query": "(U835[affiliation]) OR (UMR_S1230[affiliation]) OR (UMR1230[affiliation]) OR (U1230[affiliation]) OR (\"ARN régulateurs bactériens et médecine\"[affiliation]) OR (\"Bacterial regulatory RNAs and Medicine\"[affiliation]) OR (Tattevin[Author])"
+        "pubmed_query": "(U835[affiliation]) OR (UMR_S1230[affiliation]) OR (UMR1230[affiliation]) OR (U1230[affiliation]) OR (\"ARN régulateurs bactériens et médecine\"[affiliation]) OR (\"Bacterial regulatory RNAs and Medicine\"[affiliation]) OR ((Tattevin[Author]) OR (Cattoir[Author]) OR (Revest[Author]) OR (Le Pabic[Author]) OR (Donnio[Author]) OR (Le Pabic[Author]) AND Rennes[affiliation])"
     },
     {
         "collection": "CIC", "scopus_id": "60105521", "openalex_id": "I4210116274", "openalex_raw":"\"CIC Rennes\" OR \"Unité dʼInvestigation Clinique de Rennes\" OR \"Centre dʼInvestigation Clinique de Rennes\" OR \"Rennes Clinical investigation\" OR CIC1414 OR CIC203 OR CIC0203 OR \"CIC 1414\" OR \"CIC 203\" OR \"CIC 0203\" OR \"CIC-INSERM 1414\"",

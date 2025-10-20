@@ -150,6 +150,7 @@ def add_sidebar_menu():
     Cette version est préconfigurée pour les laboratoires de l'Université de Rennes.
     Sélectionnez un laboratoire dans la liste pour lancer la comparaison de ses publications
     (Scopus, OpenAlex, PubMed) avec sa collection HAL. c2LabHAL est une application créée par Guillaume Godet (Nantes Univ)
+    st.sidebar.markdown("Contact : Laurent Jonchère (Univ Rennes)")
     """
 )
     st.sidebar.markdown("---")

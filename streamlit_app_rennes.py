@@ -152,7 +152,7 @@ def add_sidebar_menu():
     (Scopus, OpenAlex, PubMed) avec sa collection HAL. c2LabHAL est une application créée par Guillaume Godet (Nantes Univ)
     """
 )
-    st.sidebar.markdown("Contact : Laurent Jonchère (Univ Rennes)")
+    st.sidebar.markdown("✉️ [Contact : Laurent Jonchère (Univ Rennes)](https://scienceouverte.univ-rennes.fr/interlocuteurs/laurent-jonchere)")
     st.sidebar.markdown("---")
 
     st.sidebar.header("Autres applications c2LabHAL")

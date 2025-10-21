@@ -10,6 +10,7 @@ from difflib import get_close_matches
 from langdetect import detect # Bien que non utilisé directement, gardé si une fonction importée en dépend
 from tqdm import tqdm 
 from concurrent.futures import ThreadPoolExecutor
+import time
 
 tqdm.pandas()
 

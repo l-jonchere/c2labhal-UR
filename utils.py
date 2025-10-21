@@ -164,8 +164,17 @@ def get_pubmed_data(query, max_items=1000):
                     'Source title': article.journal if article.journal else "N/A", 
                     'Date': pub_date_str
                 })
+                time.sleep(0.3)
             except Exception as e_article:
-                st.warning(f"Erreur lors de la récupération des détails pour l'article PubMed (PMID: {pmid}): {e_article}")
+                err_msg = str(e_article).lower()
+                # 🔸 Si PubMed renvoie un message de surcharge (ajouté par Laurent)
+                if "too many requests" in err_msg or "429" in err_msg:
+                    st.warning("⚠️ Trop de requêtes PubMed détectées. Pause de 5 secondes...")
+                    time.sleep(5)
+                # 🔸 Autres erreurs : on ralentit un peu (ajouté par Laurent)
+                else:
+                    st.warning(f"Erreur lors de la récupération des détails pour l'article PubMed (PMID: {pmid}): {e_article}")
+                    time.sleep(0.5)
                 data.append({
                     'Data source': 'pubmed', 'Title': "Erreur de récupération", 'doi': None,
                     'id': pmid, 'Source title': "N/A", 'Date': "N/A"

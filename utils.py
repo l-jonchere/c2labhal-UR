@@ -164,6 +164,7 @@ def get_pubmed_data(query, max_items=1000):
                     'Source title': article.journal if article.journal else "N/A", 
                     'Date': pub_date_str
                 })
+                # Attendre 0.3 secondes (~3 requêtes/seconde max mais plus avec une clé API)
                 time.sleep(0.3)
             except Exception as e_article:
                 err_msg = str(e_article).lower()

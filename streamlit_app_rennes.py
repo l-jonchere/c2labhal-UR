@@ -473,7 +473,7 @@ def main():
             zip_buffer = generate_zip_from_xmls(publications_list)
 
             st.download_button(
-                label="📦 Télécharger les XML HAL (ZIP)",
+                label="📦 Télécharger les XML HAL (ZIP) - expérimental",
                 data=zip_buffer,
                 file_name=f"hal_exports_{collection_a_chercher_rennes}.zip",
                 mime="application/zip"

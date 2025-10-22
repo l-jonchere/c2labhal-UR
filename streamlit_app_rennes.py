@@ -16,6 +16,7 @@ from utils import (
 
 # Importer les fonctions d'export XML
 from hal_xml_export import generate_zip_from_xmls
+from utils import extract_authors_from_openalex_json
 
 # --- Définition de la liste des laboratoires (spécifique à cette application) ---
 labos_list_rennes = [
@@ -469,15 +470,45 @@ def main():
                 }
                 publications_list.append((f"pub_{i+1}", publication))
 
-            # Générer le ZIP des fichiers XML HAL
-            zip_buffer = generate_zip_from_xmls(publications_list)
+# --- Bloc export XML HAL ---
 
-            st.download_button(
-                label="📦 Télécharger les XML HAL (ZIP) - expérimental",
-                data=zip_buffer,
-                file_name=f"hal_exports_{collection_a_chercher_rennes}.zip",
-                mime="application/zip"
-            )
+if st.button("📦 Télécharger les XML HAL (ZIP) - expérimental"):
+    publications_list = []
+
+    for _, row in result_df_rennes.iterrows():
+        if row["Statut_HAL"] in ["Hors HAL", "Titre incorrect, probablement absent de HAL"]:
+            doi_value = str(row.get("doi", "")).strip()
+            if not doi_value:
+                continue
+
+            try:
+                openalex_data = get_openalex_data(doi_value)
+                authors = extract_authors_from_openalex_json(openalex_data)
+            except Exception as e:
+                st.warning(f"Erreur récupération OpenAlex pour DOI {doi_value}: {e}")
+                authors = []
+
+            pub_data = {
+                "Title": row.get("Title", ""),
+                "doi": doi_value,
+                "publisher": openalex_data.get("host_venue", {}).get("publisher", "") if openalex_data else "",
+                "Source title": openalex_data.get("host_venue", {}).get("display_name", "") if openalex_data else "",
+                "Date": openalex_data.get("publication_year", "") if openalex_data else "",
+                "authors": authors
+            }
+
+            publications_list.append(pub_data)
+
+    if not publications_list:
+        st.info("Aucune publication 'Hors HAL' à exporter en XML.")
+    else:
+        zip_buffer = generate_zip_from_xmls(publications_list)
+        st.download_button(
+            label="⬇️ Télécharger le ZIP HAL",
+            data=zip_buffer,
+            file_name=f"hal_exports_{collection_a_chercher_rennes}.zip",
+            mime="application/zip"
+        )
         else:
             st.info("✅ Toutes les publications sont déjà référencées dans HAL.")
 

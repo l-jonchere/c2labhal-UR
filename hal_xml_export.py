@@ -12,6 +12,10 @@ def sanitize_value(val):
     return str(val)
 
 def generate_hal_xml(publication):
+    # 🔒 Nettoyage des valeurs NaN / None
+    for k, v in publication.items():
+        if v is None or (isinstance(v, float) and pd.isna(v)):
+            publication[k] = ""
     # Nettoyage global
     publication = {k: sanitize_value(v) for k, v in publication.items()}
     """

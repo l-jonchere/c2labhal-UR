@@ -14,6 +14,9 @@ from utils import (
 )
 # Les constantes comme HAL_API_ENDPOINT sont utilisées par les fonctions dans utils.py
 
+# Importer les fonctions d'export XML
+from hal_xml_export import generate_zip_from_xmls
+
 # --- Définition de la liste des laboratoires (spécifique à cette application) ---
 labos_list_rennes = [
     {
@@ -443,6 +446,42 @@ def main():
         
         st.dataframe(result_df_rennes)
 
+        # --- Export XML HAL pour les publications absentes de HAL ---
+        # (nécessite hal_xml_export.py dans le même dossier)
+        from hal_xml_export import generate_zip_from_xmls
+
+        # Filtrer les publications non présentes dans HAL
+        not_in_hal_df = result_df_rennes[result_df_rennes["Statut_HAL"].isin(["Hors HAL", "Pas de DOI valide"])]
+
+        if not not_in_hal_df.empty:
+            publications_list = []
+            for i, row in not_in_hal_df.iterrows():
+                publication = {
+                    "Title": row.get("Title", ""),
+                    "doi": row.get("doi", ""),
+                    "Date": row.get("Date", ""),
+                    "Source title": row.get("Source title", ""),
+                    "publisher": row.get("publisher", ""),
+                    "authors": row.get("authors", []),
+                    "raw_affiliations": row.get("raw_affiliations", []),
+                    "keywords": row.get("keywords", []),
+                    "abstract": row.get("abstract", "")
+                }
+                publications_list.append((f"pub_{i+1}", publication))
+
+            # Générer le ZIP des fichiers XML HAL
+            zip_buffer = generate_zip_from_xmls(publications_list)
+
+            st.download_button(
+                label="📦 Télécharger les XML HAL (ZIP)",
+                data=zip_buffer,
+                file_name=f"hal_exports_{collection_a_chercher_rennes}.zip",
+                mime="application/zip"
+            )
+        else:
+            st.info("✅ Toutes les publications sont déjà référencées dans HAL.")
+
+        # --- Export CSV classique ---
         if not result_df_rennes.empty:
             csv_export_rennes_data = result_df_rennes.to_csv(index=False, encoding='utf-8-sig')
             output_filename_rennes_final = f"c2LabHAL_resultats_{collection_a_chercher_rennes.replace(' ', '_')}_{start_year_rennes}-{end_year_rennes}.csv"
@@ -453,8 +492,10 @@ def main():
                 mime="text/csv",
                 key=f"download_rennes_{collection_a_chercher_rennes}"
             )
-        progress_bar_rennes.progress(100) # Corrigé
-        progress_text_area_rennes.success(f"🎉 Traitement pour {collection_a_chercher_rennes} terminé avec succès !") # Corrigé
+
+        progress_bar_rennes.progress(100)
+        progress_text_area_rennes.success(f"🎉 Traitement pour {collection_a_chercher_rennes} terminé avec succès !")
 
 if __name__ == "__main__":
     main()
+

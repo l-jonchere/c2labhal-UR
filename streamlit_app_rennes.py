@@ -483,10 +483,10 @@ def main():
 
                 try:
                      openalex_data = get_openalex_data(doi_value)
-                    authors = extract_authors_from_openalex_json(openalex_data)
+                     authors = extract_authors_from_openalex_json(openalex_data)
                 except Exception as e:
-                    st.warning(f"Erreur récupération OpenAlex pour DOI {doi_value}: {e}")
-                    authors = []
+                     st.warning(f"Erreur récupération OpenAlex pour DOI {doi_value}: {e}")
+                     authors = []
 
                 pub_data = {
                     "Title": row.get("Title", ""),

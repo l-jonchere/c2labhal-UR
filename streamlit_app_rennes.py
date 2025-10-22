@@ -470,34 +470,34 @@ def main():
                 }
                 publications_list.append((f"pub_{i+1}", publication))
 
-# --- Bloc export XML HAL ---
+    # --- Bloc export XML HAL ---
 
-if st.button("📦 Télécharger les XML HAL (ZIP) - expérimental"):
-    publications_list = []
+    if st.button("📦 Télécharger les XML HAL (ZIP) - expérimental"):
+        publications_list = []
 
-    for _, row in result_df_rennes.iterrows():
-        if row["Statut_HAL"] in ["Hors HAL", "Titre incorrect, probablement absent de HAL"]:
-            doi_value = str(row.get("doi", "")).strip()
-            if not doi_value:
-                continue
+        for _, row in result_df_rennes.iterrows():
+            if row["Statut_HAL"] in ["Hors HAL", "Titre incorrect, probablement absent de HAL"]:
+                doi_value = str(row.get("doi", "")).strip()
+                if not doi_value:
+                    continue
 
-            try:
-                openalex_data = get_openalex_data(doi_value)
-                authors = extract_authors_from_openalex_json(openalex_data)
-            except Exception as e:
-                st.warning(f"Erreur récupération OpenAlex pour DOI {doi_value}: {e}")
-                authors = []
+                try:
+                     openalex_data = get_openalex_data(doi_value)
+                    authors = extract_authors_from_openalex_json(openalex_data)
+                except Exception as e:
+                    st.warning(f"Erreur récupération OpenAlex pour DOI {doi_value}: {e}")
+                    authors = []
 
-            pub_data = {
-                "Title": row.get("Title", ""),
-                "doi": doi_value,
-                "publisher": openalex_data.get("host_venue", {}).get("publisher", "") if openalex_data else "",
-                "Source title": openalex_data.get("host_venue", {}).get("display_name", "") if openalex_data else "",
-                "Date": openalex_data.get("publication_year", "") if openalex_data else "",
-                "authors": authors
-            }
+                pub_data = {
+                    "Title": row.get("Title", ""),
+                    "doi": doi_value,
+                    "publisher": openalex_data.get("host_venue", {}).get("publisher", "") if openalex_data else "",
+                    "Source title": openalex_data.get("host_venue", {}).get("display_name", "") if openalex_data else "",
+                    "Date": openalex_data.get("publication_year", "") if openalex_data else "",
+                    "authors": authors
+                }
 
-            publications_list.append(pub_data)
+                publications_list.append(pub_data)
 
     if not publications_list:
         st.info("Aucune publication 'Hors HAL' à exporter en XML.")

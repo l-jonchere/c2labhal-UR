@@ -111,3 +111,16 @@ def generate_hal_xml(publication):
     # --- Sérialisation propre ---
     xml_bytes = ET.tostring(TEI, encoding="utf-8", xml_declaration=True)
     return xml_bytes
+    
+def generate_zip_from_xmls(publications_list):
+    """
+    Crée un fichier ZIP contenant un XML HAL-TEI par publication.
+    publications_list : liste de tuples (id_pub, dict_publication)
+    """
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for pub_id, pub_data in publications_list:
+            xml_bytes = generate_hal_xml(pub_data)
+            zf.writestr(f"{pub_id}.xml", xml_bytes)
+    zip_buffer.seek(0)
+    return zip_buffer

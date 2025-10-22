@@ -129,3 +129,85 @@ def generate_zip_from_xmls(publications_list):
             zf.writestr(f"{pub_id}.xml", xml_bytes)
     zip_buffer.seek(0)
     return zip_buffer
+
+def generate_hal_xml(pub_data):
+    """Crée un fichier XML HAL à partir des métadonnées d'une publication."""
+    TEI = ET.Element("TEI", {
+        "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "xmlns": "http://www.tei-c.org/ns/1.0",
+        "xmlns:hal": "http://hal.archives-ouvertes.fr/",
+        "xsi:schemaLocation": "http://www.tei-c.org/ns/1.0 http://api.archives-ouvertes.fr/documents/aofr-sword.xsd"
+    })
+    text = ET.SubElement(TEI, "text")
+    body = ET.SubElement(text, "body")
+    listBibl = ET.SubElement(body, "listBibl")
+    biblFull = ET.SubElement(listBibl, "biblFull")
+
+    sourceDesc = ET.SubElement(biblFull, "sourceDesc")
+    biblStruct = ET.SubElement(sourceDesc, "biblStruct")
+    analytic = ET.SubElement(biblStruct, "analytic")
+
+    # Titre
+    ET.SubElement(analytic, "title", {"xml:lang": "en"}).text = pub_data.get("Title", "")
+
+    # Auteurs
+    authors = pub_data.get("authors", [])
+    for a in authors:
+        author = ET.SubElement(analytic, "author", {"role": "aut"})
+        persName = ET.SubElement(author, "persName")
+
+        if a.get("raw_author_name"):
+            parts = a["raw_author_name"].split()
+            if len(parts) > 1:
+                ET.SubElement(persName, "forename", {"type": "first"}).text = parts[0]
+                ET.SubElement(persName, "surname").text = " ".join(parts[1:])
+            else:
+                ET.SubElement(persName, "surname").text = a["raw_author_name"]
+
+        if a.get("orcid"):
+            ET.SubElement(author, "idno", {"type": "ORCID"}).text = a["orcid"]
+
+        for raw_aff in a.get("raw_affiliations", []):
+            if pd.notna(raw_aff):
+                ET.SubElement(author, "rawAffs").text = str(raw_aff)
+
+        for ror_aff in a.get("ror_affiliations", []):
+            aff_el = ET.SubElement(author, "affiliation", {"ref": f"#{ror_aff['ror'].split('/')[-1]}"})
+
+    # Journal / monographie
+    monogr = ET.SubElement(biblStruct, "monogr")
+    ET.SubElement(monogr, "title", {"level": "j"}).text = pub_data.get("Source title", "")
+    imprint = ET.SubElement(monogr, "imprint")
+    ET.SubElement(imprint, "publisher").text = pub_data.get("publisher", "")
+    ET.SubElement(imprint, "date", {"type": "datePub"}).text = pub_data.get("Date", "")
+
+    if pub_data.get("doi"):
+        ET.SubElement(biblStruct, "idno", {"type": "doi"}).text = pub_data["doi"]
+
+    # Ajout des structures (affiliations ROR)
+    back = ET.SubElement(text, "back")
+    listOrg = ET.SubElement(back, "listOrg", {"type": "structures"})
+    seen_rors = set()
+    for a in authors:
+        for ror_aff in a.get("ror_affiliations", []):
+            ror_url = ror_aff["ror"]
+            if ror_url and ror_url not in seen_rors:
+                org = ET.SubElement(listOrg, "org", {"type": "institution", "xml:id": ror_url.split('/')[-1]})
+                ET.SubElement(org, "idno", {"type": "ROR"}).text = ror_url
+                ET.SubElement(org, "orgName").text = ror_aff.get("org_name", "")
+                seen_rors.add(ror_url)
+
+    xml_bytes = ET.tostring(TEI, encoding="utf-8", xml_declaration=True)
+    return xml_bytes
+
+
+def generate_zip_from_xmls(publications_list):
+    """Génère une archive ZIP contenant les fichiers XML HAL."""
+    buffer = BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for i, pub in enumerate(publications_list, start=1):
+            xml_data = generate_hal_xml(pub)
+            filename = f"hal_export_{i}.xml"
+            zipf.writestr(filename, xml_data)
+    buffer.seek(0)
+    return buffer

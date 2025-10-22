@@ -509,23 +509,23 @@ if st.button("📦 Télécharger les XML HAL (ZIP) - expérimental"):
             file_name=f"hal_exports_{collection_a_chercher_rennes}.zip",
             mime="application/zip"
         )
-        else:
-            st.info("✅ Toutes les publications sont déjà référencées dans HAL.")
+    else:
+        st.info("✅ Toutes les publications sont déjà référencées dans HAL.")
 
-        # --- Export CSV classique ---
-        if not result_df_rennes.empty:
-            csv_export_rennes_data = result_df_rennes.to_csv(index=False, encoding='utf-8-sig')
-            output_filename_rennes_final = f"c2LabHAL_resultats_{collection_a_chercher_rennes.replace(' ', '_')}_{start_year_rennes}-{end_year_rennes}.csv"
-            st.download_button(
-                label=f"📥 Télécharger les résultats pour {collection_a_chercher_rennes}",
-                data=csv_export_rennes_data,
-                file_name=output_filename_rennes_final,
-                mime="text/csv",
-                key=f"download_rennes_{collection_a_chercher_rennes}"
-            )
+    # --- Export CSV classique ---
+    if not result_df_rennes.empty:
+        csv_export_rennes_data = result_df_rennes.to_csv(index=False, encoding='utf-8-sig')
+        output_filename_rennes_final = f"c2LabHAL_resultats_{collection_a_chercher_rennes.replace(' ', '_')}_{start_year_rennes}-{end_year_rennes}.csv"
+        st.download_button(
+            label=f"📥 Télécharger les résultats pour {collection_a_chercher_rennes}",
+            data=csv_export_rennes_data,
+            file_name=output_filename_rennes_final,
+            mime="text/csv",
+            key=f"download_rennes_{collection_a_chercher_rennes}"
+        )
 
-        progress_bar_rennes.progress(100)
-        progress_text_area_rennes.success(f"🎉 Traitement pour {collection_a_chercher_rennes} terminé avec succès !")
+    progress_bar_rennes.progress(100)
+    progress_text_area_rennes.success(f"🎉 Traitement pour {collection_a_chercher_rennes} terminé avec succès !")
 
 if __name__ == "__main__":
     main()

@@ -3,21 +3,11 @@ import io
 import zipfile
 import pandas as pd
 
-def sanitize_value(val):
-    """Convertit NaN, None, listes vides, etc. en chaînes sûres pour XML."""
-    if pd.isna(val) or val is None:
-        return ""
-    if isinstance(val, list):
-        return "; ".join(str(v) for v in val if pd.notna(v))
-    return str(val)
-
 def generate_hal_xml(publication):
     # 🔒 Nettoyage des valeurs NaN / None
     for k, v in publication.items():
         if v is None or (isinstance(v, float) and pd.isna(v)):
             publication[k] = ""
-    # Nettoyage global
-    publication = {k: sanitize_value(v) for k, v in publication.items()}
     """
     Génère un fichier XML HAL-TEI pour une publication donnée.
     publication : dict avec au moins :

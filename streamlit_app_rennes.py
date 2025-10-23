@@ -10,7 +10,7 @@ from utils import (
     get_scopus_data, get_openalex_data, get_pubmed_data, convert_to_dataframe,
     clean_doi, HalCollImporter, merge_rows_with_sources, get_authors_from_crossref,
     check_df, enrich_w_upw_parallel, add_permissions_parallel, deduce_todo,
-    normalise, normalize_name, extract_authors_from_openalex_json, get_initial_form # normalise est utilisé par HalCollImporter et check_df
+    normalise, normalize_name, get_initial_form # normalise est utilisé par HalCollImporter et check_df
 )
 # Les constantes comme HAL_API_ENDPOINT sont utilisées par les fonctions dans utils.py
 
@@ -447,70 +447,41 @@ def main():
         st.dataframe(result_df_rennes)
 
         # --- Export XML HAL pour les publications absentes de HAL ---
-        # Import local pour éviter problèmes d'import circulaire (ou place en tête du fichier)
+        # (nécessite hal_xml_export.py dans le même dossier)
         from hal_xml_export import generate_zip_from_xmls
-        from utils import extract_authors_from_openalex_json, get_openalex_data
 
-        # Bouton pour déclencher l'export (récupération OpenAlex + génération XML + ZIP)
-        if st.button("📦 Télécharger les XML HAL (ZIP) - expérimental"):
+        # Filtrer les publications non présentes dans HAL
+        not_in_hal_df = result_df_rennes[result_df_rennes["Statut_HAL"].isin(["Hors HAL", "Pas de DOI valide"])]
+
+        if not not_in_hal_df.empty:
             publications_list = []
-
-            # Parcours du DataFrame et construction des métadonnées pour l'export
-            for _, row in result_df_rennes.iterrows():
-                statut = str(row.get("Statut_HAL", "")).strip()
-                # Adapter la condition si tu veux inclure d'autres statuts
-                if statut not in ["Hors HAL", "Pas de DOI valide", "Titre incorrect, probablement absent de HAL"]:
-                    continue
-
-                doi_value = str(row.get("doi", "") or "").strip()
-                # Si pas de DOI, on passe (tu peux adapter pour générer sans DOI si besoin)
-                if not doi_value:
-                    continue
-
-                # Récupération OpenAlex (si échec on continue proprement)
-                openalex_data = {}
-                try:
-                    openalex_data = get_openalex_data(doi_value) or {}
-                except Exception as e_openalex:
-                    st.warning(f"Erreur OpenAlex pour DOI {doi_value}: {e_openalex}")
-                    openalex_data = {}
-
-                # Extraction des auteurs/affiliations depuis OpenAlex (si dispo)
-                authors = []
-                try:
-                    if openalex_data:
-                        authors = extract_authors_from_openalex_json(openalex_data)
-                except Exception as e_extract:
-                    st.warning(f"Erreur extraction auteurs OpenAlex pour DOI {doi_value}: {e_extract}")
-                    authors = []
-
-                # Construction du dictionnaire attendu par generate_hal_xml()
-                pub_data = {
-                    "Title": row.get("Title", "") or (openalex_data.get("title") if isinstance(openalex_data, dict) else ""),
-                    "doi": doi_value,
-                    "publisher": (openalex_data.get("host_venue", {}) or {}).get("publisher", "") if isinstance(openalex_data, dict) else "",
-                    "Source title": (openalex_data.get("host_venue", {}) or {}).get("display_name", "") if isinstance(openalex_data, dict) else "",
-                    "Date": openalex_data.get("publication_year", "") if isinstance(openalex_data, dict) else row.get("Date", ""),
-                    "authors": authors,
-                    # Tu peux ajouter d'autres champs si tu veux (keywords, abstract, raw_affiliations globales...)
+            for i, row in not_in_hal_df.iterrows():
+                publication = {
+                    "Title": row.get("Title", ""),
+                    "doi": row.get("doi", ""),
+                    "Date": row.get("Date", ""),
+                    "Source title": row.get("Source title", ""),
+                    "publisher": row.get("publisher", ""),
+                    "authors": row.get("authors", []),
+                    "raw_affiliations": row.get("raw_affiliations", []),
+                    "keywords": row.get("keywords", []),
+                    "abstract": row.get("abstract", "")
                 }
+                publications_list.append((f"pub_{i+1}", publication))
 
-                publications_list.append(pub_data)
+            # Générer le ZIP des fichiers XML HAL
+            zip_buffer = generate_zip_from_xmls(publications_list)
 
-            # Si rien à exporter, informer l'utilisateur
-            if not publications_list:
-                st.info("Aucune publication 'Hors HAL' (avec DOI) trouvée à exporter en XML.")
-            else:
-                # Génération du ZIP contenant tous les XML
-                zip_buffer = generate_zip_from_xmls(publications_list)
-                st.download_button(
-                    label=f"⬇️ Télécharger les XML HAL (ZIP) - {len(publications_list)} fichiers",
-                    data=zip_buffer,
-                    file_name=f"hal_exports_{collection_a_chercher_rennes.replace(' ','_')}.zip",
-                    mime="application/zip"
-                )
+            st.download_button(
+                label="📦 Télécharger les XML HAL (ZIP) - expérimental",
+                data=zip_buffer,
+                file_name=f"hal_exports_{collection_a_chercher_rennes}.zip",
+                mime="application/zip"
+            )
+        else:
+            st.info("✅ Toutes les publications sont déjà référencées dans HAL.")
 
-        # --- Export CSV classique (inchangé) ---
+        # --- Export CSV classique ---
         if not result_df_rennes.empty:
             csv_export_rennes_data = result_df_rennes.to_csv(index=False, encoding='utf-8-sig')
             output_filename_rennes_final = f"c2LabHAL_resultats_{collection_a_chercher_rennes.replace(' ', '_')}_{start_year_rennes}-{end_year_rennes}.csv"
@@ -525,7 +496,6 @@ def main():
         progress_bar_rennes.progress(100)
         progress_text_area_rennes.success(f"🎉 Traitement pour {collection_a_chercher_rennes} terminé avec succès !")
 
-        
 if __name__ == "__main__":
     main()
 
